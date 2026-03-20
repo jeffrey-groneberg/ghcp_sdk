@@ -229,6 +229,104 @@
   </div>
 </section>
 
+<!-- ============ SLIDE 7b: Built-in Tools ============ -->
+<section>
+  <h2>Built-in Tools</h2>
+  <p>First-party tools available to every session — all enabled by default</p>
+  <div class="grid grid-3" style="margin-top:10px;">
+    <div class="card" style="border-left: 3px solid var(--gh-blue);">
+      <h3>📖 File System — Reading</h3>
+      <ul>
+        <li><code>read_file</code> — Read file contents</li>
+        <li><code>view</code> — View file or directory</li>
+        <li><code>glob</code> — Find files by name pattern</li>
+        <li><code>grep</code> — Search contents (ripgrep)</li>
+        <li><code>list_dir</code> — List directory contents</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--gh-green);">
+      <h3>✏️ File System — Writing</h3>
+      <ul>
+        <li><code>edit</code> — Targeted edits to existing files</li>
+        <li><code>create</code> — Create new files</li>
+        <li><code>write_file</code> — Write / overwrite files</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--gh-orange);">
+      <h3>⚡ Shell, Web & Agent</h3>
+      <ul>
+        <li><code>bash</code> / <code>shell</code> — Execute commands</li>
+        <li><code>web_fetch</code> — Fetch content from URLs</li>
+        <li><code>task</code> — Delegate to sub-agents</li>
+        <li><code>ask_user</code> — Ask the user a question</li>
+        <li><code>store_memory</code> — Persist facts</li>
+      </ul>
+    </div>
+  </div>
+  <p class="muted" style="text-align:center; margin-top:10px;">Plus: MCP server tools (e.g. GitHub MCP) and your custom tools via <code>@define_tool</code></p>
+  <aside class="notes">
+    These are the first-party tools the Copilot CLI agent runtime provides. By default, ALL are enabled (equivalent to --allow-all).
+    Five categories: File Reading (read_file, view, glob, grep, list_dir), File Writing (edit, create, write_file), Shell (bash/shell), Web (web_fetch), Agent Infrastructure (task, ask_user, store_memory).
+    Source: https://github.com/github/copilot-sdk/blob/main/README.md#what-tools-are-enabled-by-default
+  </aside>
+</section>
+
+<!-- ============ SLIDE 7c: Controlling Tool Access ============ -->
+<section>
+  <h2>Controlling Tool Access</h2>
+  <p>Three ways to restrict what the agent can do</p>
+  <div class="grid grid-3" style="margin-top:10px;">
+    <div class="card" style="border-top: 3px solid var(--gh-blue);">
+      <h3>1. Session Config</h3>
+      <p>Whitelist or blacklist at creation</p>
+      <pre><code class="language-python">session = await client.create_session(
+  available_tools=[
+    "grep", "glob", "view"
+  ],
+  # OR
+  excluded_tools=[
+    "bash", "shell"
+  ],
+)</code></pre>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--gh-green);">
+      <h3>2. onPreToolUse Hook</h3>
+      <p>Dynamic per-call decisions</p>
+      <pre><code class="language-python">ALLOWED = [
+  "read_file", "glob",
+  "grep", "view"
+]
+
+async def on_pre_tool_use(inp, inv):
+  if inp["toolName"] not in ALLOWED:
+    return {
+      "permissionDecision": "deny"
+    }
+  return {
+    "permissionDecision": "allow"
+  }</code></pre>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--gh-orange);">
+      <h3>3. Override Built-ins</h3>
+      <p>Replace with your own (v0.1.30+)</p>
+      <pre><code class="language-python">@define_tool(
+  description="Custom grep",
+  overrides_built_in_tool=True,
+)
+async def grep(params):
+  # Your custom implementation
+  return custom_search(
+    params.query
+  )</code></pre>
+    </div>
+  </div>
+  <aside class="notes">
+    Three approaches: Session Config (available_tools whitelist / excluded_tools blacklist), onPreToolUse Hook (dynamic per-call), Override Built-ins (replace with your own implementation since v0.1.30).
+    Source: https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md
+    Source: https://github.com/github/copilot-sdk/releases/tag/v0.1.30
+  </aside>
+</section>
+
 <!-- ============ SLIDE 8: Custom Tools ============ -->
 <section>
   <h2>Custom Tools</h2>
