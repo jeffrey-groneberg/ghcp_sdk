@@ -1,0 +1,2 @@
+github-copilot-sdk>=0.1.30
+pydantic>=2.0

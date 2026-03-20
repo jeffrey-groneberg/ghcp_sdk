@@ -1,0 +1,17 @@
+[project]
+name = "ghcp-sdk-examples"
+version = "0.1.0"
+description = "Example scripts demonstrating the GitHub Copilot SDK for Python"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "github-copilot-sdk>=0.1.30",
+    "pydantic>=2.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+warn_unused_configs = true
+ignore_missing_imports = true

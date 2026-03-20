@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Copilot SDK — Agents for Every App</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <style>
+    :root {
+      --gh-blue: #58a6ff;
+      --gh-green: #3fb950;
+      --gh-purple: #bc8cff;
+      --gh-orange: #f0883e;
+      --gh-red: #f85149;
+      --gh-bg: #0d1117;
+      --gh-surface: #161b22;
+      --gh-border: #30363d;
+      --gh-text: #e6edf3;
+      --gh-muted: #8b949e;
+    }
+    .reveal { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--gh-text); }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { padding: 20px 50px; }
+    .reveal h1, .reveal h2, .reveal h3 { color: var(--gh-blue); font-weight: 700; text-align: left; }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.4em; border-bottom: 2px solid var(--gh-border); padding-bottom: 8px; margin-bottom: 14px; }
+    .reveal h3 { font-size: 1em; color: var(--gh-purple); }
+    .reveal p, .reveal li { font-size: 0.65em; line-height: 1.5; }
+    .reveal ul { list-style: none; padding-left: 0; }
+    .reveal ul li::before { content: "▸ "; color: var(--gh-green); font-weight: bold; }
+    .reveal code { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 6px; padding: 2px 6px; font-size: 0.85em; }
+    .reveal pre { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); margin: 8px 0; }
+    .reveal pre code { background: none; border: none; padding: 0; font-size: 0.5em; line-height: 1.4; }
+    .reveal table { font-size: 0.6em; border-collapse: collapse; width: 100%; margin: 10px 0; }
+    .reveal table th { background: var(--gh-surface); color: var(--gh-blue); padding: 6px 12px; text-align: left; border-bottom: 2px solid var(--gh-border); }
+    .reveal table td { padding: 5px 12px; border-bottom: 1px solid var(--gh-border); }
+    .badge { display: inline-block; background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 20px; padding: 4px 14px; font-size: 0.65em; margin: 4px; }
+    .badge-blue { border-color: var(--gh-blue); color: var(--gh-blue); }
+    .badge-green { border-color: var(--gh-green); color: var(--gh-green); }
+    .badge-purple { border-color: var(--gh-purple); color: var(--gh-purple); }
+    .badge-orange { border-color: var(--gh-orange); color: var(--gh-orange); }
+    .grid { display: grid; gap: 10px; margin-top: 12px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .card { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 8px; padding: 12px 14px; }
+    .card h3 { margin-top: 0; margin-bottom: 4px; font-size: 0.85em; }
+    .card p { font-size: 0.55em; color: var(--gh-muted); margin: 0; }
+    .highlight-box { background: linear-gradient(135deg, rgba(88,166,255,0.1), rgba(188,140,255,0.1)); border: 1px solid var(--gh-blue); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
+    .accent { color: var(--gh-green); font-weight: bold; }
+    .muted { color: var(--gh-muted); font-size: 0.6em; }
+    .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .flow-arrow { color: var(--gh-blue); font-size: 1.2em; }
+    .flow-box { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 6px; padding: 6px 12px; font-size: 0.6em; }
+    .title-slide h1 { font-size: 2.8em; text-align: center; margin-bottom: 8px; background: linear-gradient(135deg, var(--gh-blue), var(--gh-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .title-slide p { text-align: center; font-size: 0.85em; color: var(--gh-muted); }
+    .title-slide .badges { text-align: center; margin-top: 16px; }
+    .section-label { font-size: 0.55em; text-transform: uppercase; letter-spacing: 2px; color: var(--gh-muted); margin-bottom: 2px; }
+    .reveal .slide-number { font-size: 14px; color: var(--gh-muted); }
+    .card ul { margin: 4px 0 0 0; padding: 0; }
+    .card ul li { font-size: 0.55em; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============ SLIDE 1: Title ============ -->
+<section class="title-slide">
+  <p class="section-label">Technical Preview</p>
+  <h1>GitHub Copilot SDK</h1>
+  <p>Agents for Every App</p>
+  <p style="font-size:0.8em; color:var(--gh-text);">Embed Copilot's agentic workflows in your application</p>
+  <div class="badges">
+    <span class="badge badge-blue">TypeScript</span>
+    <span class="badge badge-green">Python</span>
+    <span class="badge badge-purple">Go</span>
+    <span class="badge badge-orange">.NET</span>
+    <span class="badge badge-blue">Java</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2: What is the SDK? ============ -->
+<section>
+  <h2>What is the GitHub Copilot SDK?</h2>
+  <p>The same engine behind Copilot CLI — a production-tested agent runtime you can invoke programmatically.</p>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🏗️ Production-Tested</h3>
+      <p>Same runtime behind Copilot CLI, battle-tested at scale</p>
+    </div>
+    <div class="card">
+      <h3>🌐 Multi-Language</h3>
+      <p>TypeScript, Python, Go, .NET, and Java SDKs available</p>
+    </div>
+    <div class="card">
+      <h3>🔧 Extensible</h3>
+      <p>Custom tools, agents, MCP servers, hooks, and skills</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3: Architecture ============ -->
+<section>
+  <h2>Architecture</h2>
+  <div class="flow">
+    <div class="flow-box"><strong>Your Application</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box"><strong>SDK Client</strong><br><span class="muted">TS / Python / Go / .NET / Java</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box"><strong>Copilot CLI</strong><br><span class="muted">JSON-RPC (stdio / TCP)</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box"><strong>Model Provider</strong><br><span class="muted">GitHub · OpenAI · Azure · Anthropic · Local</span></div>
+  </div>
+  <div class="grid grid-3" style="margin-top:14px;">
+    <div class="card"><p>⚡ Auto-managed or external CLI</p></div>
+    <div class="card"><p>💾 Session persistence</p></div>
+    <div class="card"><p>👥 Multi-client support (v3)</p></div>
+    <div class="card"><p>📡 40+ streaming event types</p></div>
+    <div class="card"><p>📈 Horizontal scaling</p></div>
+    <div class="card"><p>🔍 OpenTelemetry tracing</p></div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4: SDK ↔ CLI Communication ============ -->
+<section>
+  <h2>How the SDK Talks to the CLI</h2>
+  <p>All SDKs communicate via JSON-RPC — the SDK manages the CLI process lifecycle automatically</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Mode 1: stdio (Auto-Managed)</h3>
+      <p>SDK spawns CLI as a child process</p>
+      <ul>
+        <li>Zero config — just <code>new CopilotClient()</code></li>
+        <li>CLI dies with your app</li>
+        <li>Best for: local dev, desktop apps</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Mode 2: TCP (External Server)</h3>
+      <p>CLI runs as a headless server on a port</p>
+      <ul>
+        <li><code>copilot --headless --port 4321</code></li>
+        <li>Independent lifecycle, multi-client</li>
+        <li>Best for: APIs, backends, scaling</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5: Bundled Deployment ============ -->
+<section>
+  <h2>Ship It — Bundled Deployment</h2>
+  <div class="highlight-box">
+    <p>Package the Copilot CLI binary alongside your application — users don't need to install anything separately.</p>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Supported Platforms</h3>
+      <ul>
+        <li>Desktop apps (Electron, Tauri)</li>
+        <li>Docker containers</li>
+        <li>Distributable CLI tools</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Multi-Platform Binaries</h3>
+      <ul>
+        <li><code>copilot-darwin-arm64</code></li>
+        <li><code>copilot-linux-x64</code></li>
+        <li><code>copilot-win-x64.exe</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 6: Available SDKs ============ -->
+<section>
+  <h2>Available SDKs</h2>
+  <table>
+    <tr><th>Language</th><th>Install Command</th></tr>
+    <tr><td>Node.js / TypeScript</td><td><code>npm install @github/copilot-sdk</code></td></tr>
+    <tr><td>Python</td><td><code>pip install github-copilot-sdk</code></td></tr>
+    <tr><td>Go</td><td><code>go get github.com/github/copilot-sdk/go</code></td></tr>
+    <tr><td>.NET</td><td><code>dotnet add package GitHub.Copilot.SDK</code></td></tr>
+    <tr><td>Java</td><td><code>com.github:copilot-sdk-java</code> (Maven/Gradle)</td></tr>
+  </table>
+  <p class="muted">Community SDKs also available: Rust, Clojure, C++</p>
+</section>
+
+<!-- ============ SLIDE 7: Key Features ============ -->
+<section>
+  <h2>Key Features</h2>
+  <div class="grid grid-4">
+    <div class="card">
+      <h3>🔧 Custom Tools</h3>
+      <p>Define functions Copilot can invoke</p>
+    </div>
+    <div class="card">
+      <h3>🤖 Custom Agents</h3>
+      <p>Specialized AI personas with scoped tools</p>
+    </div>
+    <div class="card">
+      <h3>🔌 MCP Servers</h3>
+      <p>External tool integration via standard protocol</p>
+    </div>
+    <div class="card">
+      <h3>📚 Skills</h3>
+      <p>Reusable prompt modules from directories</p>
+    </div>
+    <div class="card">
+      <h3>🪝 Hooks</h3>
+      <p>Intercept sessions for security and auditing</p>
+    </div>
+    <div class="card">
+      <h3>📡 Streaming</h3>
+      <p>40+ real-time event types</p>
+    </div>
+    <div class="card">
+      <h3>🔑 BYOK</h3>
+      <p>Bring your own model provider API keys</p>
+    </div>
+    <div class="card">
+      <h3>📊 Observability</h3>
+      <p>Built-in OpenTelemetry instrumentation</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 8: Custom Tools ============ -->
+<section>
+  <h2>Custom Tools</h2>
+  <p>Define custom functions that Copilot can invoke during conversations</p>
+  <div class="highlight-box">
+    <p>You define a tool with a <strong>name</strong>, <strong>description</strong>, <strong>JSON Schema parameters</strong>, and a <strong>handler function</strong>. The agent automatically decides when to call it based on the user's prompt.</p>
+  </div>
+  <div class="grid grid-3">
+    <div class="card"><h3>🔧 Define</h3><p>Name, description, and typed parameters via JSON Schema</p></div>
+    <div class="card"><h3>⚡ Handle</h3><p>Your async function runs when the agent calls the tool</p></div>
+    <div class="card"><h3>🔗 Register</h3><p>Pass tools array to <code>createSession()</code></p></div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 8b: Custom Tools Code ============ -->
+<section>
+  <h2>Custom Tools — Code</h2>
+  <pre><code class="language-typescript">const getWeather = defineTool("get_weather", {
+  description: "Get the current weather for a city",
+  parameters: {
+    type: "object",
+    properties: {
+      city: { type: "string", description: "The city name" },
+    },
+    required: ["city"],
+  },
+  handler: async (args) => {
+    const data = await fetchWeatherAPI(args.city);
+    return { city: args.city, temp: data.temp, condition: data.condition };
+  },
+});
+
+const session = await client.createSession({
+  model: "gpt-4.1",
+  tools: [getWeather],
+});</code></pre>
+</section>
+
+<!-- ============ SLIDE 9: Custom Agents ============ -->
+<section>
+  <h2>Custom Agents &amp; Sub-Agent Orchestration</h2>
+  <p>Define specialized AI personas with their own prompts, tool restrictions, and MCP servers</p>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🔍 Research Agent</h3>
+      <p><strong>Tools:</strong> grep, glob, view</p>
+      <p>Analyze code, answer questions. Read-only.</p>
+    </div>
+    <div class="card">
+      <h3>✏️ Editor Agent</h3>
+      <p><strong>Tools:</strong> view, edit, bash</p>
+      <p>Make minimal, surgical code changes.</p>
+    </div>
+    <div class="card">
+      <h3>🛡️ Security Auditor</h3>
+      <p><strong>Tools:</strong> grep, glob, view</p>
+      <p>Focus on OWASP Top 10 vulnerabilities.</p>
+    </div>
+  </div>
+  <div class="highlight-box" style="margin-top:10px;">
+    <p><strong>Automatic Delegation</strong> — The runtime auto-selects the right agent based on user intent when <code>infer: true</code> is set.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 10: MCP Servers ============ -->
+<section>
+  <h2>MCP Server Integration</h2>
+  <p>Model Context Protocol — open standard for connecting AI to external tools</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Local / Stdio</h3>
+      <p>Runs as a subprocess, communicates via stdin/stdout</p>
+      <p class="muted">Local tools, file access, scripts</p>
+    </div>
+    <div class="card">
+      <h3>Remote / HTTP</h3>
+      <p>Accessed via HTTP endpoint, supports SSE</p>
+      <p class="muted">Shared services, cloud tools</p>
+    </div>
+  </div>
+  <div class="highlight-box">
+    <p>Connect to any MCP server from the community directory — GitHub, SQLite, Puppeteer, filesystem, and more. The <code>tools</code> array controls which tools are exposed.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 10b: MCP Code ============ -->
+<section>
+  <h2>MCP Server Integration — Code</h2>
+  <pre><code class="language-typescript">const session = await client.createSession({
+  mcpServers: {
+    github: {
+      type: "http",
+      url: "https://api.githubcopilot.com/mcp/",
+    },
+    filesystem: {
+      type: "local",
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      tools: ["*"],
+    },
+  },
+});</code></pre>
+</section>
+
+<!-- ============ SLIDE 11: Hooks ============ -->
+<section>
+  <h2>Hooks — Session Lifecycle Control</h2>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>onSessionStart</h3>
+      <p>Add context, audit logging</p>
+    </div>
+    <div class="card">
+      <h3>onUserPromptSubmitted</h3>
+      <p>Modify or filter user input</p>
+    </div>
+    <div class="card">
+      <h3>onPreToolUse</h3>
+      <p>Approve, deny, or modify tool calls</p>
+    </div>
+    <div class="card">
+      <h3>onPostToolUse</h3>
+      <p>Transform results, redact secrets</p>
+    </div>
+    <div class="card">
+      <h3>onErrorOccurred</h3>
+      <p>Custom error handling, retry logic</p>
+    </div>
+    <div class="card">
+      <h3>onSessionEnd</h3>
+      <p>Cleanup, finalize audit trail</p>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:16px;">Use for: permissions, auditing, prompt enrichment, secret redaction, error recovery</p>
+</section>
+
+<!-- ============ SLIDE 12: Authentication ============ -->
+<section>
+  <h2>Authentication Methods</h2>
+  <table>
+    <tr><th>Method</th><th>Use Case</th><th>Subscription</th></tr>
+    <tr><td>GitHub Signed-in User</td><td>Interactive apps, desktop tools</td><td>Required</td></tr>
+    <tr><td>OAuth GitHub App</td><td>Web apps, SaaS platforms</td><td>Required</td></tr>
+    <tr><td>Environment Variables</td><td>CI/CD, automation, server-to-server</td><td>Required</td></tr>
+    <tr><td>BYOK (Bring Your Own Key)</td><td>Own API keys (OpenAI, Azure, Anthropic)</td><td>Not Required</td></tr>
+  </table>
+  <p style="margin-top:20px;font-size:0.7em;"><strong>Priority Order:</strong></p>
+  <div class="flow">
+    <div class="flow-box">Explicit Token</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">HMAC Key</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">Direct API Token</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">Env Variables</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">Stored OAuth</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">GitHub CLI</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 13: BYOK ============ -->
+<section>
+  <h2>BYOK — Bring Your Own Key</h2>
+  <p>Use your own model provider API keys — <span class="accent">no Copilot subscription required</span></p>
+  <div class="grid grid-3">
+    <div class="card"><h3>OpenAI</h3><p>Direct API access</p></div>
+    <div class="card"><h3>Azure AI Foundry</h3><p>Enterprise deployments</p></div>
+    <div class="card"><h3>Anthropic</h3><p>Claude models</p></div>
+    <div class="card"><h3>Ollama</h3><p>Local models</p></div>
+    <div class="card"><h3>Foundry Local</h3><p>On-device AI</p></div>
+    <div class="card"><h3>Other</h3><p>vLLM, LiteLLM, etc.</p></div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 13b: BYOK Code ============ -->
+<section>
+  <h2>BYOK — Code</h2>
+  <pre><code class="language-typescript">const session = await client.createSession({
+  model: "gpt-5.2-codex",
+  provider: {
+    type: "openai",
+    baseUrl: "https://your-resource.openai.azure.com/openai/v1/",
+    wireApi: "responses",
+    apiKey: process.env.FOUNDRY_API_KEY,
+  },
+});</code></pre>
+  <div class="highlight-box">
+    <p>The <code>wireApi</code> setting controls the API format — use <code>"responses"</code> for newer GPT-5 series models and <code>"completions"</code> for older ones.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 14: Deployment Patterns ============ -->
+<section>
+  <h2>Deployment Patterns</h2>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>💻 Local CLI</h3>
+      <p class="section-label">Hobbyist</p>
+      <p>SDK spawns CLI as child process. Simplest path for personal projects and development.</p>
+    </div>
+    <div class="card">
+      <h3>📦 Bundled CLI</h3>
+      <p class="section-label">Desktop App</p>
+      <p>Ship the CLI binary with your app. Standalone apps with zero external dependencies.</p>
+    </div>
+    <div class="card">
+      <h3>🖥️ Backend Services</h3>
+      <p class="section-label">Enterprise</p>
+      <p>CLI as headless server over TCP. Web backends, APIs, and microservices.</p>
+    </div>
+    <div class="card">
+      <h3>📈 Scaling</h3>
+      <p class="section-label">Platform</p>
+      <p>Horizontal scaling with session isolation. Serve thousands of users reliably.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 15: MAF Integration ============ -->
+<section>
+  <h2>Microsoft Agent Framework Integration</h2>
+  <p>Compose Copilot alongside Azure OpenAI, Anthropic, and others in orchestrated workflows</p>
+  <div class="grid grid-2" style="margin-top:10px;">
+    <div class="card">
+      <h3>Sequential Workflow</h3>
+      <div class="flow">
+        <div class="flow-box">Copilot Agent<br><span class="muted">Code Review</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Azure Agent<br><span class="muted">Documentation</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Combined<br><span class="muted">Final Output</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Concurrent Workflow</h3>
+      <div class="flow">
+        <div class="flow-box">Security Reviewer</div>
+        <div class="flow-box">Perf Reviewer</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Aggregated Result</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:10px;">
+    <span class="badge badge-purple">Unified successor to Semantic Kernel &amp; AutoGen</span>
+    <span class="badge badge-green">.NET and Python</span>
+    <span class="badge badge-blue">A2A protocol support</span>
+    <span class="badge badge-orange">Full streaming</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 16: Use Cases 1 ============ -->
+<section>
+  <h2>What Can You Build?</h2>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🔍 Automated Code Review</h3>
+      <p>Security auditors, performance reviewers, and style checkers with custom prompts</p>
+    </div>
+    <div class="card">
+      <h3>🛠️ AI-Powered Dev Tools</h3>
+      <p>Embed intelligent assistance in CLIs, dashboards, and internal portals</p>
+    </div>
+    <div class="card">
+      <h3>🚀 CI/CD Intelligence</h3>
+      <p>Automated code analysis, test generation, and documentation in pipelines</p>
+    </div>
+    <div class="card">
+      <h3>🤝 Multi-Agent Workflows</h3>
+      <p>Orchestrate specialized agents via Microsoft Agent Framework</p>
+    </div>
+    <div class="card">
+      <h3>🗄️ Database Assistants</h3>
+      <p>MCP-connected agents that query databases and suggest optimizations</p>
+    </div>
+    <div class="card">
+      <h3>📝 Documentation Gen</h3>
+      <p>Agents that analyze codebases and produce comprehensive docs</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 17: Use Cases 2 ============ -->
+<section>
+  <h2>More Use Cases</h2>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>💡 AI-Powered SaaS</h3>
+      <p>Embed agentic AI in customer-facing apps with per-user OAuth</p>
+    </div>
+    <div class="card">
+      <h3>🧩 Custom IDE Extensions</h3>
+      <p>Specialized coding assistants for domain-specific languages</p>
+    </div>
+    <div class="card">
+      <h3>💬 API-Powered Chatbots</h3>
+      <p>Backend services powering conversational AI with persistent sessions</p>
+    </div>
+    <div class="card">
+      <h3>⚙️ DevOps Automation</h3>
+      <p>Agents managing infrastructure, diagnosing issues, automating deployments</p>
+    </div>
+    <div class="card">
+      <h3>🔎 Code Search &amp; Analysis</h3>
+      <p>Intelligent code exploration with read-only agents for large codebases</p>
+    </div>
+    <div class="card">
+      <h3>🏗️ Platform SDKs</h3>
+      <p>Enable third-party developers to build on Copilot's agent runtime</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 18: Demo 1 ============ -->
+<section>
+  <h2>Demo 1: Simple Chat — TypeScript</h2>
+  <pre><code class="language-typescript">import { CopilotClient } from "@github/copilot-sdk";
+
+const client = new CopilotClient();
+const session = await client.createSession({
+  model: "gpt-4.1",
+  onPermissionRequest: async () =>
+    ({ kind: "approved" }),
+});
+
+const response = await session.sendAndWait({
+  prompt: "Explain how async/await works"
+});
+
+console.log(response?.data.content);
+await client.stop();</code></pre>
+</section>
+
+<!-- ============ SLIDE 18b: Demo 1 Python ============ -->
+<section>
+  <h2>Demo 1: Simple Chat — Python</h2>
+  <pre><code class="language-python">from copilot import CopilotClient
+from copilot import PermissionHandler
+
+client = CopilotClient()
+await client.start()
+
+session = await client.create_session({
+  "on_permission_request":
+    PermissionHandler.approve_all,
+  "model": "gpt-4.1",
+})
+
+response = await session.send_and_wait({
+  "prompt": "Explain how async/await works"
+})
+
+print(response.data.content)
+await client.stop()</code></pre>
+</section>
+
+<!-- ============ SLIDE 19: Demo 2 ============ -->
+<section>
+  <h2>Demo 2: Real-Time Streaming</h2>
+  <p>Stream AI responses token by token for interactive, real-time user experiences</p>
+  <pre><code class="language-typescript">const session = await client.createSession({
+  model: "gpt-4.1",
+  streaming: true,
+  onPermissionRequest: async () => ({ kind: "approved" }),
+});
+
+// Subscribe to real-time streaming events
+session.on("assistant.message_delta", (event) => {
+  process.stdout.write(event.data.delta ?? "");
+});
+
+session.on("assistant.message", (event) => {
+  console.log("\n--- Full response complete ---");
+});
+
+await session.sendAndWait({
+  prompt: "Write a quicksort implementation in TypeScript"
+});</code></pre>
+</section>
+
+<!-- ============ SLIDE 20: Demo 3 ============ -->
+<section>
+  <h2>Demo 3: Custom Tool — Ticket Lookup</h2>
+  <p>Give Copilot access to your internal systems by defining custom tools</p>
+  <pre><code class="language-typescript">const lookupTicket = defineTool("lookup_ticket", {
+  description: "Look up a support ticket by ID",
+  parameters: {
+    type: "object",
+    properties: {
+      ticketId: { type: "string", description: "Ticket ID (e.g. TICK-1234)" },
+    },
+    required: ["ticketId"],
+  },
+  handler: async (args) => {
+    const ticket = await db.tickets.findById(args.ticketId);
+    return {
+      id: ticket.id, status: ticket.status,
+      title: ticket.title, assignee: ticket.assignee,
+    };
+  },
+});</code></pre>
+</section>
+
+<!-- ============ SLIDE 20b: Demo 3 Usage ============ -->
+<section>
+  <h2>Demo 3: Ticket Lookup — Usage</h2>
+  <pre><code class="language-typescript">const session = await client.createSession({
+  model: "gpt-4.1",
+  tools: [lookupTicket],
+  onPermissionRequest: async () => ({ kind: "approved" }),
+});
+
+await session.sendAndWait({
+  prompt: "What's the status of TICK-4521?"
+});
+// Copilot automatically calls lookup_ticket("TICK-4521")</code></pre>
+  <div class="highlight-box">
+    <p>This pattern works for any internal system: CRMs, monitoring dashboards, inventory systems, HR tools — anything with an API or database.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 21: Demo 4 ============ -->
+<section>
+  <h2>Demo 4: Security Audit with Hooks</h2>
+  <p>Combine custom agents with hooks for enterprise-grade auditing</p>
+  <pre><code class="language-typescript">const READ_ONLY_TOOLS = ["read_file", "glob", "grep", "view"];
+
+const session = await client.createSession({
+  model: "gpt-4.1",
+  customAgents: [{
+    name: "security-auditor",
+    prompt: "You are a security expert. Focus on OWASP Top 10.",
+    tools: READ_ONLY_TOOLS,
+  }],
+  agent: "security-auditor",
+});</code></pre>
+</section>
+
+<!-- ============ SLIDE 21b: Demo 4 Hooks ============ -->
+<section>
+  <h2>Demo 4: Security Hooks</h2>
+  <pre><code class="language-typescript">hooks: {
+  onPreToolUse: async (input) => {
+    // Enforce read-only: deny any write operations
+    if (!READ_ONLY_TOOLS.includes(input.toolName)) {
+      return { permissionDecision: "deny",
+        permissionDecisionReason: `"${input.toolName}" blocked` };
+    }
+    return { permissionDecision: "allow" };
+  },
+  onPostToolUse: async (input) => {
+    // Redact any secrets found in tool output
+    if (typeof input.toolResult === "string") {
+      const redacted = input.toolResult.replace(
+        /api[_-]?key\s*[:=]\s*["']?[\w\-\.]+["']?/gi, "[REDACTED]");
+      if (redacted !== input.toolResult)
+        return { modifiedResult: redacted };
+    }
+    return null;
+  },
+}</code></pre>
+</section>
+
+<!-- ============ SLIDE 22: Demo 5 ============ -->
+<section>
+  <h2>Demo 5: Backend API Service</h2>
+  <p>Run Copilot as a backend service powering a web API with persistent sessions</p>
+  <pre><code class="language-typescript">import express from "express";
+import { CopilotClient } from "@github/copilot-sdk";
+
+const app = express();
+app.use(express.json());
+
+// Connect to headless CLI server
+const client = new CopilotClient({ cliUrl: "localhost:4321" });
+
+app.post("/api/chat", async (req, res) => {
+  const { sessionId, message, userToken } = req.body;
+
+  const session = await client.createSession({
+    sessionId: `user-${sessionId}`,
+    model: "gpt-4.1",
+    githubToken: userToken,  // Per-user OAuth token
+  });
+
+  const response = await session.sendAndWait({ prompt: message });
+  res.json({ sessionId, content: response?.data.content });
+});
+
+app.listen(3000);</code></pre>
+</section>
+
+<!-- ============ SLIDE 23: Get Started ============ -->
+<section class="title-slide">
+  <h1>Get Started Today</h1>
+  <div class="grid grid-3" style="text-align:left; margin-top:32px;">
+    <div class="card">
+      <h3>1️⃣ Install Copilot CLI</h3>
+      <p>Follow the Copilot CLI installation guide</p>
+    </div>
+    <div class="card">
+      <h3>2️⃣ Install Your SDK</h3>
+      <p>npm, pip, go get, dotnet add, or Maven/Gradle</p>
+    </div>
+    <div class="card">
+      <h3>3️⃣ Create Your First Session</h3>
+      <p><code>client.createSession({ model: "gpt-4.1" })</code></p>
+    </div>
+  </div>
+  <div style="margin-top:32px; text-align:center;">
+    <table style="font-size:0.65em;">
+      <tr><th>Resource</th><th>Link</th></tr>
+      <tr><td>SDK Repository</td><td>github.com/github/copilot-sdk</td></tr>
+      <tr><td>Documentation</td><td>docs/ in the repository</td></tr>
+      <tr><td>Cookbook &amp; Recipes</td><td>github.com/github/awesome-copilot</td></tr>
+      <tr><td>Java SDK</td><td>github.com/github/copilot-sdk-java</td></tr>
+      <tr><td>GitHub MCP Server</td><td>github.com/github/github-mcp-server</td></tr>
+    </table>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    width: 1280,
+    height: 720,
+    margin: 0.04,
+    transition: 'slide',
+    plugins: [ RevealHighlight ]
+  });
+</script>
+</body>
+</html>
