@@ -68,6 +68,11 @@
 <div class="reveal">
 <div class="slides">
 
+
+<!-- ========================================== -->
+<!-- SECTION 1: INSPIRE                         -->
+<!-- ========================================== -->
+
 <!-- ============ SLIDE 1: Title ============ -->
 <section class="title-slide">
   <p class="section-label">Technical Preview</p>
@@ -128,60 +133,6 @@
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#architecture" style="color:var(--gh-blue);">README.md — Architecture</a></p>
 </section>
 
-<!-- ============ SLIDE 4: SDK ↔ CLI Communication ============ -->
-<section>
-  <h2>How the SDK Talks to the CLI</h2>
-  <p>All SDKs communicate via JSON-RPC — the SDK manages the CLI process lifecycle automatically</p>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>Mode 1: stdio (Auto-Managed)</h3>
-      <p>SDK spawns CLI as a child process</p>
-      <ul>
-        <li>Zero config — just <code>new CopilotClient()</code></li>
-        <li>CLI dies with your app</li>
-        <li>Best for: local dev, desktop apps</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Mode 2: TCP (External Server)</h3>
-      <p>CLI runs as a headless server on a port</p>
-      <ul>
-        <li><code>copilot --headless --port 4321</code></li>
-        <li>Independent lifecycle, multi-client</li>
-        <li>Best for: APIs, backends, scaling</li>
-      </ul>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/local-cli.md" style="color:var(--gh-blue);">docs/setup/local-cli.md · backend-services.md</a></p>
-</section>
-
-<!-- ============ SLIDE 5: Bundled Deployment ============ -->
-<section>
-  <h2>Ship It — Bundled Deployment</h2>
-  <div class="highlight-box">
-    <p>Package the Copilot CLI binary alongside your application — users don't need to install anything separately.</p>
-  </div>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>Supported Platforms</h3>
-      <ul>
-        <li>Desktop apps (Electron, Tauri)</li>
-        <li>Docker containers</li>
-        <li>Distributable CLI tools</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Multi-Platform Binaries</h3>
-      <ul>
-        <li><code>copilot-darwin-arm64</code></li>
-        <li><code>copilot-linux-x64</code></li>
-        <li><code>copilot-win-x64.exe</code></li>
-      </ul>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/bundled-cli.md" style="color:var(--gh-blue);">docs/setup/bundled-cli.md</a></p>
-</section>
-
 <!-- ============ SLIDE 6: Available SDKs ============ -->
 <section>
   <h2>Available SDKs</h2>
@@ -236,6 +187,75 @@
   </div>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
 </section>
+
+<!-- ============ SLIDE 16: Use Cases 1 ============ -->
+<section>
+  <h2>What Can You Build?</h2>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🔍 Automated Code Review</h3>
+      <p>Security auditors, performance reviewers, and style checkers with custom prompts</p>
+    </div>
+    <div class="card">
+      <h3>🛠️ AI-Powered Dev Tools</h3>
+      <p>Embed intelligent assistance in CLIs, dashboards, and internal portals</p>
+    </div>
+    <div class="card">
+      <h3>🚀 CI/CD Intelligence</h3>
+      <p>Automated code analysis, test generation, and documentation in pipelines</p>
+    </div>
+    <div class="card">
+      <h3>🤝 Multi-Agent Workflows</h3>
+      <p>Orchestrate specialized agents via Microsoft Agent Framework</p>
+    </div>
+    <div class="card">
+      <h3>🗄️ Database Assistants</h3>
+      <p>MCP-connected agents that query databases and suggest optimizations</p>
+    </div>
+    <div class="card">
+      <h3>📝 Documentation Gen</h3>
+      <p>Agents that analyze codebases and produce comprehensive docs</p>
+    </div>
+  </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
+</section>
+
+<!-- ============ SLIDE 17: Use Cases 2 ============ -->
+<section>
+  <h2>More Use Cases</h2>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>💡 AI-Powered SaaS</h3>
+      <p>Embed agentic AI in customer-facing apps with per-user OAuth</p>
+    </div>
+    <div class="card">
+      <h3>🧩 Custom IDE Extensions</h3>
+      <p>Specialized coding assistants for domain-specific languages</p>
+    </div>
+    <div class="card">
+      <h3>💬 API-Powered Chatbots</h3>
+      <p>Backend services powering conversational AI with persistent sessions</p>
+    </div>
+    <div class="card">
+      <h3>⚙️ DevOps Automation</h3>
+      <p>Agents managing infrastructure, diagnosing issues, automating deployments</p>
+    </div>
+    <div class="card">
+      <h3>🔎 Code Search &amp; Analysis</h3>
+      <p>Intelligent code exploration with read-only agents for large codebases</p>
+    </div>
+    <div class="card">
+      <h3>🏗️ Platform SDKs</h3>
+      <p>Enable third-party developers to build on Copilot's agent runtime</p>
+    </div>
+  </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
+</section>
+
+
+<!-- ========================================== -->
+<!-- SECTION 2: INFORM                          -->
+<!-- ========================================== -->
 
 <!-- ============ SLIDE 7b: Built-in Tools ============ -->
 <section>
@@ -606,6 +626,60 @@ const session = await client.createSession({
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" style="color:var(--gh-blue);">docs/auth/byok.md</a></p>
 </section>
 
+<!-- ============ SLIDE 4: SDK ↔ CLI Communication ============ -->
+<section>
+  <h2>How the SDK Talks to the CLI</h2>
+  <p>All SDKs communicate via JSON-RPC — the SDK manages the CLI process lifecycle automatically</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Mode 1: stdio (Auto-Managed)</h3>
+      <p>SDK spawns CLI as a child process</p>
+      <ul>
+        <li>Zero config — just <code>new CopilotClient()</code></li>
+        <li>CLI dies with your app</li>
+        <li>Best for: local dev, desktop apps</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Mode 2: TCP (External Server)</h3>
+      <p>CLI runs as a headless server on a port</p>
+      <ul>
+        <li><code>copilot --headless --port 4321</code></li>
+        <li>Independent lifecycle, multi-client</li>
+        <li>Best for: APIs, backends, scaling</li>
+      </ul>
+    </div>
+  </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/local-cli.md" style="color:var(--gh-blue);">docs/setup/local-cli.md · backend-services.md</a></p>
+</section>
+
+<!-- ============ SLIDE 5: Bundled Deployment ============ -->
+<section>
+  <h2>Ship It — Bundled Deployment</h2>
+  <div class="highlight-box">
+    <p>Package the Copilot CLI binary alongside your application — users don't need to install anything separately.</p>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Supported Platforms</h3>
+      <ul>
+        <li>Desktop apps (Electron, Tauri)</li>
+        <li>Docker containers</li>
+        <li>Distributable CLI tools</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Multi-Platform Binaries</h3>
+      <ul>
+        <li><code>copilot-darwin-arm64</code></li>
+        <li><code>copilot-linux-x64</code></li>
+        <li><code>copilot-win-x64.exe</code></li>
+      </ul>
+    </div>
+  </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/bundled-cli.md" style="color:var(--gh-blue);">docs/setup/bundled-cli.md</a></p>
+</section>
+
 <!-- ============ SLIDE 14: Deployment Patterns ============ -->
 <section>
   <h2>Deployment Patterns</h2>
@@ -668,69 +742,9 @@ const session = await client.createSession({
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
 </section>
 
-<!-- ============ SLIDE 16: Use Cases 1 ============ -->
-<section>
-  <h2>What Can You Build?</h2>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>🔍 Automated Code Review</h3>
-      <p>Security auditors, performance reviewers, and style checkers with custom prompts</p>
-    </div>
-    <div class="card">
-      <h3>🛠️ AI-Powered Dev Tools</h3>
-      <p>Embed intelligent assistance in CLIs, dashboards, and internal portals</p>
-    </div>
-    <div class="card">
-      <h3>🚀 CI/CD Intelligence</h3>
-      <p>Automated code analysis, test generation, and documentation in pipelines</p>
-    </div>
-    <div class="card">
-      <h3>🤝 Multi-Agent Workflows</h3>
-      <p>Orchestrate specialized agents via Microsoft Agent Framework</p>
-    </div>
-    <div class="card">
-      <h3>🗄️ Database Assistants</h3>
-      <p>MCP-connected agents that query databases and suggest optimizations</p>
-    </div>
-    <div class="card">
-      <h3>📝 Documentation Gen</h3>
-      <p>Agents that analyze codebases and produce comprehensive docs</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
-</section>
-
-<!-- ============ SLIDE 17: Use Cases 2 ============ -->
-<section>
-  <h2>More Use Cases</h2>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>💡 AI-Powered SaaS</h3>
-      <p>Embed agentic AI in customer-facing apps with per-user OAuth</p>
-    </div>
-    <div class="card">
-      <h3>🧩 Custom IDE Extensions</h3>
-      <p>Specialized coding assistants for domain-specific languages</p>
-    </div>
-    <div class="card">
-      <h3>💬 API-Powered Chatbots</h3>
-      <p>Backend services powering conversational AI with persistent sessions</p>
-    </div>
-    <div class="card">
-      <h3>⚙️ DevOps Automation</h3>
-      <p>Agents managing infrastructure, diagnosing issues, automating deployments</p>
-    </div>
-    <div class="card">
-      <h3>🔎 Code Search &amp; Analysis</h3>
-      <p>Intelligent code exploration with read-only agents for large codebases</p>
-    </div>
-    <div class="card">
-      <h3>🏗️ Platform SDKs</h3>
-      <p>Enable third-party developers to build on Copilot's agent runtime</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
-</section>
+<!-- ========================================== -->
+<!-- SECTION 3: ENABLE                          -->
+<!-- ========================================== -->
 
 <!-- ============ SLIDE 18: Demo 1 ============ -->
 <section>
@@ -752,6 +766,9 @@ console.log(response?.data.content);
 await client.stop();</code></pre>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md" style="color:var(--gh-blue);">docs/getting-started.md</a></p>
 </section>
+
+
+
 
 <!-- ============ SLIDE 18b: Demo 1 Python ============ -->
 <section>
@@ -775,31 +792,6 @@ response = await session.send_and_wait(
 print(response.data.content)
 await client.stop()</code></pre>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/python/README.md" style="color:var(--gh-blue);">python/README.md</a></p>
-</section>
-
-<!-- ============ SLIDE 19: Demo 2 ============ -->
-<section>
-  <h2>Demo 2: Real-Time Streaming</h2>
-  <p>Stream AI responses token by token for interactive, real-time user experiences</p>
-  <pre><code class="language-typescript">const session = await client.createSession({
-  model: "gpt-4.1",
-  streaming: true,
-  onPermissionRequest: async () => ({ kind: "approved" }),
-});
-
-// Subscribe to real-time streaming events
-session.on("assistant.message_delta", (event) => {
-  process.stdout.write(event.data.delta ?? "");
-});
-
-session.on("assistant.message", (event) => {
-  console.log("\n--- Full response complete ---");
-});
-
-await session.sendAndWait({
-  prompt: "Write a quicksort implementation in TypeScript"
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" style="color:var(--gh-blue);">docs/features/streaming-events.md</a></p>
 </section>
 
 <!-- ============ SLIDE 20: Demo 3 ============ -->
@@ -845,6 +837,94 @@ await session.sendAndWait({
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
 </section>
 
+<!-- ============ SLIDE 22: Demo 5 ============ -->
+<section>
+  <h2>Demo 5: Backend API Service</h2>
+  <p>Run Copilot as a backend service powering a web API with persistent sessions</p>
+  <pre><code class="language-typescript">import express from "express";
+import { CopilotClient } from "@github/copilot-sdk";
+
+const app = express();
+app.use(express.json());
+
+// Connect to headless CLI server
+const client = new CopilotClient({ cliUrl: "localhost:4321" });
+
+app.post("/api/chat", async (req, res) => {
+  const { sessionId, message, userToken } = req.body;
+
+  const session = await client.createSession({
+    sessionId: `user-${sessionId}`,
+    model: "gpt-4.1",
+    githubToken: userToken,  // Per-user OAuth token
+  });
+
+  const response = await session.sendAndWait({ prompt: message });
+  res.json({ sessionId, content: response?.data.content });
+});
+
+app.listen(3000);</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/backend-services.md" style="color:var(--gh-blue);">docs/setup/backend-services.md</a></p>
+</section>
+
+<!-- ============ SLIDE 23: Get Started ============ -->
+<section class="title-slide">
+  <h1>Get Started Today</h1>
+  <div class="grid grid-3" style="text-align:left; margin-top:32px;">
+    <div class="card">
+      <h3>1️⃣ Install Copilot CLI</h3>
+      <p>Follow the Copilot CLI installation guide</p>
+    </div>
+    <div class="card">
+      <h3>2️⃣ Install Your SDK</h3>
+      <p>npm, pip, go get, dotnet add, or Maven/Gradle</p>
+    </div>
+    <div class="card">
+      <h3>3️⃣ Create Your First Session</h3>
+      <p><code>client.createSession({ model: "gpt-4.1" })</code></p>
+    </div>
+  </div>
+  <div style="margin-top:32px; text-align:center;">
+    <table style="font-size:0.65em;">
+      <tr><th>Resource</th><th>Link</th></tr>
+      <tr><td>SDK Repository</td><td>github.com/github/copilot-sdk</td></tr>
+      <tr><td>Documentation</td><td>docs/ in the repository</td></tr>
+      <tr><td>Cookbook &amp; Recipes</td><td>github.com/github/awesome-copilot</td></tr>
+      <tr><td>Java SDK</td><td>github.com/github/copilot-sdk-java</td></tr>
+      <tr><td>GitHub MCP Server</td><td>github.com/github/github-mcp-server</td></tr>
+    </table>
+  </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
+</section><!-- ============ SLIDE 19: Demo 2 ============ -->
+<section>
+  <h2>Demo 2: Real-Time Streaming</h2>
+  <p>Stream AI responses token by token for interactive, real-time user experiences</p>
+  <pre><code class="language-typescript">const session = await client.createSession({
+  model: "gpt-4.1",
+  streaming: true,
+  onPermissionRequest: async () => ({ kind: "approved" }),
+});
+
+// Subscribe to real-time streaming events
+session.on("assistant.message_delta", (event) => {
+  process.stdout.write(event.data.delta ?? "");
+});
+
+session.on("assistant.message", (event) => {
+  console.log("\n--- Full response complete ---");
+});
+
+await session.sendAndWait({
+  prompt: "Write a quicksort implementation in TypeScript"
+});</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" style="color:var(--gh-blue);">docs/features/streaming-events.md</a></p>
+</section>
+
+
+<!-- ========================================== -->
+<!-- APPENDIX                                   -->
+<!-- ========================================== -->
+
 <!-- ============ SLIDE 21: Demo 4 ============ -->
 <section>
   <h2>Demo 4: Security Audit with Hooks</h2>
@@ -887,36 +967,6 @@ const session = await client.createSession({
   },
 }</code></pre>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/hooks/pre-tool-use.md" style="color:var(--gh-blue);">docs/hooks/pre-tool-use.md</a></p>
-</section>
-
-<!-- ============ SLIDE 22: Demo 5 ============ -->
-<section>
-  <h2>Demo 5: Backend API Service</h2>
-  <p>Run Copilot as a backend service powering a web API with persistent sessions</p>
-  <pre><code class="language-typescript">import express from "express";
-import { CopilotClient } from "@github/copilot-sdk";
-
-const app = express();
-app.use(express.json());
-
-// Connect to headless CLI server
-const client = new CopilotClient({ cliUrl: "localhost:4321" });
-
-app.post("/api/chat", async (req, res) => {
-  const { sessionId, message, userToken } = req.body;
-
-  const session = await client.createSession({
-    sessionId: `user-${sessionId}`,
-    model: "gpt-4.1",
-    githubToken: userToken,  // Per-user OAuth token
-  });
-
-  const response = await session.sendAndWait({ prompt: message });
-  res.json({ sessionId, content: response?.data.content });
-});
-
-app.listen(3000);</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/backend-services.md" style="color:var(--gh-blue);">docs/setup/backend-services.md</a></p>
 </section>
 
 <!-- ============ SLIDE: What's New in v0.2.0 ============ -->
@@ -1018,35 +1068,7 @@ app.listen(3000);</code></pre>
   </aside>
 </section>
 
-<!-- ============ SLIDE 23: Get Started ============ -->
-<section class="title-slide">
-  <h1>Get Started Today</h1>
-  <div class="grid grid-3" style="text-align:left; margin-top:32px;">
-    <div class="card">
-      <h3>1️⃣ Install Copilot CLI</h3>
-      <p>Follow the Copilot CLI installation guide</p>
-    </div>
-    <div class="card">
-      <h3>2️⃣ Install Your SDK</h3>
-      <p>npm, pip, go get, dotnet add, or Maven/Gradle</p>
-    </div>
-    <div class="card">
-      <h3>3️⃣ Create Your First Session</h3>
-      <p><code>client.createSession({ model: "gpt-4.1" })</code></p>
-    </div>
-  </div>
-  <div style="margin-top:32px; text-align:center;">
-    <table style="font-size:0.65em;">
-      <tr><th>Resource</th><th>Link</th></tr>
-      <tr><td>SDK Repository</td><td>github.com/github/copilot-sdk</td></tr>
-      <tr><td>Documentation</td><td>docs/ in the repository</td></tr>
-      <tr><td>Cookbook &amp; Recipes</td><td>github.com/github/awesome-copilot</td></tr>
-      <tr><td>Java SDK</td><td>github.com/github/copilot-sdk-java</td></tr>
-      <tr><td>GitHub MCP Server</td><td>github.com/github/github-mcp-server</td></tr>
-    </table>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
-</section>
+
 
 </div><!-- /slides -->
 </div><!-- /reveal -->
