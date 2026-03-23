@@ -853,56 +853,6 @@ app.listen(3000);</code></pre>
   </aside>
 </section>
 
-<!-- ============ SLIDE: Python API Migration (v0.2.0) ============ -->
-<section>
-  <h2>v0.2.0 Python API Migration</h2>
-  <p>TypedDicts replaced with keyword arguments and dataclasses</p>
-  <div class="grid grid-2" style="margin-top:10px;">
-    <div class="card" style="border-top: 3px solid var(--gh-red);">
-      <h3>❌ Before (v0.1.x)</h3>
-      <pre><code class="language-python"># Client config as dict
-client = CopilotClient({"cli_url": "localhost:3000"})
-
-# Session config as dict
-session = await client.create_session({
-    "on_permission_request":
-        PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-})
-
-# Send as dict
-response = await session.send_and_wait({
-    "prompt": "What is 2+2?"
-})</code></pre>
-    </div>
-    <div class="card" style="border-top: 3px solid var(--gh-green);">
-      <h3>✅ After (v0.2.0)</h3>
-      <pre><code class="language-python"># Typed config dataclasses
-client = CopilotClient(
-    ExternalServerConfig(url="localhost:3000"))
-
-# Keyword arguments (type-safe!)
-session = await client.create_session(
-    on_permission_request=
-        PermissionHandler.approve_all,
-    model="gpt-4.1",
-)
-
-# Positional prompt string
-response = await session.send_and_wait(
-    "What is 2+2?"
-)</code></pre>
-    </div>
-  </div>
-  <div class="highlight-box" style="margin-top:10px;">
-    <p><strong>Why?</strong> Better IDE autocompletion, type safety, and readability. <code>MessageOptions</code>, <code>SessionConfig</code>, and <code>ResumeSessionConfig</code> TypedDicts are removed from public API.</p>
-  </div>
-  <aside class="notes">
-    The Python SDK received the biggest API changes in v0.2.0. All loosely-typed TypedDict config objects are replaced with proper keyword arguments and dataclasses. CopilotClient now takes ExternalServerConfig or SubprocessConfig instead of a dict. create_session() and resume_session() use keyword arguments with on_permission_request as a required kwarg. send() and send_and_wait() take a positional prompt string instead of a dict.
-    Source: https://github.com/github/copilot-sdk/releases/tag/v0.2.0
-  </aside>
-</section>
-
 <!-- ============ SLIDE: System Prompt Customization (v0.2.0) ============ -->
 <section>
   <h2>v0.2.0: System Prompt Customization</h2>
