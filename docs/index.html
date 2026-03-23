@@ -671,15 +671,15 @@ from copilot import PermissionHandler
 client = CopilotClient()
 await client.start()
 
-session = await client.create_session({
-  "on_permission_request":
+session = await client.create_session(
+  on_permission_request=
     PermissionHandler.approve_all,
-  "model": "gpt-4.1",
-})
+  model="gpt-4.1",
+)
 
-response = await session.send_and_wait({
-  "prompt": "Explain how async/await works"
-})
+response = await session.send_and_wait(
+  "Explain how async/await works"
+)
 
 print(response.data.content)
 await client.stop()</code></pre>
@@ -819,6 +819,157 @@ app.post("/api/chat", async (req, res) => {
 });
 
 app.listen(3000);</code></pre>
+</section>
+
+<!-- ============ SLIDE: What's New in v0.2.0 ============ -->
+<section>
+  <h2>🚀 What's New in v0.2.0</h2>
+  <p>A major release with new capabilities, API refinements, and breaking changes</p>
+  <div class="grid grid-2" style="margin-top:12px;">
+    <div class="card" style="border-left: 3px solid var(--gh-green);">
+      <h3>✨ New Features</h3>
+      <ul>
+        <li><strong>System prompt customization</strong> — surgically edit 10 prompt sections (identity, tone, safety, …) with replace/append/prepend/transform actions</li>
+        <li><strong>Blob attachments</strong> — send images and binary data inline without writing to disk</li>
+        <li><strong><code>skipPermission</code> on tools</strong> — bypass confirmation for low-risk read-only tools</li>
+        <li><strong>OpenTelemetry</strong> — full distributed tracing across all 4 SDKs</li>
+        <li><strong>New RPC methods</strong> — skills, MCP, extensions, shell, and plugin management</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--gh-orange);">
+      <h3>⚠️ Breaking Changes</h3>
+      <ul>
+        <li><strong>Python API overhaul</strong> — keyword args replace TypedDicts (see next slide)</li>
+        <li><strong><code>autoRestart</code> removed</strong> — deprecated across all SDKs</li>
+        <li><strong>Go <code>Start()</code> context</strong> — cancelling context no longer kills CLI process; use <code>Stop()</code></li>
+        <li><strong>Go <code>LogOptions.Ephemeral</code></strong> — changed from <code>bool</code> to <code>*bool</code></li>
+        <li><strong>Python internal modules</strong> — <code>copilot.jsonrpc</code> → <code>copilot._jsonrpc</code></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    v0.2.0 is a major release. Key highlights: Fine-grained system prompt customization with 10 editable sections, blob attachments for inline binary data, skipPermission for low-risk tools, full OpenTelemetry support, and many new RPC methods. Breaking changes mostly affect Python (TypedDict → keyword args) and Go (context behavior change).
+    Source: https://github.com/github/copilot-sdk/releases/tag/v0.2.0
+  </aside>
+</section>
+
+<!-- ============ SLIDE: Python API Migration (v0.2.0) ============ -->
+<section>
+  <h2>v0.2.0 Python API Migration</h2>
+  <p>TypedDicts replaced with keyword arguments and dataclasses</p>
+  <div class="grid grid-2" style="margin-top:10px;">
+    <div class="card" style="border-top: 3px solid var(--gh-red);">
+      <h3>❌ Before (v0.1.x)</h3>
+      <pre><code class="language-python"># Client config as dict
+client = CopilotClient({"cli_url": "localhost:3000"})
+
+# Session config as dict
+session = await client.create_session({
+    "on_permission_request":
+        PermissionHandler.approve_all,
+    "model": "gpt-4.1",
+})
+
+# Send as dict
+response = await session.send_and_wait({
+    "prompt": "What is 2+2?"
+})</code></pre>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--gh-green);">
+      <h3>✅ After (v0.2.0)</h3>
+      <pre><code class="language-python"># Typed config dataclasses
+client = CopilotClient(
+    ExternalServerConfig(url="localhost:3000"))
+
+# Keyword arguments (type-safe!)
+session = await client.create_session(
+    on_permission_request=
+        PermissionHandler.approve_all,
+    model="gpt-4.1",
+)
+
+# Positional prompt string
+response = await session.send_and_wait(
+    "What is 2+2?"
+)</code></pre>
+    </div>
+  </div>
+  <div class="highlight-box" style="margin-top:10px;">
+    <p><strong>Why?</strong> Better IDE autocompletion, type safety, and readability. <code>MessageOptions</code>, <code>SessionConfig</code>, and <code>ResumeSessionConfig</code> TypedDicts are removed from public API.</p>
+  </div>
+  <aside class="notes">
+    The Python SDK received the biggest API changes in v0.2.0. All loosely-typed TypedDict config objects are replaced with proper keyword arguments and dataclasses. CopilotClient now takes ExternalServerConfig or SubprocessConfig instead of a dict. create_session() and resume_session() use keyword arguments with on_permission_request as a required kwarg. send() and send_and_wait() take a positional prompt string instead of a dict.
+    Source: https://github.com/github/copilot-sdk/releases/tag/v0.2.0
+  </aside>
+</section>
+
+<!-- ============ SLIDE: System Prompt Customization (v0.2.0) ============ -->
+<section>
+  <h2>v0.2.0: System Prompt Customization</h2>
+  <p>Surgically edit individual sections of the Copilot system prompt</p>
+  <div style="margin: 12px 0;">
+    <div class="flow">
+      <span class="flow-box" style="border-color:var(--gh-blue);">identity</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-purple);">tone</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-green);">tool_efficiency</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-orange);">environment_context</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-red);">code_change_rules</span>
+    </div>
+    <div class="flow">
+      <span class="flow-box" style="border-color:var(--gh-blue);">guidelines</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-purple);">safety</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-green);">tool_instructions</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-orange);">custom_instructions</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="border-color:var(--gh-red);">last_instructions</span>
+    </div>
+  </div>
+  <div class="grid grid-2" style="margin-top:6px;">
+    <div class="card">
+      <h3>Actions per section</h3>
+      <table>
+        <tr><td><code>replace</code></td><td>Replace entire section content</td></tr>
+        <tr><td><code>append</code></td><td>Add content after the section</td></tr>
+        <tr><td><code>prepend</code></td><td>Add content before the section</td></tr>
+        <tr><td><code>remove</code></td><td>Remove the section entirely</td></tr>
+        <tr><td><code>transform</code></td><td>Callback — receives current text, returns modified</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Example</h3>
+      <pre><code class="language-typescript">const session = await client.createSession({
+  systemMessage: {
+    mode: "customize",
+    sections: {
+      identity: {
+        action: (current) =>
+          current.replace(
+            "GitHub Copilot",
+            "Acme Assistant"),
+      },
+      tone: {
+        action: "replace",
+        content: "Be concise.",
+      },
+      code_change_rules: {
+        action: "remove",
+      },
+    },
+  },
+});</code></pre>
+    </div>
+  </div>
+  <aside class="notes">
+    The new systemMessage 'customize' mode lets you surgically edit 10 individual sections of the Copilot system prompt. Each section supports 4 static actions (replace, remove, append, prepend) and a transform callback that receives the current content and returns modified text. The 10 sections are: identity, tone, tool_efficiency, environment_context, code_change_rules, guidelines, safety, tool_instructions, custom_instructions, last_instructions.
+    Source: https://github.com/github/copilot-sdk/pull/816
+  </aside>
 </section>
 
 <!-- ============ SLIDE 23: Get Started ============ -->
