@@ -81,6 +81,7 @@
     <span class="badge badge-orange">.NET</span>
     <span class="badge badge-blue">Java</span>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
 </section>
 
 <!-- ============ SLIDE 2: What is the SDK? ============ -->
@@ -101,6 +102,7 @@
       <p>Custom tools, agents, MCP servers, hooks, and skills</p>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md" style="color:var(--gh-blue);">README.md</a></p>
 </section>
 
 <!-- ============ SLIDE 3: Architecture ============ -->
@@ -123,6 +125,7 @@
     <div class="card"><p>📈 Horizontal scaling</p></div>
     <div class="card"><p>🔍 OpenTelemetry tracing</p></div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#architecture" style="color:var(--gh-blue);">README.md — Architecture</a></p>
 </section>
 
 <!-- ============ SLIDE 4: SDK ↔ CLI Communication ============ -->
@@ -149,6 +152,7 @@
       </ul>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/local-cli.md" style="color:var(--gh-blue);">docs/setup/local-cli.md · backend-services.md</a></p>
 </section>
 
 <!-- ============ SLIDE 5: Bundled Deployment ============ -->
@@ -175,6 +179,7 @@
       </ul>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/bundled-cli.md" style="color:var(--gh-blue);">docs/setup/bundled-cli.md</a></p>
 </section>
 
 <!-- ============ SLIDE 6: Available SDKs ============ -->
@@ -189,6 +194,7 @@
     <tr><td>Java</td><td><code>com.github:copilot-sdk-java</code> (Maven/Gradle)</td></tr>
   </table>
   <p class="muted">Community SDKs also available: Rust, Clojure, C++</p>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#available-sdks" style="color:var(--gh-blue);">README.md — Available SDKs</a></p>
 </section>
 
 <!-- ============ SLIDE 7: Key Features ============ -->
@@ -228,6 +234,7 @@
       <p>Built-in OpenTelemetry instrumentation</p>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
 </section>
 
 <!-- ============ SLIDE 7b: Built-in Tools ============ -->
@@ -265,7 +272,8 @@
     </div>
   </div>
   <p class="muted" style="text-align:center; margin-top:10px;">Plus: MCP server tools (e.g. GitHub MCP) and your custom tools via <code>@define_tool</code></p>
-  <aside class="notes">
+    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#what-tools-are-enabled-by-default" style="color:var(--gh-blue);">README.md — Default tools · docs/features/hooks.md</a></p>
+<aside class="notes">
     These are the first-party tools the Copilot CLI agent runtime provides. By default, ALL are enabled (equivalent to --allow-all).
     Five categories: File Reading (read_file, view, glob, grep, list_dir), File Writing (edit, create, write_file), Shell (bash/shell), Web (web_fetch), Agent Infrastructure (task, ask_user, store_memory).
     Source: https://github.com/github/copilot-sdk/blob/main/README.md#what-tools-are-enabled-by-default
@@ -321,7 +329,8 @@ async def grep(params):
   )</code></pre>
     </div>
   </div>
-  <aside class="notes">
+    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" style="color:var(--gh-blue);">docs/features/hooks.md · CHANGELOG v0.1.30</a></p>
+<aside class="notes">
     Three approaches: Session Config (available_tools whitelist / excluded_tools blacklist), onPreToolUse Hook (dynamic per-call), Override Built-ins (replace with your own implementation since v0.1.30).
     Source: https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md
     Source: https://github.com/github/copilot-sdk/releases/tag/v0.1.30
@@ -340,6 +349,7 @@ async def grep(params):
     <div class="card"><h3>⚡ Handle</h3><p>Your async function runs when the agent calls the tool</p></div>
     <div class="card"><h3>🔗 Register</h3><p>Pass tools array to <code>createSession()</code></p></div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
 </section>
 
 <!-- ============ SLIDE 8b: Custom Tools Code ============ -->
@@ -364,6 +374,7 @@ const session = await client.createSession({
   model: "gpt-4.1",
   tools: [getWeather],
 });</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
 </section>
 
 <!-- ============ SLIDE 9: Custom Agents ============ -->
@@ -390,6 +401,7 @@ const session = await client.createSession({
   <div class="highlight-box" style="margin-top:10px;">
     <p><strong>Automatic Delegation</strong> — The runtime auto-selects the right agent based on user intent when <code>infer: true</code> is set.</p>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" style="color:var(--gh-blue);">docs/features/custom-agents.md</a></p>
 </section>
 
 <!-- ============ SLIDE 10: MCP Servers ============ -->
@@ -411,6 +423,7 @@ const session = await client.createSession({
   <div class="highlight-box">
     <p>Connect to any MCP server from the community directory — GitHub, SQLite, Puppeteer, filesystem, and more. The <code>tools</code> array controls which tools are exposed.</p>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" style="color:var(--gh-blue);">docs/features/mcp.md</a></p>
 </section>
 
 <!-- ============ SLIDE 10b: MCP Code ============ -->
@@ -430,6 +443,7 @@ const session = await client.createSession({
     },
   },
 });</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" style="color:var(--gh-blue);">docs/features/mcp.md</a></p>
 </section>
 
 <!-- ============ SLIDE 11: Hooks ============ -->
@@ -462,6 +476,7 @@ const session = await client.createSession({
     </div>
   </div>
   <p class="muted" style="margin-top:16px;">Use for: permissions, auditing, prompt enrichment, secret redaction, error recovery</p>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" style="color:var(--gh-blue);">docs/features/hooks.md</a></p>
 </section>
 
 <!-- ============ SLIDE 12: Authentication ============ -->
@@ -508,7 +523,8 @@ const session = await client.createSession({
       </div>
     </div>
   </div>
-  <aside class="notes">
+    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a></p>
+<aside class="notes">
     The SDK supports 4 auth methods. Three require a Copilot subscription. BYOK bypasses GitHub auth entirely.
     OAuth GitHub Apps are fully supported. Supported tokens: gho_, ghu_, github_pat_. NOT supported: ghp_ (classic PAT).
     Source: https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md
@@ -569,6 +585,7 @@ const session = await client.createSession({
     <div class="card"><h3>Foundry Local</h3><p>On-device AI</p></div>
     <div class="card"><h3>Other</h3><p>vLLM, LiteLLM, etc.</p></div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" style="color:var(--gh-blue);">docs/auth/byok.md</a></p>
 </section>
 
 <!-- ============ SLIDE 13b: BYOK Code ============ -->
@@ -586,6 +603,7 @@ const session = await client.createSession({
   <div class="highlight-box">
     <p>The <code>wireApi</code> setting controls the API format — use <code>"responses"</code> for newer GPT-5 series models and <code>"completions"</code> for older ones.</p>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" style="color:var(--gh-blue);">docs/auth/byok.md</a></p>
 </section>
 
 <!-- ============ SLIDE 14: Deployment Patterns ============ -->
@@ -613,6 +631,7 @@ const session = await client.createSession({
       <p>Horizontal scaling with session isolation. Serve thousands of users reliably.</p>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/index.md" style="color:var(--gh-blue);">docs/setup/index.md</a></p>
 </section>
 
 <!-- ============ SLIDE 15: MAF Integration ============ -->
@@ -646,6 +665,7 @@ const session = await client.createSession({
     <span class="badge badge-blue">A2A protocol support</span>
     <span class="badge badge-orange">Full streaming</span>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
 </section>
 
 <!-- ============ SLIDE 16: Use Cases 1 ============ -->
@@ -677,6 +697,7 @@ const session = await client.createSession({
       <p>Agents that analyze codebases and produce comprehensive docs</p>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
 </section>
 
 <!-- ============ SLIDE 17: Use Cases 2 ============ -->
@@ -708,6 +729,7 @@ const session = await client.createSession({
       <p>Enable third-party developers to build on Copilot's agent runtime</p>
     </div>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
 </section>
 
 <!-- ============ SLIDE 18: Demo 1 ============ -->
@@ -728,6 +750,7 @@ const response = await session.sendAndWait({
 
 console.log(response?.data.content);
 await client.stop();</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md" style="color:var(--gh-blue);">docs/getting-started.md</a></p>
 </section>
 
 <!-- ============ SLIDE 18b: Demo 1 Python ============ -->
@@ -751,6 +774,7 @@ response = await session.send_and_wait(
 
 print(response.data.content)
 await client.stop()</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/python/README.md" style="color:var(--gh-blue);">python/README.md</a></p>
 </section>
 
 <!-- ============ SLIDE 19: Demo 2 ============ -->
@@ -775,6 +799,7 @@ session.on("assistant.message", (event) => {
 await session.sendAndWait({
   prompt: "Write a quicksort implementation in TypeScript"
 });</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" style="color:var(--gh-blue);">docs/features/streaming-events.md</a></p>
 </section>
 
 <!-- ============ SLIDE 20: Demo 3 ============ -->
@@ -798,6 +823,7 @@ await session.sendAndWait({
     };
   },
 });</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
 </section>
 
 <!-- ============ SLIDE 20b: Demo 3 Usage ============ -->
@@ -816,6 +842,7 @@ await session.sendAndWait({
   <div class="highlight-box">
     <p>This pattern works for any internal system: CRMs, monitoring dashboards, inventory systems, HR tools — anything with an API or database.</p>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
 </section>
 
 <!-- ============ SLIDE 21: Demo 4 ============ -->
@@ -833,6 +860,7 @@ const session = await client.createSession({
   }],
   agent: "security-auditor",
 });</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/hooks/pre-tool-use.md" style="color:var(--gh-blue);">docs/hooks/pre-tool-use.md</a></p>
 </section>
 
 <!-- ============ SLIDE 21b: Demo 4 Hooks ============ -->
@@ -858,6 +886,7 @@ const session = await client.createSession({
     return null;
   },
 }</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/hooks/pre-tool-use.md" style="color:var(--gh-blue);">docs/hooks/pre-tool-use.md</a></p>
 </section>
 
 <!-- ============ SLIDE 22: Demo 5 ============ -->
@@ -887,6 +916,7 @@ app.post("/api/chat", async (req, res) => {
 });
 
 app.listen(3000);</code></pre>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/backend-services.md" style="color:var(--gh-blue);">docs/setup/backend-services.md</a></p>
 </section>
 
 <!-- ============ SLIDE: What's New in v0.2.0 ============ -->
@@ -915,7 +945,8 @@ app.listen(3000);</code></pre>
       </ul>
     </div>
   </div>
-  <aside class="notes">
+    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/releases/tag/v0.2.0" style="color:var(--gh-blue);">releases/tag/v0.2.0</a></p>
+<aside class="notes">
     v0.2.0 is a major release. Key highlights: Fine-grained system prompt customization with 10 editable sections, blob attachments for inline binary data, skipPermission for low-risk tools, full OpenTelemetry support, and many new RPC methods. Breaking changes mostly affect Python (TypedDict → keyword args) and Go (context behavior change).
     Source: https://github.com/github/copilot-sdk/releases/tag/v0.2.0
   </aside>
@@ -980,7 +1011,8 @@ app.listen(3000);</code></pre>
 });</code></pre>
     </div>
   </div>
-  <aside class="notes">
+    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/releases/tag/v0.2.0" style="color:var(--gh-blue);">releases/tag/v0.2.0 · PR #816</a></p>
+<aside class="notes">
     10 editable sections with 5 actions each (replace, append, prepend, remove, transform).
     Source: https://github.com/github/copilot-sdk/pull/816
   </aside>
@@ -1013,6 +1045,7 @@ app.listen(3000);</code></pre>
       <tr><td>GitHub MCP Server</td><td>github.com/github/github-mcp-server</td></tr>
     </table>
   </div>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
 </section>
 
 </div><!-- /slides -->
