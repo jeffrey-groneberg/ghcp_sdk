@@ -21,6 +21,7 @@ installed and signed in, **or** set `COPILOT_GITHUB_TOKEN` in your environment.
 | 3 | `03_custom_agents.py` | **Custom Agents** | Three agents (researcher, writer, reviewer) with auto-delegation |
 | 4 | `04_hooks.py` | **Hooks** | All 6 hook types — access control, secret redaction, prompt shortcuts |
 | 5 | `05_mcp_and_persistence.py` | **MCP + Persistence** | Filesystem MCP server + resumable sessions across restarts |
+| 6 | `06_human_in_the_loop.py` | **Human-in-the-Loop** | Interactive permission approvals + agent asks user questions |
 
 ## Running
 
@@ -40,4 +41,7 @@ python examples/04_hooks.py
 # 5. MCP server + session persistence
 python examples/05_mcp_and_persistence.py              # first run
 python examples/05_mcp_and_persistence.py --resume      # resume later
+
+# 6. Human-in-the-loop (interactive approvals + user questions)
+python examples/06_human_in_the_loop.py
 ```
