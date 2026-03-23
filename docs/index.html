@@ -1063,6 +1063,9 @@ app.listen(3000);</code></pre>
 
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/search/search.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.css">
+<script src="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.js"></script>
 <script>
   Reveal.initialize({
     hash: true,
@@ -1071,7 +1074,16 @@ app.listen(3000);</code></pre>
     height: 720,
     margin: 0.04,
     transition: 'slide',
-    plugins: [ RevealHighlight ]
+    menu: {
+      side: 'left',
+      titleSelector: 'h1, h2',
+      hideMissingTitles: true,
+      markers: true,
+      themes: false,
+      transitions: false,
+      openButton: true,
+    },
+    plugins: [ RevealHighlight, RevealSearch, RevealMenu ]
   });
 </script>
 </body>
