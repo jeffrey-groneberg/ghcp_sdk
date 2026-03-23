@@ -75,7 +75,7 @@
 
 <!-- ============ SLIDE 1: Title ============ -->
 <section class="title-slide">
-  <p class="section-label">Technical Preview</p>
+  <p class="section-label">Technical Preview · v0.2.0 · March 2026</p>
   <h1>GitHub Copilot SDK</h1>
   <p>Agents for Every App</p>
   <p style="font-size:0.8em; color:var(--gh-text);">Embed Copilot's agentic workflows in your application</p>
@@ -92,7 +92,7 @@
 <!-- ============ SLIDE 2: What is the SDK? ============ -->
 <section>
   <h2>What is the GitHub Copilot SDK?</h2>
-  <p>The same engine behind Copilot CLI — a production-tested agent runtime you can invoke programmatically.</p>
+  <p>A programmable SDK that brings Copilot's agent runtime into your application — no orchestration to build.</p>
   <div class="grid grid-3">
     <div class="card">
       <h3>🏗️ Production-Tested</h3>
@@ -191,62 +191,55 @@
 <!-- ============ SLIDE 16: Use Cases 1 ============ -->
 <section>
   <h2>What Can You Build?</h2>
-  <div class="grid grid-3">
-    <div class="card">
+  <p>Real problems your teams face today — solved with the SDK</p>
+  <div class="grid grid-2" style="margin-top: 10px;">
+    <div class="card" style="border-left: 3px solid var(--gh-red);">
       <h3>🔍 Automated Code Review</h3>
-      <p>Security auditors, performance reviewers, and style checkers with custom prompts</p>
+      <p style="color:var(--gh-muted);">Problem: Manual reviews miss security issues and take days</p>
+      <p><span class="accent">→</span> Deploy a security auditor agent that reviews every PR in seconds using OWASP-focused prompts and read-only tools</p>
     </div>
-    <div class="card">
-      <h3>🛠️ AI-Powered Dev Tools</h3>
-      <p>Embed intelligent assistance in CLIs, dashboards, and internal portals</p>
+    <div class="card" style="border-left: 3px solid var(--gh-blue);">
+      <h3>🚀 CI/CD Pipeline Intelligence</h3>
+      <p style="color:var(--gh-muted);">Problem: Pipelines fail silently; debugging takes hours</p>
+      <p><span class="accent">→</span> Run agents in your pipeline that analyze failures, suggest fixes, and auto-generate test coverage</p>
     </div>
-    <div class="card">
-      <h3>🚀 CI/CD Intelligence</h3>
-      <p>Automated code analysis, test generation, and documentation in pipelines</p>
+    <div class="card" style="border-left: 3px solid var(--gh-purple);">
+      <h3>🗄️ Database Query Assistants</h3>
+      <p style="color:var(--gh-muted);">Problem: Non-technical teams can't self-serve data queries</p>
+      <p><span class="accent">→</span> Connect MCP servers to your database — users ask in natural language, agent writes and explains SQL</p>
     </div>
-    <div class="card">
-      <h3>🤝 Multi-Agent Workflows</h3>
-      <p>Orchestrate specialized agents via Microsoft Agent Framework</p>
-    </div>
-    <div class="card">
-      <h3>🗄️ Database Assistants</h3>
-      <p>MCP-connected agents that query databases and suggest optimizations</p>
-    </div>
-    <div class="card">
-      <h3>📝 Documentation Gen</h3>
-      <p>Agents that analyze codebases and produce comprehensive docs</p>
+    <div class="card" style="border-left: 3px solid var(--gh-orange);">
+      <h3>📝 Documentation Generation</h3>
+      <p style="color:var(--gh-muted);">Problem: Docs are always outdated, nobody wants to write them</p>
+      <p><span class="accent">→</span> Agents analyze your codebase and produce up-to-date, comprehensive documentation on every release</p>
     </div>
   </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
+  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
 </section>
 
 <!-- ============ SLIDE 17: Use Cases 2 ============ -->
 <section>
   <h2>More Use Cases</h2>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>💡 AI-Powered SaaS</h3>
-      <p>Embed agentic AI in customer-facing apps with per-user OAuth</p>
+  <div class="grid grid-2" style="margin-top: 10px;">
+    <div class="card" style="border-left: 3px solid var(--gh-green);">
+      <h3>💡 AI-Powered SaaS Products</h3>
+      <p style="color:var(--gh-muted);">Problem: Building AI features requires custom orchestration and model plumbing</p>
+      <p><span class="accent">→</span> Embed Copilot's agent runtime in your product with per-user OAuth, session isolation, and streaming — ship AI features in days, not months</p>
     </div>
-    <div class="card">
-      <h3>🧩 Custom IDE Extensions</h3>
-      <p>Specialized coding assistants for domain-specific languages</p>
+    <div class="card" style="border-left: 3px solid var(--gh-blue);">
+      <h3>🤝 Multi-Agent Workflows</h3>
+      <p style="color:var(--gh-muted);">Problem: Complex tasks need multiple specialized AI roles working together</p>
+      <p><span class="accent">→</span> Use Microsoft Agent Framework to orchestrate Copilot alongside Azure OpenAI and Anthropic in sequential or parallel pipelines</p>
     </div>
-    <div class="card">
-      <h3>💬 API-Powered Chatbots</h3>
-      <p>Backend services powering conversational AI with persistent sessions</p>
-    </div>
-    <div class="card">
+    <div class="card" style="border-left: 3px solid var(--gh-orange);">
       <h3>⚙️ DevOps Automation</h3>
-      <p>Agents managing infrastructure, diagnosing issues, automating deployments</p>
+      <p style="color:var(--gh-muted);">Problem: Incident response and infrastructure changes require deep expertise</p>
+      <p><span class="accent">→</span> Agents that diagnose production issues, manage infrastructure, and automate deployments with guardrailed shell access</p>
     </div>
-    <div class="card">
-      <h3>🔎 Code Search &amp; Analysis</h3>
-      <p>Intelligent code exploration with read-only agents for large codebases</p>
-    </div>
-    <div class="card">
-      <h3>🏗️ Platform SDKs</h3>
-      <p>Enable third-party developers to build on Copilot's agent runtime</p>
+    <div class="card" style="border-left: 3px solid var(--gh-purple);">
+      <h3>🏗️ Internal Developer Platforms</h3>
+      <p style="color:var(--gh-muted);">Problem: Internal tools lack intelligence and require constant maintenance</p>
+      <p><span class="accent">→</span> Embed Copilot in your developer portal, CLI tools, and dashboards — let third-party teams build on your AI-powered platform</p>
     </div>
   </div>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
@@ -749,6 +742,9 @@ const session = await client.createSession({
 <!-- ============ SLIDE 18: Demo 1 ============ -->
 <section>
   <h2>Demo 1: Simple Chat — TypeScript</h2>
+  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
+    <p style="font-size: 0.6em;"><strong>What this does:</strong> Create a client, open a session, send a prompt, and get a response — the "Hello World" of the SDK. Just 6 lines of meaningful code.</p>
+  </div>
   <pre><code class="language-typescript">import { CopilotClient } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
@@ -773,6 +769,9 @@ await client.stop();</code></pre>
 <!-- ============ SLIDE 18b: Demo 1 Python ============ -->
 <section>
   <h2>Demo 1: Simple Chat — Python</h2>
+  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
+    <p style="font-size: 0.6em;"><strong>What this does:</strong> Same "Hello World" in Python — identical concept, idiomatic API. The v0.2.0 SDK uses keyword arguments and positional prompts.</p>
+  </div>
   <pre><code class="language-python">from copilot import CopilotClient
 from copilot import PermissionHandler
 
@@ -797,7 +796,9 @@ await client.stop()</code></pre>
 <!-- ============ SLIDE 20: Demo 3 ============ -->
 <section>
   <h2>Demo 3: Custom Tool — Ticket Lookup</h2>
-  <p>Give Copilot access to your internal systems by defining custom tools</p>
+  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
+    <p style="font-size: 0.6em;"><strong>What this does:</strong> Define a tool that queries your internal ticket system. The agent automatically calls it when a user asks about a ticket — no routing code needed. This pattern works for any internal system: CRMs, dashboards, HR tools.</p>
+  </div>
   <pre><code class="language-typescript">const lookupTicket = defineTool("lookup_ticket", {
   description: "Look up a support ticket by ID",
   parameters: {
@@ -821,6 +822,9 @@ await client.stop()</code></pre>
 <!-- ============ SLIDE 20b: Demo 3 Usage ============ -->
 <section>
   <h2>Demo 3: Ticket Lookup — Usage</h2>
+  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
+    <p style="font-size: 0.6em;"><strong>What this does:</strong> Register the tool, send a natural language question. The agent recognizes it needs the ticket tool, calls it automatically, and formulates a human-readable answer from the structured data.</p>
+  </div>
   <pre><code class="language-typescript">const session = await client.createSession({
   model: "gpt-4.1",
   tools: [lookupTicket],
@@ -840,7 +844,9 @@ await session.sendAndWait({
 <!-- ============ SLIDE 22: Demo 5 ============ -->
 <section>
   <h2>Demo 5: Backend API Service</h2>
-  <p>Run Copilot as a backend service powering a web API with persistent sessions</p>
+  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
+    <p style="font-size: 0.6em;"><strong>What this does:</strong> Run Copilot as a production backend — the CLI runs as a headless server, your Express API connects over TCP, each user gets their own session with per-user OAuth. This is the pattern for SaaS products and internal tools at scale.</p>
+  </div>
   <pre><code class="language-typescript">import express from "express";
 import { CopilotClient } from "@github/copilot-sdk";
 
