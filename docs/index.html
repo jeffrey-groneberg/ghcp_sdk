@@ -61,6 +61,7 @@
     .reveal .slide-number { font-size: 14px; color: var(--gh-muted); }
     .card ul { margin: 4px 0 0 0; padding: 0; }
     .card ul li { font-size: 0.55em; }
+    .slide-menu-items .slide-menu-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -469,66 +470,47 @@ const session = await client.createSession({
   <p>Four methods — choose based on your deployment scenario</p>
   <div style="display: flex; gap: 12px; margin-top: 12px;">
     <!-- Left: Diagram -->
-    <div style="flex: 1.2;">
-      <div class="card" style="padding: 14px; min-height: 340px;">
-        <h3 style="color: var(--gh-blue); margin-bottom: 10px;">How Auth Flows to the Model</h3>
-        <div style="font-size: 0.55em; line-height: 1.8; font-family: monospace;">
-          <!-- Row 1: Auth sources -->
+    <div style="flex: 1;">
+      <div class="card" style="padding: 14px;">
+        <h3 style="color: var(--gh-blue); margin-bottom: 8px;">Auth Flow</h3>
+        <div style="font-size: 0.55em; line-height: 1.7; font-family: monospace;">
           <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 4px 8px;">👤 CLI Login<br><span style="color:var(--gh-muted);font-size:0.85em">keychain creds</span></span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-blue); border-radius: 4px; padding: 4px 8px;">🔑 OAuth App<br><span style="color:var(--gh-muted);font-size:0.85em">gho_ / ghu_ token</span></span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-purple); border-radius: 4px; padding: 4px 8px;">⚙️ Env Var<br><span style="color:var(--gh-muted);font-size:0.85em">GH_TOKEN etc.</span></span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 4px 8px;">🗝️ BYOK<br><span style="color:var(--gh-muted);font-size:0.85em">your API key</span></span>
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 8px;">👤 CLI Login</span>
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-blue); border-radius: 4px; padding: 3px 8px;">🔑 OAuth App</span>
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-purple); border-radius: 4px; padding: 3px 8px;">⚙️ Env Var</span>
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 8px;">🗝️ BYOK</span>
           </div>
-          <!-- Arrow down -->
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.4em; margin: 6px 0;">▼</div>
-          <!-- SDK -->
+          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
           <div style="text-align: center;">
-            <span style="background: var(--gh-surface); border: 2px solid var(--gh-blue); border-radius: 6px; padding: 6px 24px; display: inline-block;">SDK Client <span style="color:var(--gh-muted)">(auto-resolves auth)</span></span>
+            <span style="background: var(--gh-surface); border: 2px solid var(--gh-blue); border-radius: 6px; padding: 4px 20px; display: inline-block;">SDK Client → Copilot CLI</span>
           </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.4em; margin: 6px 0;">▼</div>
-          <!-- CLI -->
-          <div style="text-align: center;">
-            <span style="background: var(--gh-surface); border: 2px solid var(--gh-green); border-radius: 6px; padding: 6px 24px; display: inline-block;">Copilot CLI <span style="color:var(--gh-muted)">(JSON-RPC)</span></span>
-          </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.4em; margin: 6px 0;">▼</div>
-          <!-- Two destinations -->
-          <div style="display: flex; gap: 10px; justify-content: center;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 4px 12px;">☁️ GitHub Copilot API<br><span style="color:var(--gh-green);font-size:0.85em">subscription required</span></span>
+          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 10px;">☁️ Copilot API <span style="color:var(--gh-green);font-size:0.85em">(subscription)</span></span>
             <span style="color: var(--gh-muted); align-self: center;">or</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 4px 12px;">☁️ Your Provider (BYOK)<br><span style="color:var(--gh-orange);font-size:0.85em">no subscription needed</span></span>
+            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 10px;">☁️ BYOK Provider <span style="color:var(--gh-orange);font-size:0.85em">(no sub)</span></span>
           </div>
         </div>
       </div>
     </div>
-    <!-- Right: Details -->
-    <div style="flex: 0.8;">
-      <div class="card" style="border-left: 3px solid var(--gh-green); margin-bottom: 8px; padding: 8px 12px;">
-        <h3>👤 Signed-in User</h3>
-        <p>CLI keychain credentials • Zero config</p>
-        <p style="color:var(--gh-green);">Subscription: Required</p>
-      </div>
-      <div class="card" style="border-left: 3px solid var(--gh-blue); margin-bottom: 8px; padding: 8px 12px;">
-        <h3>🔑 OAuth GitHub App</h3>
-        <p>Your app's OAuth flow → <code>gho_</code> / <code>ghu_</code> token</p>
-        <p style="color:var(--gh-green);">Subscription: Required</p>
-        <p style="color:var(--gh-muted); font-size:0.5em;">Both OAuth Apps and GitHub Apps supported</p>
-      </div>
-      <div class="card" style="border-left: 3px solid var(--gh-purple); margin-bottom: 8px; padding: 8px 12px;">
-        <h3>⚙️ Environment Variables</h3>
-        <p><code>COPILOT_GITHUB_TOKEN</code> → <code>GH_TOKEN</code> → <code>GITHUB_TOKEN</code></p>
-        <p style="color:var(--gh-green);">Subscription: Required</p>
-      </div>
-      <div class="card" style="border-left: 3px solid var(--gh-orange); padding: 8px 12px;">
-        <h3>🗝️ BYOK</h3>
-        <p>OpenAI, Azure, Anthropic, Ollama, Foundry Local</p>
-        <p style="color:var(--gh-orange);">Subscription: Not Required</p>
+    <!-- Right: Table -->
+    <div style="flex: 1;">
+      <table>
+        <tr><th>Method</th><th>Use Case</th><th>Subscription</th></tr>
+        <tr><td>👤 Signed-in User</td><td>Desktop, local dev</td><td style="color:var(--gh-green)">Required</td></tr>
+        <tr><td>🔑 OAuth App</td><td>Web apps, SaaS</td><td style="color:var(--gh-green)">Required</td></tr>
+        <tr><td>⚙️ Env Variables</td><td>CI/CD, automation</td><td style="color:var(--gh-green)">Required</td></tr>
+        <tr><td>🗝️ BYOK</td><td>Own API keys</td><td style="color:var(--gh-orange)">Not Required</td></tr>
+      </table>
+      <div class="highlight-box" style="margin-top: 10px; padding: 8px 12px;">
+        <p style="font-size: 0.55em;"><strong>Token support:</strong> <code>gho_</code> ✅ · <code>ghu_</code> ✅ · <code>github_pat_</code> ✅ · <code>ghp_</code> ❌<br>
+        <strong>OAuth Apps + GitHub Apps</strong> both supported for multi-user scenarios</p>
       </div>
     </div>
   </div>
   <aside class="notes">
-    The SDK supports 4 auth methods. Three require a Copilot subscription: signed-in user (keychain), OAuth GitHub App (gho_/ghu_ tokens), and environment variables. BYOK bypasses GitHub auth entirely using your own API keys.
-    OAuth GitHub Apps are fully supported — both OAuth Apps and GitHub Apps work. The user authorizes your app, you get a gho_ or ghu_ token, and pass it via the githubToken option. Classic PATs (ghp_) are NOT supported — only fine-grained PATs (github_pat_).
+    The SDK supports 4 auth methods. Three require a Copilot subscription. BYOK bypasses GitHub auth entirely.
+    OAuth GitHub Apps are fully supported. Supported tokens: gho_, ghu_, github_pat_. NOT supported: ghp_ (classic PAT).
     Source: https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md
     Source: https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md
   </aside>
@@ -537,62 +519,41 @@ const session = await client.createSession({
 <!-- ============ SLIDE 12b: OAuth App Flow ============ -->
 <section>
   <h2>OAuth GitHub App Integration</h2>
-  <p>Build multi-user apps where each user authenticates with their GitHub account</p>
+  <p>Build multi-user apps — each user authenticates with their GitHub account</p>
   <div class="grid grid-2" style="margin-top: 10px;">
     <div class="card">
-      <h3>How It Works</h3>
-      <div style="font-size: 0.55em; line-height: 2; font-family: monospace; margin-top: 8px;">
-        <div class="flow" style="flex-direction: column; align-items: flex-start; gap: 2px;">
-          <span>1. User clicks <strong>"Sign in with GitHub"</strong></span>
-          <span>2. Redirect to GitHub OAuth authorize</span>
-          <span>3. User approves → authorization code</span>
-          <span>4. Your server exchanges code → <code style="color:var(--gh-green)">gho_xxx</code> token</span>
-          <span>5. Pass token to SDK via <code style="color:var(--gh-green)">githubToken</code></span>
-          <span>6. Copilot requests made <strong>as that user</strong></span>
-        </div>
+      <h3>OAuth Flow</h3>
+      <div style="font-size: 0.55em; line-height: 1.9; font-family: monospace; margin-top: 6px;">
+        <span>1. User clicks <strong>"Sign in with GitHub"</strong></span><br>
+        <span>2. Redirect → GitHub OAuth → user approves</span><br>
+        <span>3. Exchange code → <code style="color:var(--gh-green)">gho_xxx</code> token</span><br>
+        <span>4. Pass token → SDK via <code style="color:var(--gh-green)">githubToken</code></span><br>
+        <span>5. Requests made <strong>as that user</strong> (their subscription)</span>
       </div>
-      <div style="margin-top: 10px;">
-        <table>
-          <tr><th>Token</th><th>Source</th><th>Supported</th></tr>
-          <tr><td><code>gho_</code></td><td>OAuth App token</td><td style="color:var(--gh-green)">✅</td></tr>
-          <tr><td><code>ghu_</code></td><td>GitHub App user token</td><td style="color:var(--gh-green)">✅</td></tr>
-          <tr><td><code>github_pat_</code></td><td>Fine-grained PAT</td><td style="color:var(--gh-green)">✅</td></tr>
-          <tr><td><code>ghp_</code></td><td>Classic PAT</td><td style="color:var(--gh-red)">❌</td></tr>
-        </table>
+      <div class="highlight-box" style="margin-top: 8px; padding: 6px 10px;">
+        <p style="font-size: 0.5em;"><strong>Enterprise:</strong> Works with org memberships, EMU, and SAML SSO automatically.</p>
       </div>
     </div>
     <div class="card">
       <h3>Code Example</h3>
-      <pre><code class="language-typescript">// Your app receives token from OAuth flow
-const client = new CopilotClient({
+      <pre><code class="language-typescript">const client = new CopilotClient({
   githubToken: userAccessToken,
   useLoggedInUser: false,
 });
 
 const session = await client.createSession({
-  sessionId: `user-${userId}-session`,
+  sessionId: `user-${userId}`,
   model: "gpt-4.1",
   onPermissionRequest: approveAll,
-});
-
-// Copilot requests are billed to the
-// user's own Copilot subscription
-const resp = await session.sendAndWait(
-  "Analyze this codebase"
-);</code></pre>
-      <div class="highlight-box" style="margin-top: 8px; padding: 6px 10px;">
-        <p style="font-size: 0.5em;"><strong>Enterprise:</strong> Works with org memberships, EMU, and SAML SSO — enterprise policies are enforced server-side by GitHub automatically.</p>
-      </div>
+});</code></pre>
     </div>
   </div>
-  <p class="muted" style="text-align:center; margin-top:8px;">
-    📖 Docs: <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md" style="color:var(--gh-blue);">docs/setup/github-oauth.md</a> · <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a>
+  <p class="muted" style="text-align:center; margin-top:6px;">
+    📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md" style="color:var(--gh-blue);">docs/setup/github-oauth.md</a> · <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a>
   </p>
   <aside class="notes">
-    Yes, OAuth GitHub Apps are explicitly supported by the Copilot SDK. The official documentation at docs/setup/github-oauth.md provides a complete guide. Both OAuth Apps and GitHub Apps work — your app creates a standard OAuth flow, receives a gho_ or ghu_ token, and passes it to the SDK via the githubToken option. Each user's Copilot usage is billed to their own subscription. Enterprise features like org membership verification, EMU, and SAML SSO all work automatically.
-    Supported tokens: gho_ (OAuth), ghu_ (GitHub App), github_pat_ (fine-grained PAT). NOT supported: ghp_ (classic PAT, deprecated).
+    OAuth GitHub Apps are explicitly supported. Both OAuth Apps and GitHub Apps work.
     Source: https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md
-    Source: https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md
   </aside>
 </section>
 
@@ -946,7 +907,7 @@ app.listen(3000);</code></pre>
     <div class="card" style="border-left: 3px solid var(--gh-orange);">
       <h3>⚠️ Breaking Changes</h3>
       <ul>
-        <li><strong>Python API overhaul</strong> — keyword args replace TypedDicts (see next slide)</li>
+        <li><strong>Python API overhaul</strong> — keyword args replace TypedDicts</li>
         <li><strong><code>autoRestart</code> removed</strong> — deprecated across all SDKs</li>
         <li><strong>Go <code>Start()</code> context</strong> — cancelling context no longer kills CLI process; use <code>Stop()</code></li>
         <li><strong>Go <code>LogOptions.Ephemeral</code></strong> — changed from <code>bool</code> to <code>*bool</code></li>
@@ -996,27 +957,23 @@ app.listen(3000);</code></pre>
         <tr><td><code>append</code></td><td>Add content after the section</td></tr>
         <tr><td><code>prepend</code></td><td>Add content before the section</td></tr>
         <tr><td><code>remove</code></td><td>Remove the section entirely</td></tr>
-        <tr><td><code>transform</code></td><td>Callback — receives current text, returns modified</td></tr>
+        <tr><td><code>transform</code></td><td>Callback — receives text, returns modified</td></tr>
       </table>
     </div>
     <div class="card">
       <h3>Example</h3>
-      <pre><code class="language-typescript">const session = await client.createSession({
+      <pre><code class="language-typescript">await client.createSession({
   systemMessage: {
     mode: "customize",
     sections: {
       identity: {
         action: (current) =>
-          current.replace(
-            "GitHub Copilot",
+          current.replace("Copilot",
             "Acme Assistant"),
       },
       tone: {
         action: "replace",
         content: "Be concise.",
-      },
-      code_change_rules: {
-        action: "remove",
       },
     },
   },
@@ -1024,7 +981,7 @@ app.listen(3000);</code></pre>
     </div>
   </div>
   <aside class="notes">
-    The new systemMessage 'customize' mode lets you surgically edit 10 individual sections of the Copilot system prompt. Each section supports 4 static actions (replace, remove, append, prepend) and a transform callback that receives the current content and returns modified text. The 10 sections are: identity, tone, tool_efficiency, environment_context, code_change_rules, guidelines, safety, tool_instructions, custom_instructions, last_instructions.
+    10 editable sections with 5 actions each (replace, append, prepend, remove, transform).
     Source: https://github.com/github/copilot-sdk/pull/816
   </aside>
 </section>
@@ -1082,6 +1039,14 @@ app.listen(3000);</code></pre>
       themes: false,
       transitions: false,
       openButton: true,
+      custom: false,
+      getSlideTitle: function(slide) {
+        var heading = slide.querySelector('h1, h2');
+        if (heading) {
+          return heading.textContent.replace(/\s+/g, ' ').trim();
+        }
+        return '';
+      },
     },
     plugins: [ RevealHighlight, RevealSearch, RevealMenu ]
   });
