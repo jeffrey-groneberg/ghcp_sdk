@@ -802,7 +802,7 @@ await client.stop()</code></pre>
 
 <!-- ============ SLIDE 20: Demo 3 ============ -->
 <section>
-  <h2>Demo 3: Custom Tool — Ticket Lookup</h2>
+  <h2>Demo 2: Custom Tool — Ticket Lookup</h2>
   <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
     <p style="font-size: 0.6em;"><strong>What this does:</strong> Define a tool that queries your internal ticket system. The agent automatically calls it when a user asks about a ticket — no routing code needed. This pattern works for any internal system: CRMs, dashboards, HR tools.</p>
   </div>
@@ -828,7 +828,7 @@ await client.stop()</code></pre>
 
 <!-- ============ SLIDE 20b: Demo 3 Usage ============ -->
 <section>
-  <h2>Demo 3: Ticket Lookup — Usage</h2>
+  <h2>Demo 2: Ticket Lookup — Usage</h2>
   <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
     <p style="font-size: 0.6em;"><strong>What this does:</strong> Register the tool, send a natural language question. The agent recognizes it needs the ticket tool, calls it automatically, and formulates a human-readable answer from the structured data.</p>
   </div>
@@ -850,7 +850,7 @@ await session.sendAndWait({
 
 <!-- ============ SLIDE 22: Demo 5 ============ -->
 <section>
-  <h2>Demo 5: Backend API Service</h2>
+  <h2>Demo 3: Backend API Service</h2>
   <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
     <p style="font-size: 0.6em;"><strong>What this does:</strong> Run Copilot as a production backend — the CLI runs as a headless server, your Express API connects over TCP, each user gets their own session with per-user OAuth. This is the pattern for SaaS products and internal tools at scale.</p>
   </div>
@@ -910,7 +910,7 @@ app.listen(3000);</code></pre>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
 </section><!-- ============ SLIDE 19: Demo 2 ============ -->
 <section>
-  <h2>Demo 2: Real-Time Streaming</h2>
+  <h2>Demo 4: Real-Time Streaming</h2>
   <p>Stream AI responses token by token for interactive, real-time user experiences</p>
   <pre><code class="language-typescript">const session = await client.createSession({
   model: "gpt-4.1",
@@ -940,7 +940,7 @@ await session.sendAndWait({
 
 <!-- ============ SLIDE 21: Demo 4 ============ -->
 <section>
-  <h2>Demo 4: Security Audit with Hooks</h2>
+  <h2>Demo 5: Security Audit with Hooks</h2>
   <p>Combine custom agents with hooks for enterprise-grade auditing</p>
   <pre><code class="language-typescript">const READ_ONLY_TOOLS = ["read_file", "glob", "grep", "view"];
 
@@ -958,7 +958,7 @@ const session = await client.createSession({
 
 <!-- ============ SLIDE 21b: Demo 4 Hooks ============ -->
 <section>
-  <h2>Demo 4: Security Hooks</h2>
+  <h2>Demo 5: Security Hooks</h2>
   <pre><code class="language-typescript">hooks: {
   onPreToolUse: async (input) => {
     // Enforce read-only: deny any write operations
