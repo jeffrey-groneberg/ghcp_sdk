@@ -121,7 +121,7 @@ async def main():
         prompt = f"List the files in {ALLOWED_DIR} and summarize what each one contains."
         print(f"You: {prompt}\n")
         print("Copilot: ", end="")
-        await session.send_and_wait({"prompt": prompt})
+        await session.send_and_wait(prompt)
         print("\n")
 
         print("💾 Session persisted! Run again with --resume to continue.\n")
@@ -130,10 +130,10 @@ async def main():
         prompt = "Based on our earlier conversation, which file would you modify to add a new feature?"
         print(f"You: {prompt}\n")
         print("Copilot: ", end="")
-        await session.send_and_wait({"prompt": prompt})
+        await session.send_and_wait(prompt)
         print("\n")
 
-    await session.destroy()
+    await session.disconnect()
     await client.stop()
 
 

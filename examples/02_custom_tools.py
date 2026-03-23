@@ -91,17 +91,17 @@ async def main():
     prompt = "What's the weather in Tokyo, Berlin, and São Paulo? Show temperatures in both °C and °F."
     print(f"You: {prompt}\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": prompt})
+    await session.send_and_wait(prompt)
     print("\n")
 
     # This one uses the unit converter tool
     prompt2 = "Convert 42 km to miles, and 185 lbs to kg."
     print(f"You: {prompt2}\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": prompt2})
+    await session.send_and_wait(prompt2)
     print("\n")
 
-    await session.destroy()
+    await session.disconnect()
     await client.stop()
 
 

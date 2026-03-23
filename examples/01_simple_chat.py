@@ -42,17 +42,17 @@ async def main():
     # 4. Ask a question and wait for the full response
     print("You: Explain what the GitHub Copilot SDK is in 3 sentences.\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": "Explain what the GitHub Copilot SDK is in 3 sentences."})
+    await session.send_and_wait("Explain what the GitHub Copilot SDK is in 3 sentences.")
     print("\n")
 
     # 5. Follow-up question — the session remembers the conversation
     print("You: Now give me a code example in Python.\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": "Now give me a code example in Python."})
+    await session.send_and_wait("Now give me a code example in Python.")
     print("\n")
 
     # 6. Clean up
-    await session.destroy()
+    await session.disconnect()
     await client.stop()
     print("--- Session ended ---")
 

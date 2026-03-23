@@ -143,16 +143,16 @@ async def main():
     # Regular prompt
     print("\nYou: What files are in this directory?\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": "What files are in this directory?"})
+    await session.send_and_wait("What files are in this directory?")
     print("\n")
 
     # Shorthand prompt — the hook will expand "/explain" automatically
     print("You: /explain\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": "/explain"})
+    await session.send_and_wait("/explain")
     print("\n")
 
-    await session.destroy()
+    await session.disconnect()
     await client.stop()
 
 

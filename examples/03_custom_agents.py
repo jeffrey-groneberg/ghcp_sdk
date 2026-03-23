@@ -87,17 +87,17 @@ async def main():
     prompt1 = "What files are in this project and what does the project do?"
     print(f"You: {prompt1}\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": prompt1})
+    await session.send_and_wait(prompt1)
     print("\n")
 
     # Copilot may auto-delegate to the reviewer agent
     prompt2 = "Review the code in this project for any security concerns."
     print(f"You: {prompt2}\n")
     print("Copilot: ", end="")
-    await session.send_and_wait({"prompt": prompt2})
+    await session.send_and_wait(prompt2)
     print("\n")
 
-    await session.destroy()
+    await session.disconnect()
     await client.stop()
 
 
