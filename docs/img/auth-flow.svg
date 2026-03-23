@@ -1,0 +1,48 @@
+<svg viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Auth Sources Row -->
+  <rect x="20" y="20" width="120" height="60" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="80" y="45" text-anchor="middle" fill="#3fb950" font-family="system-ui" font-size="11" font-weight="600">👤 CLI Login</text>
+  <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">Keychain</text>
+
+  <rect x="160" y="20" width="120" height="60" rx="10" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="220" y="45" text-anchor="middle" fill="#58a6ff" font-family="system-ui" font-size="11" font-weight="600">🔑 OAuth App</text>
+  <text x="220" y="62" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">gho_ / ghu_</text>
+
+  <rect x="300" y="20" width="120" height="60" rx="10" fill="#161b22" stroke="#bc8cff" stroke-width="1.5"/>
+  <text x="360" y="45" text-anchor="middle" fill="#bc8cff" font-family="system-ui" font-size="11" font-weight="600">⚙️ Env Var</text>
+  <text x="360" y="62" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">GH_TOKEN</text>
+
+  <rect x="440" y="20" width="120" height="60" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="500" y="45" text-anchor="middle" fill="#f0883e" font-family="system-ui" font-size="11" font-weight="600">🗝️ BYOK</text>
+  <text x="500" y="62" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">Your API Key</text>
+
+  <!-- Arrows down -->
+  <line x1="80" y1="80" x2="300" y2="115" stroke="#58a6ff" stroke-width="1" opacity="0.5"/>
+  <line x1="220" y1="80" x2="300" y2="115" stroke="#58a6ff" stroke-width="1" opacity="0.5"/>
+  <line x1="360" y1="80" x2="340" y2="115" stroke="#58a6ff" stroke-width="1" opacity="0.5"/>
+  <line x1="500" y1="80" x2="380" y2="115" stroke="#58a6ff" stroke-width="1" opacity="0.5"/>
+
+  <!-- SDK Client -->
+  <rect x="230" y="115" width="220" height="40" rx="8" fill="#1f6feb" opacity="0.15" stroke="#1f6feb" stroke-width="1.5"/>
+  <text x="340" y="140" text-anchor="middle" fill="#58a6ff" font-family="system-ui" font-size="12" font-weight="600">SDK Client (auto-resolves)</text>
+
+  <!-- Arrow down -->
+  <line x1="340" y1="155" x2="340" y2="175" stroke="#58a6ff" stroke-width="1.5"/>
+  <polygon points="334,175 340,183 346,175" fill="#58a6ff"/>
+
+  <!-- Two destinations -->
+  <rect x="140" y="190" width="180" height="45" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="230" y="210" text-anchor="middle" fill="#3fb950" font-family="system-ui" font-size="10" font-weight="600">☁️ GitHub Copilot API</text>
+  <text x="230" y="225" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">Subscription required</text>
+
+  <text x="355" y="215" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="11">or</text>
+
+  <rect x="380" y="190" width="180" height="45" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="470" y="210" text-anchor="middle" fill="#f0883e" font-family="system-ui" font-size="10" font-weight="600">☁️ Your Provider (BYOK)</text>
+  <text x="470" y="225" text-anchor="middle" fill="#8b949e" font-family="system-ui" font-size="8">No subscription needed</text>
+
+  <!-- Subscription labels -->
+  <rect x="600" y="30" width="180" height="50" rx="8" fill="#0d1117" stroke="#30363d"/>
+  <text x="690" y="50" text-anchor="middle" fill="#3fb950" font-family="system-ui" font-size="9" font-weight="600">✅ Subscription: CLI, OAuth, Env</text>
+  <text x="690" y="68" text-anchor="middle" fill="#f0883e" font-family="system-ui" font-size="9" font-weight="600">🆓 No subscription: BYOK</text>
+</svg>

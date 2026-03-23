@@ -99,19 +99,26 @@
 <!-- ============ SLIDE 2: What is the SDK? ============ -->
 <section>
   <h2>What is the GitHub Copilot SDK?</h2>
-  <p>A programmable SDK that brings Copilot's agent runtime into your application — no orchestration to build.</p>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>🏗️ Production-Tested</h3>
-      <p>Same runtime behind Copilot CLI, battle-tested at scale</p>
+  <div style="display: flex; gap: 20px; align-items: center;">
+    <div style="flex: 1;">
+      <p>A programmable SDK that brings Copilot's agent runtime into your application — no orchestration to build.</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>🏗️ Production-Tested</h3>
+          <p>Same runtime behind Copilot CLI, battle-tested at scale</p>
+        </div>
+        <div class="card">
+          <h3>🌐 Multi-Language</h3>
+          <p>TypeScript, Python, Go, .NET, and Java SDKs available</p>
+        </div>
+        <div class="card">
+          <h3>🔧 Extensible</h3>
+          <p>Custom tools, agents, MCP servers, hooks, and skills</p>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <h3>🌐 Multi-Language</h3>
-      <p>TypeScript, Python, Go, .NET, and Java SDKs available</p>
-    </div>
-    <div class="card">
-      <h3>🔧 Extensible</h3>
-      <p>Custom tools, agents, MCP servers, hooks, and skills</p>
+    <div style="flex: 0 0 220px;">
+      <img src="img/hero-agents.svg" alt="Agent capabilities" style="width: 220px;">
     </div>
   </div>
   <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md" style="color:var(--gh-blue);">README.md</a></p>
@@ -120,16 +127,8 @@
 <!-- ============ SLIDE 3: Architecture ============ -->
 <section>
   <h2>Architecture</h2>
-  <div class="flow">
-    <div class="flow-box"><strong>Your Application</strong></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>SDK Client</strong><br><span class="muted">TS / Python / Go / .NET / Java</span></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>Copilot CLI</strong><br><span class="muted">JSON-RPC (stdio / TCP)</span></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>Model Provider</strong><br><span class="muted">GitHub · OpenAI · Azure · Anthropic · Local</span></div>
-  </div>
-  <div class="grid grid-3" style="margin-top:14px;">
+  <img src="img/architecture.svg" alt="Architecture diagram" style="width: 100%; max-width: 900px; margin: 8px auto; display: block;">
+  <div class="grid grid-3" style="margin-top:8px;">
     <div class="card"><p>⚡ Auto-managed or external CLI</p></div>
     <div class="card"><p>💾 Session persistence</p></div>
     <div class="card"><p>👥 Multi-client support (v3)</p></div>
@@ -469,6 +468,7 @@ const session = await client.createSession({
 <!-- ============ SLIDE 11: Hooks ============ -->
 <section>
   <h2>Hooks — Session Lifecycle Control</h2>
+  <img src="img/hooks-flow.svg" alt="Hooks pipeline" style="width: 100%; max-width: 900px; margin: 4px auto 8px; display: block;">
   <div class="grid grid-3">
     <div class="card">
       <h3>onSessionStart</h3>
@@ -503,46 +503,14 @@ const session = await client.createSession({
 <section>
   <h2>Authentication Deep Dive</h2>
   <p>Four methods — choose based on your deployment scenario</p>
-  <div style="display: flex; gap: 12px; margin-top: 12px;">
-    <!-- Left: Diagram -->
-    <div style="flex: 1;">
-      <div class="card" style="padding: 14px;">
-        <h3 style="color: var(--gh-blue); margin-bottom: 8px;">Auth Flow</h3>
-        <div style="font-size: 0.55em; line-height: 1.7; font-family: monospace;">
-          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 8px;">👤 CLI Login</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-blue); border-radius: 4px; padding: 3px 8px;">🔑 OAuth App</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-purple); border-radius: 4px; padding: 3px 8px;">⚙️ Env Var</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 8px;">🗝️ BYOK</span>
-          </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
-          <div style="text-align: center;">
-            <span style="background: var(--gh-surface); border: 2px solid var(--gh-blue); border-radius: 6px; padding: 4px 20px; display: inline-block;">SDK Client → Copilot CLI</span>
-          </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 10px;">☁️ Copilot API <span style="color:var(--gh-green);font-size:0.85em">(subscription)</span></span>
-            <span style="color: var(--gh-muted); align-self: center;">or</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 10px;">☁️ BYOK Provider <span style="color:var(--gh-orange);font-size:0.85em">(no sub)</span></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Right: Table -->
-    <div style="flex: 1;">
-      <table>
-        <tr><th>Method</th><th>Use Case</th><th>Subscription</th></tr>
-        <tr><td>👤 Signed-in User</td><td>Desktop, local dev</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>🔑 OAuth App</td><td>Web apps, SaaS</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>⚙️ Env Variables</td><td>CI/CD, automation</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>🗝️ BYOK</td><td>Own API keys</td><td style="color:var(--gh-orange)">Not Required</td></tr>
-      </table>
-      <div class="highlight-box" style="margin-top: 10px; padding: 8px 12px;">
-        <p style="font-size: 0.55em;"><strong>Token support:</strong> <code>gho_</code> ✅ · <code>ghu_</code> ✅ · <code>github_pat_</code> ✅ · <code>ghp_</code> ❌<br>
-        <strong>OAuth Apps + GitHub Apps</strong> both supported for multi-user scenarios</p>
-      </div>
-    </div>
-  </div>
+  <img src="img/auth-flow.svg" alt="Auth flow diagram" style="width: 100%; max-width: 850px; margin: 6px auto; display: block;">
+  <table style="margin-top: 6px;">
+    <tr><th>Method</th><th>Use Case</th><th>Subscription</th><th>Tokens</th></tr>
+    <tr><td>👤 Signed-in User</td><td>Desktop, local dev</td><td style="color:var(--gh-green)">Required</td><td>Keychain</td></tr>
+    <tr><td>🔑 OAuth App</td><td>Web apps, SaaS</td><td style="color:var(--gh-green)">Required</td><td><code>gho_</code> · <code>ghu_</code></td></tr>
+    <tr><td>⚙️ Env Variables</td><td>CI/CD, automation</td><td style="color:var(--gh-green)">Required</td><td><code>github_pat_</code></td></tr>
+    <tr><td>🗝️ BYOK</td><td>Own API keys</td><td style="color:var(--gh-orange)">Not Required</td><td>Provider key</td></tr>
+  </table>
     <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a></p>
 <aside class="notes">
     The SDK supports 4 auth methods. Three require a Copilot subscription. BYOK bypasses GitHub auth entirely.
