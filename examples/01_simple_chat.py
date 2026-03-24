@@ -25,11 +25,9 @@ async def main():
 
     # 2. Open a session with streaming so we see tokens as they arrive
     session = await client.create_session(
-        {
-            "on_permission_request": PermissionHandler.approve_all,
-            "model": "gpt-4.1",
-            "streaming": True,
-        }
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
     )
 
     # 3. Print tokens in real time as the model generates them

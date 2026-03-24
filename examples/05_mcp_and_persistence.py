@@ -55,21 +55,19 @@ async def create_new_session(client):
     print(f"🆕 Creating new session: {SESSION_ID}\n")
 
     session = await client.create_session(
-        {
-            "on_permission_request": PermissionHandler.approve_all,
-            "model": "gpt-4.1",
-            "streaming": True,
-            "session_id": SESSION_ID,
-            "mcp_servers": {
-                # Local MCP server: runs as a subprocess, communicates over stdin/stdout
-                "filesystem": {
-                    "type": "local",
-                    "command": "npx",
-                    "args": ["-y", "@modelcontextprotocol/server-filesystem", ALLOWED_DIR],
-                    "tools": ["*"],  # Enable all tools the server provides
-                },
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+        session_id=SESSION_ID,
+        mcp_servers={
+            # Local MCP server: runs as a subprocess, communicates over stdin/stdout
+            "filesystem": {
+                "type": "local",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", ALLOWED_DIR],
+                "tools": ["*"],  # Enable all tools the server provides
             },
-        }
+        },
     )
     return session
 
@@ -80,15 +78,13 @@ async def resume_existing_session(client):
 
     session = await client.resume_session(
         SESSION_ID,
-        {
-            "on_permission_request": PermissionHandler.approve_all,
-            "mcp_servers": {
-                "filesystem": {
-                    "type": "local",
-                    "command": "npx",
-                    "args": ["-y", "@modelcontextprotocol/server-filesystem", ALLOWED_DIR],
-                    "tools": ["*"],
-                },
+        on_permission_request=PermissionHandler.approve_all,
+        mcp_servers={
+            "filesystem": {
+                "type": "local",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", ALLOWED_DIR],
+                "tools": ["*"],
             },
         },
     )

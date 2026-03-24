@@ -119,19 +119,17 @@ async def main():
     await client.start()
 
     session = await client.create_session(
-        {
-            "on_permission_request": PermissionHandler.approve_all,
-            "model": "gpt-4.1",
-            "streaming": True,
-            "hooks": {
-                "on_session_start": on_session_start,
-                "on_pre_tool_use": on_pre_tool_use,
-                "on_post_tool_use": on_post_tool_use,
-                "on_user_prompt_submitted": on_user_prompt_submitted,
-                "on_error_occurred": on_error_occurred,
-                "on_session_end": on_session_end,
-            },
-        }
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+        hooks={
+            "on_session_start": on_session_start,
+            "on_pre_tool_use": on_pre_tool_use,
+            "on_post_tool_use": on_post_tool_use,
+            "on_user_prompt_submitted": on_user_prompt_submitted,
+            "on_error_occurred": on_error_occurred,
+            "on_session_end": on_session_end,
+        },
     )
 
     def on_event(event):

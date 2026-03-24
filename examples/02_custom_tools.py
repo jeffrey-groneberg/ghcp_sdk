@@ -72,12 +72,10 @@ async def main():
 
     # Register both tools with the session
     session = await client.create_session(
-        {
-            "on_permission_request": PermissionHandler.approve_all,
-            "model": "gpt-4.1",
-            "streaming": True,
-            "tools": [get_weather, convert_units],
-        }
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+        tools=[get_weather, convert_units],
     )
 
     # Print streaming output
