@@ -1,6 +1,6 @@
 # GitHub Copilot SDK — Python Examples
 
-Five self-contained examples demonstrating the core capabilities of the
+Six self-contained examples demonstrating the core capabilities of the
 [GitHub Copilot SDK](https://github.com/github/copilot-sdk) for Python.
 
 ## Prerequisites
@@ -34,6 +34,7 @@ pip install -r requirements.txt
 | 3 | [`03_custom_agents.py`](examples/03_custom_agents.py) | **Custom Agents** | Three agents (researcher, writer, reviewer) with auto-delegation |
 | 4 | [`04_hooks.py`](examples/04_hooks.py) | **Hooks** | All 6 hook types — access control, secret redaction, prompt shortcuts |
 | 5 | [`05_mcp_and_persistence.py`](examples/05_mcp_and_persistence.py) | **MCP + Persistence** | Filesystem MCP server + resumable sessions across restarts |
+| 6 | [`06_human_in_the_loop.py`](examples/06_human_in_the_loop.py) | **Human-in-the-Loop** | Interactive permission approvals + user input requests |
 
 ## Running the Examples
 
@@ -53,6 +54,9 @@ python examples/04_hooks.py
 # 5. MCP server + session persistence
 python examples/05_mcp_and_persistence.py              # first run
 python examples/05_mcp_and_persistence.py --resume      # resume later
+
+# 6. Human-in-the-loop (interactive approvals + user input)
+python examples/06_human_in_the_loop.py
 ```
 
 ## Project Structure
@@ -70,7 +74,8 @@ ghcp-sdk-examples/
     ├── 02_custom_tools.py
     ├── 03_custom_agents.py
     ├── 04_hooks.py
-    └── 05_mcp_and_persistence.py
+    ├── 05_mcp_and_persistence.py
+    └── 06_human_in_the_loop.py
 ```
 
 ## License
