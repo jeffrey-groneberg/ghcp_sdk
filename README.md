@@ -31,7 +31,7 @@ pip install -r requirements.txt
 |---|------|-----------|-------------|
 | 1 | [`01_simple_chat.py`](examples/01_simple_chat.py) | **Streaming Chat** | Create a session, stream tokens, multi-turn conversation |
 | 2 | [`02_custom_tools.py`](examples/02_custom_tools.py) | **Custom Tools** | `@define_tool` with Pydantic models — weather API + unit converter |
-| 3 | [`03_custom_agents.py`](examples/03_custom_agents.py) | **Custom Agents** | Three agents (researcher, writer, reviewer) with auto-delegation |
+| 3 | [`03_custom_agents.py`](examples/03_custom_agents.py) | **Custom Agents** | Three agents (researcher, writer, reviewer) with explicit handoff via `session.rpc.agent.select()` |
 | 4 | [`04_hooks.py`](examples/04_hooks.py) | **Hooks** | All 6 hook types — access control, secret redaction, prompt shortcuts |
 | 5 | [`05_mcp_and_persistence.py`](examples/05_mcp_and_persistence.py) | **MCP + Persistence** | Filesystem MCP server + resumable sessions across restarts |
 | 6 | [`06_human_in_the_loop.py`](examples/06_human_in_the_loop.py) | **Human-in-the-Loop** | Interactive permission approvals + user input requests |
