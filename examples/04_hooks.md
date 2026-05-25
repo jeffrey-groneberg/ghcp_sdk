@@ -1,5 +1,7 @@
 # 04 · Hooks
 
+📖 **Source:** [`github/copilot-sdk · docs/features/hooks.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md)
+
 > Hooks are callbacks the SDK fires at well-defined points in the agent's
 > lifecycle: *just before* a tool runs, *just after*, on user prompt, on
 > stop, etc. Perfect for cross-cutting concerns that don't belong in a tool.

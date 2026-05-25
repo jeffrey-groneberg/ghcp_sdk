@@ -1,5 +1,7 @@
 # 03 · Custom agents
 
+📖 **Source:** [`github/copilot-sdk · docs/features/custom-agents.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md)
+
 > A **custom agent** is a named persona bundled with the session — a system
 > prompt plus an allowlist of tools. You can switch between them mid-conversation
 > without losing context.

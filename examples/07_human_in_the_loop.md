@@ -1,4 +1,6 @@
-# 06 · Human in the loop
+# 07 · Human in the loop
+
+📖 **Source:** [`github/copilot-sdk · docs/auth/authenticate.md`](https://github.com/github/copilot-sdk/blob/main/docs/auth/authenticate.md) &middot; [`docs/features/hooks.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md) &middot; [`python/ — Permission Handling`](https://github.com/github/copilot-sdk/tree/main/python#permission-handling)
 
 > Two callbacks let your app **stay in control** of the agent:
 >
@@ -150,7 +152,7 @@ The agent will:
 ## Run it
 
 ```bash
-python examples/06_human_in_the_loop.py
+python examples/07_human_in_the_loop.py
 # Interactive — type answers when prompted.
 ```
 

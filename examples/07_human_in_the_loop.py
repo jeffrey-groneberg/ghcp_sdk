@@ -1,5 +1,5 @@
 """
-Example 06 — Human in the loop (permissions + ask_user)
+Example 07 — Human in the loop (permissions + ask_user)
 
 Two callbacks let your app stay in control of the agent:
 
@@ -12,7 +12,7 @@ Two callbacks let your app stay in control of the agent:
 Both replace what the official Copilot CLI normally does interactively, which
 makes the SDK ideal for headless apps, custom UIs, IDE extensions, etc.
 
-Run:  python examples/06_human_in_the_loop.py
+Run:  python examples/07_human_in_the_loop.py
 """
 
 import asyncio

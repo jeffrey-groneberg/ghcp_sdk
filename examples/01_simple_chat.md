@@ -1,5 +1,7 @@
 # 01 · Simple streaming chat
 
+📖 **Source:** [`github/copilot-sdk · docs/features/streaming-events.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md) &middot; [`python/ — Streaming quickstart`](https://github.com/github/copilot-sdk/tree/main/python#streaming)
+
 > The "hello world" of the GitHub Copilot SDK. Open a session, send a prompt,
 > stream the response token by token.
 

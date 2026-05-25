@@ -29,11 +29,12 @@ Then run any example:
   python examples/02_custom_tools.py
   python examples/03_custom_agents.py
   python examples/04_hooks.py
-  python examples/05_mcp_and_persistence.py
-  python examples/06_human_in_the_loop.py
+  python examples/05_mcp_servers.py
+  python examples/06_session_resume.py
+  python examples/07_human_in_the_loop.py
 
-Tip: Codespaces already has Node.js + npx installed,
-so the filesystem MCP server in example 5 works out of the box.
+Tip: Codespaces already has the gh CLI authenticated,
+so the remote GitHub MCP server in example 5 works out of the box.
 ============================================================
 
 EOF

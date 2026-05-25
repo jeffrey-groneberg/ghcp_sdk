@@ -1,5 +1,7 @@
 # 02 · Custom tools
 
+📖 **Source:** [`github/copilot-sdk · python/ — Tools`](https://github.com/github/copilot-sdk/tree/main/python#tools) &middot; [`docs/features/index.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/index.md)
+
 > Give the agent a Python function it can call on its own. Here it's a fake
 > weather lookup; in a real app it could be a DB query, an HTTP call to your
 > internal API, or anything else.
