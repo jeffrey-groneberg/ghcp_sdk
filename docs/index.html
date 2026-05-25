@@ -676,6 +676,45 @@
     .btn.primary:hover { background: #56d364; transform: translateY(-1px); }
     .btn.ghost { background: transparent; color: var(--gh-fg); border: 1px solid var(--gh-border); }
     .btn.ghost:hover { background: var(--gh-canvas-subtle); }
+
+    /* === ABOUT SLIDE (speaker intro) =================================== */
+    .about-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 28%) 1fr;
+      gap: clamp(1.2rem, 3vw, 2.4rem);
+      align-items: start;
+    }
+    .about-grid > * { min-width: 0; }
+    .about-identity { display: flex; flex-direction: column; gap: clamp(0.6rem, 1.4vh, 1rem); }
+    .about-portrait {
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.02), 0 14px 40px rgba(0, 0, 0, 0.45);
+      filter: contrast(1.04);
+    }
+    .about-identity h3 {
+      margin: 0;
+      font-size: var(--h3-size);
+      color: var(--gh-fg);
+      line-height: 1.15;
+    }
+    .about-identity .role {
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      margin: 0;
+    }
+    .about-body { display: flex; flex-direction: column; gap: clamp(0.55rem, 1.4vh, 1rem); }
+    .about-body p { max-width: 64ch; }
+    .about-cards { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.6rem, 1.2vw, 1rem); margin-top: 0.4em; }
+    @media (max-width: 820px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .about-cards { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -718,7 +757,67 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">deck · github copilot sdk</span>
-      <span>01 / 13</span>
+      <span>01 / 26</span>
+    </div>
+  </section>
+  <!-- ===============================================================
+       SLIDE 2 — About the speaker
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / about.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">@</span> About &middot; your speaker</span>
+      <h2 class="reveal">Hi, I&rsquo;m Jeffrey Groneberg.</h2>
+      <div class="about-grid reveal" style="margin-top: var(--content-gap);">
+        <div class="about-identity">
+          <img class="about-portrait" src="assets/jeffrey.png"
+               alt="Portrait of Jeffrey Groneberg" />
+          <div>
+            <h3>Jeffrey Groneberg</h3>
+            <p class="role">Senior Solution Engineer &middot; Apps &amp; AI<br>Microsoft Germany</p>
+          </div>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill blue">Microsoft Germany</span>
+            <span class="pill orange">ex-SAP &middot; 15 years</span>
+            <span class="pill green">Apps &amp; AI</span>
+          </div>
+        </div>
+        <div class="about-body">
+          <p>Today I&rsquo;m a <strong>Senior Solution Engineer for Apps &amp; AI</strong> at
+          <strong>Microsoft Germany</strong>, running enterprise workshops on agentic
+          AI, GitHub Copilot, and Azure.</p>
+          <p>Before that I spent <strong>fifteen years at SAP (2007&ndash;2022)</strong> &mdash;
+          developer, enterprise architect, principal cloud architect, ending as team
+          lead in SAP IT&rsquo;s Cloud Platform Center of Excellence.</p>
+          <p>I sit at the seam between legacy enterprise software and AI-assisted,
+          cloud-native development &mdash; which is exactly what the next 24 slides
+          are about.</p>
+          <div class="about-cards">
+            <div class="card b-blue">
+              <span class="num">NOW</span>
+              <h3>Microsoft &middot; 2022 &rarr; today</h3>
+              <p>Senior Solution Engineer, Apps &amp; AI. Workshops, hackathons,
+              and pilots for strategic enterprise customers on agentic AI,
+              GitHub Copilot, and Azure.</p>
+            </div>
+            <div class="card b-orange">
+              <span class="num">SAP</span>
+              <h3>SAP &middot; 2007 &rarr; 2022</h3>
+              <p>Developer &rarr; enterprise architect &rarr; principal cloud
+              architect &rarr; team lead, SAP IT Cloud Platform Center of
+              Excellence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">about &middot; jeffrey groneberg</span>
+      <span>02 / 26</span>
     </div>
   </section>
 
@@ -749,54 +848,59 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">why · agent loop, packaged</span>
-      <span>02 / 13</span>
+      <span>03 / 26</span>
     </div>
   </section>
-
   <!-- ===============================================================
-       SLIDE 3 — What you'll build today
+       Available SDKs — one runtime, every language
        =============================================================== -->
   <section class="slide">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <span class="path">~/ ghcp_sdk / examples /</span>
+      <span class="path">~/ copilot-sdk / packages /</span>
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">02</span> The six examples</span>
-      <h2 class="reveal">Six small files. Every core capability.</h2>
+      <span class="eyebrow reveal"><span class="chip">02</span> Available SDKs</span>
+      <h2 class="reveal">One runtime. Every language you ship in.</h2>
+      <p class="lede reveal">
+        Pick the SDK that matches your stack — they all talk to the same
+        Copilot CLI process under the hood, so behaviour stays consistent
+        across services written in different languages.
+      </p>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
-          <span class="num">01</span><h3>Simple streaming chat</h3>
-          <p>Open a session, stream tokens, react to events with <code>match</code>/<code>case</code>.</p>
-        </div>
-        <div class="card b-purple">
-          <span class="num">02</span><h3>Custom tools</h3>
-          <p>Expose a Python function with <code>@define_tool</code> and a Pydantic schema.</p>
-        </div>
-        <div class="card b-green">
-          <span class="num">03</span><h3>Custom agents</h3>
-          <p>Define personas (researcher, reviewer) — swap them mid-conversation.</p>
-        </div>
-        <div class="card b-orange">
-          <span class="num">04</span><h3>Hooks</h3>
-          <p>Intercept every tool call for audit, telemetry, or soft policy.</p>
+          <span class="num">TS</span><h3>Node / TypeScript</h3>
+          <p><code>npm i @github/copilot-sdk</code></p>
         </div>
         <div class="card b-yellow">
-          <span class="num">05</span><h3>MCP + persistence</h3>
-          <p>Attach the filesystem MCP server, resume the same conversation later.</p>
+          <span class="num">PY</span><h3>Python</h3>
+          <p><code>pip install github-copilot-sdk</code></p>
+        </div>
+        <div class="card b-green">
+          <span class="num">GO</span><h3>Go</h3>
+          <p><code>go get github.com/github/copilot-sdk/go</code></p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">.NET</span><h3>.NET</h3>
+          <p><code>dotnet add package GitHub.Copilot.SDK</code></p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">JV</span><h3>Java</h3>
+          <p>Maven / Gradle &mdash; <code>com.github:copilot-sdk-java</code></p>
         </div>
         <div class="card b-pink">
-          <span class="num">06</span><h3>Human in the loop</h3>
-          <p>Custom permission &amp; <code>ask_user</code> handlers — you stay in control.</p>
+          <span class="num">RS</span><h3>Rust <em style="font-style: normal; color: var(--gh-fg-muted); font-size: 0.78em;">(technical preview)</em></h3>
+          <p><code>cargo add github-copilot-sdk</code></p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">examples · 6 capabilities</span>
-      <span>03 / 13</span>
+      <span class="crumb">available &middot; 6 SDKs &middot; rust in preview</span>
+      <span>04 / 26</span>
     </div>
   </section>
+
 
   <!-- ===============================================================
        SLIDE 4 — Architecture
@@ -827,9 +931,299 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">architecture · client → cli → model</span>
-      <span>04 / 13</span>
+      <span>05 / 26</span>
     </div>
   </section>
+  <!-- ===============================================================
+       Authentication — pick the flow that matches the deployment
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / auth.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">04</span> Authentication</span>
+      <h2 class="reveal">Four ways in. Pick the one that matches your deployment.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>Signed-in user (CLI login)</h3>
+          <p>Run <code>copilot login</code> once. Best for local dev and
+          desktop apps. Uses your personal Copilot subscription.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>OAuth GitHub App</h3>
+          <p>Each end-user signs in with GitHub; pass <code>github_token</code>
+          on session create. The pattern for multi-tenant web apps and SaaS.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span><h3>Env variables</h3>
+          <p>Set <code>COPILOT_GITHUB_TOKEN</code>, <code>GH_TOKEN</code>, or
+          <code>GITHUB_TOKEN</code> in CI / containers. Zero interactive prompts.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span><h3>BYOK &mdash; bring your own key</h3>
+          <p>Plug in OpenAI, Azure AI Foundry, Anthropic, Ollama, vLLM, &hellip;
+          via the <code>provider</code> kwarg. No Copilot subscription required.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Enterprise extras: works with EMU accounts and SAML SSO out of the box;
+        OAuth honours org memberships automatically.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">auth · cli &middot; oauth &middot; env &middot; byok</span>
+      <span>06 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       Built-in tools — what every session has out of the box
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / tools.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">05</span> Built-in tools</span>
+      <h2 class="reveal">A real toolkit ships in the box.</h2>
+      <p class="lede reveal">
+        Every session has the same first-party tools the Copilot CLI uses &mdash;
+        all enabled by default. Whitelist with <code>available_tools=</code>,
+        blacklist with <code>excluded_tools=</code>, or gate them dynamically
+        with an <code>on_pre_tool_use</code> hook.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">RD</span><h3>Read</h3>
+          <p><code>read_file</code>, <code>view</code>, <code>list_dir</code>,
+          <code>glob</code>, <code>grep</code> (ripgrep).</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">WR</span><h3>Write</h3>
+          <p><code>edit</code>, <code>create</code>, <code>write_file</code> &mdash;
+          gated by the permission handler.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">SH</span><h3>Shell</h3>
+          <p><code>bash</code> / <code>shell</code> for arbitrary commands.
+          Disable in production; whitelist a few safe ones.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">WB</span><h3>Web</h3>
+          <p><code>web_fetch</code>, <code>web_search</code> &mdash; the agent
+          can pull external context.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">TK</span><h3>Tasks</h3>
+          <p>Spawn sub-agents (<code>task</code>) for parallel exploration;
+          track <code>todos</code> in a session-local DB.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">+ </span><h3>+ your tools</h3>
+          <p>Anything you register with <code>@define_tool</code> &mdash; see
+          example 02.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">tools · read / write / shell / web / tasks</span>
+      <span>07 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       Custom tools — concept (preview of example 02)
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / custom-tools.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">06</span> Custom tools</span>
+      <h2 class="reveal">Hand the agent a Python function &mdash; it calls it when needed.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>You declare three things and the SDK does the rest:</p>
+          <ol class="steps">
+            <li><strong>Schema</strong> &mdash; a Pydantic model for the arguments. The model name and field docs become the JSON Schema the model sees.</li>
+            <li><strong>Handler</strong> &mdash; an async function that receives the parsed args and returns a JSON-serialisable result.</li>
+            <li><strong>Register</strong> &mdash; pass <code>tools=[my_tool]</code> when creating the session.</li>
+          </ol>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill purple">@define_tool</span>
+            <span class="pill blue">pydantic</span>
+            <span class="pill green">async</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">tool_signature.py</span>
+          </div>
+<pre><code><span class="tk-kw">class</span> <span class="tk-cl">WeatherArgs</span>(<span class="tk-cl">BaseModel</span>):
+    city: <span class="tk-cl">str</span> = <span class="tk-fn">Field</span>(description=<span class="tk-st">"City name"</span>)
+
+<span class="tk-de">@define_tool</span>(<span class="tk-st">"get_weather"</span>, <span class="tk-st">"Current weather"</span>, <span class="tk-cl">WeatherArgs</span>)
+<span class="tk-kw">async def</span> <span class="tk-fn">get_weather</span>(args: <span class="tk-cl">WeatherArgs</span>) -&gt; <span class="tk-cl">dict</span>:
+    <span class="tk-kw">return</span> <span class="tk-kw">await</span> <span class="tk-fn">fetch_weather</span>(args.city)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">custom tools · @define_tool</span>
+      <span>08 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       Custom agents — concept (preview of example 03)
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / custom-agents.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">07</span> Custom agents</span>
+      <h2 class="reveal">Different personas, different tools &mdash; same session.</h2>
+      <p class="lede reveal">
+        A <em>custom agent</em> is a named persona with its own system prompt
+        and an explicit, scoped tool list. Swap personas mid-conversation to
+        break a task into specialist roles &mdash; researcher, code writer,
+        reviewer, security auditor.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">RS</span><h3>Researcher</h3>
+          <p>Tools: <code>grep</code>, <code>glob</code>, <code>view</code>.
+          Read-only by construction.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">CW</span><h3>Code writer</h3>
+          <p>Tools: <code>view</code>, <code>edit</code>, <code>create</code>.
+          Makes the change.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">RV</span><h3>Reviewer</h3>
+          <p>Tools: <code>grep</code>, <code>view</code>. Audits the diff
+          and reports back.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Set <code>agent=&quot;name&quot;</code> on session create to pick the
+        starting persona; switch with <code>session.set_agent(&hellip;)</code>.
+        Example 03 walks through an explicit writer&nbsp;&rarr;&nbsp;reviewer handoff.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">agents · personas with scoped tools</span>
+      <span>09 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       Hooks lifecycle — concept (preview of example 04)
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / hooks.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">08</span> Hooks lifecycle</span>
+      <h2 class="reveal">Intercept the agent loop at every meaningful step.</h2>
+      <p class="lede reveal">
+        Hooks are async callbacks the SDK fires around session events. Use
+        them for audit logs, policy enforcement, prompt enrichment, secret
+        redaction, retry logic &mdash; anything that has to wrap the agent
+        without changing the model or the tools.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>on_session_start</h3>
+          <p>Inject context, open an audit trail, attach a request id.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>on_user_prompt_submitted</h3>
+          <p>Sanitise, redact PII, or enrich the user message before the
+          model sees it.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">03</span><h3>on_pre_tool_use</h3>
+          <p>Allow / deny / modify any tool call. The hard-policy point.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">04</span><h3>on_post_tool_use</h3>
+          <p>Transform tool output &mdash; redact secrets, trim noise, log.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">05</span><h3>on_error_occurred</h3>
+          <p>Custom error mapping, retries, fallbacks.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">06</span><h3>on_session_end</h3>
+          <p>Flush metrics, finalise audit logs, close down resources.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">hooks · 6 lifecycle callbacks</span>
+      <span>10 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       MCP servers — concept (preview of example 05)
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / mcp.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">09</span> MCP servers</span>
+      <h2 class="reveal">Plug in any tool that speaks Model Context Protocol.</h2>
+      <p class="lede reveal">
+        MCP is an open standard for connecting AI agents to external tools.
+        Point the SDK at any MCP server and its tools appear in the catalogue
+        alongside the built-ins &mdash; no per-server glue code.
+      </p>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">LO</span><h3>Local / stdio</h3>
+          <p>The SDK launches a subprocess and talks over stdin/stdout.
+          Great for filesystem, SQLite, Puppeteer, local scripts.</p>
+          <p style="margin-top:0.6em;"><span class="pill blue">command + args</span></p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">HT</span><h3>Remote / HTTP</h3>
+          <p>The SDK connects to an MCP endpoint over HTTP (SSE for streaming).
+          Use for shared services and cloud tools.</p>
+          <p style="margin-top:0.6em;"><span class="pill purple">type: &quot;http&quot;</span></p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Combine with <strong>session persistence</strong> (a <code>session_id</code>
+        you store on disk) to resume the same conversation later &mdash; with
+        the same MCP servers re-attached. Example 05 shows both.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">mcp · local stdio &middot; remote http</span>
+      <span>11 / 26</span>
+    </div>
+  </section>
+
 
   <!-- ===============================================================
        SLIDE 5 — The session pattern
@@ -841,7 +1235,7 @@
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">04</span> The pattern you'll see in every example</span>
+      <span class="eyebrow reveal"><span class="chip">10</span> The pattern you'll see in every example</span>
       <h2 class="reveal">Two async context managers. One required handler.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <ul class="checks">
@@ -872,9 +1266,54 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">pattern · async with × 2</span>
-      <span>05 / 13</span>
+      <span>12 / 26</span>
     </div>
   </section>
+<!-- ===============================================================
+       SLIDE 3 — What you'll build today
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / examples /</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">11</span> The six examples</span>
+      <h2 class="reveal">Six small files. Every core capability.</h2>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>Simple streaming chat</h3>
+          <p>Open a session, stream tokens, react to events with <code>match</code>/<code>case</code>.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>Custom tools</h3>
+          <p>Expose a Python function with <code>@define_tool</code> and a Pydantic schema.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span><h3>Custom agents</h3>
+          <p>Define personas (researcher, reviewer) — swap them mid-conversation.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span><h3>Hooks</h3>
+          <p>Intercept every tool call for audit, telemetry, or soft policy.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">05</span><h3>MCP + persistence</h3>
+          <p>Attach the filesystem MCP server, resume the same conversation later.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">06</span><h3>Human in the loop</h3>
+          <p>Custom permission &amp; <code>ask_user</code> handlers — you stay in control.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">examples · 6 capabilities</span>
+      <span>13 / 26</span>
+    </div>
+  </section>
+
 
   <!-- ===============================================================
        SLIDE 6 — Example 01 · Simple chat
@@ -925,7 +1364,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">example 01 · streaming chat</span>
-      <span>06 / 13</span>
+      <span>14 / 26</span>
     </div>
   </section>
 
@@ -977,7 +1416,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">example 02 · custom tools</span>
-      <span>07 / 13</span>
+      <span>15 / 26</span>
     </div>
   </section>
 
@@ -1030,7 +1469,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">example 03 · custom agents</span>
-      <span>08 / 13</span>
+      <span>16 / 26</span>
     </div>
   </section>
 
@@ -1084,7 +1523,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">example 04 · hooks</span>
-      <span>09 / 13</span>
+      <span>17 / 26</span>
     </div>
   </section>
 
@@ -1138,7 +1577,7 @@ session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume
     </div>
     <div class="slide-footer">
       <span class="crumb">example 05 · mcp + persistence</span>
-      <span>10 / 13</span>
+      <span>18 / 26</span>
     </div>
   </section>
 
@@ -1191,9 +1630,52 @@ session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume
     </div>
     <div class="slide-footer">
       <span class="crumb">example 06 · human in the loop</span>
-      <span>11 / 13</span>
+      <span>19 / 26</span>
     </div>
   </section>
+  <!-- ===============================================================
+       Deployment patterns — where this thing actually runs
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / deployment.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">12</span> Deployment patterns</span>
+      <h2 class="reveal">From your laptop to a horizontally-scaled service.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>Local CLI (auto-managed)</h3>
+          <p>Default. SDK spawns the CLI as a child process; it dies with
+          your app. Zero config &mdash; perfect for scripts and dev.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>Bundled CLI</h3>
+          <p>Ship <code>copilot-darwin-arm64</code> / <code>linux-x64</code> /
+          <code>win-x64.exe</code> alongside your binary. Electron, Tauri,
+          Docker images &mdash; no separate install for end-users.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">03</span><h3>Headless server (TCP)</h3>
+          <p><code>copilot --headless --port 4321</code>. SDKs connect over
+          TCP. Independent lifecycle &mdash; the pattern for backend APIs and
+          SaaS products.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">04</span><h3>Horizontally scaled</h3>
+          <p>Multi-client sessions, per-tenant isolation, OpenTelemetry
+          tracing, 40+ streaming events. Production at scale.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">deployment · local &middot; bundled &middot; tcp &middot; scaled</span>
+      <span>20 / 26</span>
+    </div>
+  </section>
+
 
   <!-- ===============================================================
        SLIDE 12 — Codespaces CTA
@@ -1205,7 +1687,7 @@ session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">05</span> Run it now</span>
+      <span class="eyebrow reveal"><span class="chip">13</span> Run it now</span>
       <h2 class="reveal">Open in Codespaces — sixty seconds to a working env.</h2>
       <div class="cta-card reveal" style="margin-top: var(--content-gap);">
         <p style="color: var(--gh-fg);">
@@ -1230,7 +1712,215 @@ session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume
     </div>
     <div class="slide-footer">
       <span class="crumb">codespaces · zero setup</span>
-      <span>12 / 13</span>
+      <span>21 / 26</span>
+    </div>
+  </section>
+  <!-- ===============================================================
+       Resources & next steps
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / RESOURCES.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">14</span> Resources &amp; next steps</span>
+      <h2 class="reveal">Where to go from here.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <h3 style="margin:0; color: var(--gh-fg);">Get started in 3 steps</h3>
+          <ol class="steps">
+            <li><strong>Install the CLI</strong> &mdash; follow the official Copilot CLI install guide for your OS.</li>
+            <li><strong>Install the SDK</strong> &mdash; <code>pip install github-copilot-sdk</code> (or your language's equivalent).</li>
+            <li><strong>Open your first session</strong> &mdash; <code>client.create_session(model=&quot;gpt-4.1&quot;)</code> and start sending prompts.</li>
+          </ol>
+        </div>
+        <div class="stack-tight">
+          <h3 style="margin:0; color: var(--gh-fg);">Bookmark these</h3>
+          <ul class="checks">
+            <li><strong>Official SDK</strong> &mdash; <code>github.com/github/copilot-sdk</code></li>
+            <li><strong>This workshop</strong> &mdash; <code>github.com/jeffrey-groneberg/ghcp_sdk</code></li>
+            <li><strong>Awesome Copilot</strong> &mdash; <code>github.com/github/awesome-copilot</code> (cookbook + recipes)</li>
+            <li><strong>MCP servers directory</strong> &mdash; <code>modelcontextprotocol.io</code></li>
+            <li><strong>Microsoft Agent Framework</strong> &mdash; compose Copilot with Azure / OpenAI / Anthropic in orchestrated workflows.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">resources · install &middot; docs &middot; cookbook</span>
+      <span>22 / 26</span>
+    </div>
+  </section>
+
+
+  <!-- ===============================================================
+       SLIDE 23 (NEW) — Release timeline
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / CHANGELOG.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">21</span> Release timeline</span>
+      <h2 class="reveal">From <code>0.1</code> to <code>0.3</code> &mdash; four months of API cleanup.</h2>
+      <p class="lede reveal">The Python SDK shipped publicly in January 2026 and has been
+      iterating fast. Two minor releases since then bring the API closer to
+      a GA shape &mdash; here is what changed at each step.</p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">0.1</span>
+          <h3>0.1.x &middot; Jan&ndash;Mar 2026</h3>
+          <p>Public preview baseline. Client / session lifecycle, streaming
+          events, tool registration, permission handler, MCP, hooks.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">0.2</span>
+          <h3>0.2.0 &middot; 20 Mar 2026</h3>
+          <p>Broad API refinement: prompt customization, OpenTelemetry,
+          blob attachments, agent pre-selection.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">0.3</span>
+          <h3>0.3.0 &middot; 24 Apr 2026 &middot; current</h3>
+          <p>Toward GA: per-session auth, per-agent tools &amp; skills,
+          scoped permissions, sub-agent streaming, naming cleanup.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">timeline &middot; 0.1 &rarr; 0.2 &rarr; 0.3</span>
+      <span>26 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 24 (NEW) — What's new in 0.2.0
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / releases / v0.2.0.md</span>
+      <span class="meta"><span class="branch">tag: v0.2.0</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">22</span> What changed &middot; 0.1 &rarr; 0.2.0</span>
+      <h2 class="reveal">Customizable prompts, distributed tracing, in-memory attachments.</h2>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span>
+          <h3>Fine-grained system prompt</h3>
+          <p>New <code>customize</code> mode edits 10 named sections of the
+          Copilot prompt &mdash; <code>identity</code>, <code>tone</code>,
+          <code>safety</code>, &hellip; with <code>replace</code>, <code>append</code>,
+          <code>prepend</code>, <code>remove</code>, or a transform callback.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span>
+          <h3>OpenTelemetry, every SDK</h3>
+          <p>Set <code>telemetry={"otlp_endpoint": &hellip;}</code> and the CLI emits
+          W3C trace context across <code>create</code>, <code>resume</code>,
+          <code>send</code>, and tool handlers.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span>
+          <h3>Blob attachments</h3>
+          <p>Send images / binary content inline &mdash; no temp files,
+          no disk writes. Useful for screenshots and generated images
+          already sitting in memory.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span>
+          <h3>Pre-select a custom agent</h3>
+          <p>Choose the active agent at <code>create_session</code> instead of
+          calling <code>agent.select</code> as a separate round trip.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">05</span>
+          <h3>New RPC + bug fixes</h3>
+          <p>Direct <code>session.rpc.*</code> surfaces for skills, MCP, and
+          permission state; broad cross-language consistency pass.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">!!</span>
+          <h3>Breaking changes</h3>
+          <p>Naming cleanup in Python and Go SDKs &mdash; pin
+          <code>github-copilot-sdk&gt;=0.2.0</code> and read the release
+          notes before upgrading existing code.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">v0.2.0 &middot; 20 mar 2026</span>
+      <span>24 / 26</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 25 (NEW) — What's new in 0.3.0
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / releases / v0.3.0.md</span>
+      <span class="meta"><span class="branch">tag: v0.3.0</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">23</span> What changed &middot; 0.2 &rarr; 0.3.0</span>
+      <h2 class="reveal">Multi-tenant auth, agent-scoped tools, scoped permissions.</h2>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span>
+          <h3>Per-session GitHub auth</h3>
+          <p>Each session can carry its own <code>github_token</code>.
+          Different users, plans, and quotas can coexist on one CLI
+          process &mdash; the multi-tenant primitive for SaaS apps.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span>
+          <h3>Per-agent <code>excluded_tools</code></h3>
+          <p>Hide tools from the default agent while keeping them
+          available to sub-agents &mdash; clean orchestrator pattern
+          where the parent delegates instead of doing.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span>
+          <h3>Per-agent skills (opt-in)</h3>
+          <p>Custom agents declare <code>skills=[&hellip;]</code> to inject
+          specific skills at startup. Sub-agents do not inherit
+          parent skills &mdash; no surprise context bloat.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span>
+          <h3>Sub-agent streaming</h3>
+          <p>Streaming deltas now fire for sub-agents too, each tagged
+          with an <code>agent_id</code>. Configurable session idle
+          timeout replaces the old 30-minute hard limit.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">05</span>
+          <h3>Scoped permissions</h3>
+          <p>Return <code>approve-for-session</code> or
+          <code>approve-for-location</code> to persist decisions.
+          Outcomes renamed: <code>approved</code> &rarr;
+          <code>approve-once</code>, <code>denied</code> &rarr;
+          <code>reject</code>.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">06</span>
+          <h3>API polish for GA</h3>
+          <p>Dedicated event types per kind, MCP <code>CallToolResult</code>
+          helper, custom BYOK request headers, casing fixed
+          (<code>githubToken</code>). The runway into 1.0.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">v0.3.0 &middot; 24 apr 2026 &middot; current release</span>
+      <span>25 / 26</span>
     </div>
   </section>
 
@@ -1265,7 +1955,7 @@ session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume
         </div>
     <div class="slide-footer">
       <span class="crumb">thanks · q &amp; a</span>
-      <span>13 / 13</span>
+      <span>23 / 26</span>
     </div>
   </section>
 
