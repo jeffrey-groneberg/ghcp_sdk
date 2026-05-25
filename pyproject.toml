@@ -6,7 +6,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
-    "github-copilot-sdk>=0.1.30",
+    "github-copilot-sdk>=0.3.0",
     "pydantic>=2.0",
 ]
 

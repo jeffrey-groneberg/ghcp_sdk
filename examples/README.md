@@ -1,47 +1,57 @@
-# GitHub Copilot SDK — Python Examples
+# Examples — student guide
 
-Five self-contained examples that demonstrate the core capabilities of the
-[GitHub Copilot SDK](https://github.com/github/copilot-sdk).
+Each example in this folder ships with **two files**:
 
-## Prerequisites
+| File | What it is |
+|------|------------|
+| `0N_*.py` | Runnable, heavily-commented Python source |
+| `0N_*.md` | A walkthrough with a mermaid flow diagram, line-by-line explanation, expected output, exercises and common pitfalls |
 
-```bash
-pip install github-copilot-sdk pydantic
+Read the `.md` first, then open the `.py` and tinker.
+
+## Recommended reading order
+
+```mermaid
+flowchart LR
+    A[01 Simple chat] --> B[02 Custom tools]
+    B --> C[03 Custom agents]
+    C --> D[04 Hooks]
+    D --> E[05 MCP + persistence]
+    E --> F[06 Human in the loop]
 ```
 
-You also need the [Copilot CLI](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli)
-installed and signed in, **or** set `COPILOT_GITHUB_TOKEN` in your environment.
+| # | Topic | Concepts |
+|---|-------|----------|
+| [01](01_simple_chat.md) | **Streaming chat** | Client / session lifecycle, event stream, `match`/`case` on SDK events |
+| [02](02_custom_tools.md) | **Custom tools** | `@define_tool`, Pydantic schemas, request/response with `send_and_wait` |
+| [03](03_custom_agents.md) | **Custom agents** | Multiple personas in one session, mid-conversation handoff |
+| [04](04_hooks.md) | **Hooks** | Pre/post tool callbacks for audit, telemetry, soft policy |
+| [05](05_mcp_and_persistence.md) | **MCP + persistence** | Attaching MCP servers, resuming a conversation by `session_id` |
+| [06](06_human_in_the_loop.md) | **Human in the loop** | Custom permission handler + `ask_user` callback |
 
-## Examples
-
-| # | File | Capability | What it shows |
-|---|------|-----------|---------------|
-| 1 | `01_simple_chat.py` | **Streaming Chat** | Create a session, stream tokens, multi-turn conversation |
-| 2 | `02_custom_tools.py` | **Custom Tools** | `@define_tool` with Pydantic models — weather API + unit converter |
-| 3 | `03_custom_agents.py` | **Custom Agents** | Three agents (researcher, writer, reviewer) with explicit handoff via `session.rpc.agent.select()` |
-| 4 | `04_hooks.py` | **Hooks** | All 6 hook types — access control, secret redaction, prompt shortcuts |
-| 5 | `05_mcp_and_persistence.py` | **MCP + Persistence** | Filesystem MCP server + resumable sessions across restarts |
-| 6 | `06_human_in_the_loop.py` | **Human-in-the-Loop** | Interactive permission approvals + agent asks user questions |
-
-## Running
+## How to run
 
 ```bash
-# 1. Simple chat with streaming
+# from the repo root
 python examples/01_simple_chat.py
-
-# 2. Custom tools (weather + unit converter)
-python examples/02_custom_tools.py
-
-# 3. Custom agents (researcher / writer / reviewer)
-python examples/03_custom_agents.py
-
-# 4. Hooks (access control, redaction, shortcuts)
-python examples/04_hooks.py
-
-# 5. MCP server + session persistence
-python examples/05_mcp_and_persistence.py              # first run
-python examples/05_mcp_and_persistence.py --resume      # resume later
-
-# 6. Human-in-the-loop (interactive approvals + user questions)
-python examples/06_human_in_the_loop.py
 ```
+
+All examples default to the free `gpt-4.1` model — no quota worries while learning.
+
+## Where to look up SDK symbols
+
+Every README links to the relevant chapter in the upstream docs:
+[github/copilot-sdk → docs/](https://github.com/github/copilot-sdk/tree/main/docs).
+The SDK source you have installed locally is also a great reference:
+
+```bash
+# Where the SDK lives in your venv
+python -c "import copilot, pathlib; print(pathlib.Path(copilot.__file__).parent)"
+```
+
+## Adapting the examples
+
+Each guide ends with a **"Try this next"** section — small, focused exercises
+that nudge you to take ownership of the example. Pick one and modify the code:
+break things on purpose, add a new tool, change the model, swap the agent
+persona. That's how the patterns stick.

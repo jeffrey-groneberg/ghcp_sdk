@@ -1,106 +1,79 @@
 """
-Example 2: Custom Tools — Give Copilot access to your own functions.
+Example 02 — Custom tools
 
-Defines two tools (a weather API and a unit converter) that Copilot
-can call automatically when the user's question requires them.
+Tools are how you give the agent superpowers your app already has: database
+lookups, internal APIs, fake-weather stubs, whatever. The agent decides
+*when* to call them; you only have to declare *what* they do.
 
-Prerequisites:
-    pip install github-copilot-sdk pydantic
-    Copilot CLI installed and signed in (or set COPILOT_GITHUB_TOKEN)
+Concepts covered:
+  * Declaring a tool with `@define_tool`
+  * Describing parameters with a Pydantic `BaseModel` (the SDK uses this
+    to build the JSON-Schema the model sees)
+  * Wiring the tool into a session via the `tools=[...]` kwarg
+  * Getting a one-shot reply with `send_and_wait` instead of streaming
 
-Usage:
-    python 02_custom_tools.py
+Run:
+    python examples/02_custom_tools.py
 """
 
 import asyncio
 import random
 
-from copilot import CopilotClient, PermissionHandler
-from copilot.generated.session_events import SessionEventType
-from copilot.tools import define_tool
 from pydantic import BaseModel, Field
 
+from copilot import CopilotClient, define_tool
+from copilot.session import PermissionHandler
 
-# ── Tool 1: Weather lookup ──────────────────────────────────────
+
+# Pydantic models drive the JSON-Schema that's sent to the model. Use
+# `Field(description=...)` for every argument — that text is the *only*
+# hint the model gets about how to fill the parameter, so be specific.
 class WeatherParams(BaseModel):
     city: str = Field(description="City name, e.g. 'Seattle'")
 
 
+# `@define_tool` registers an async Python function as a callable tool.
+# The `description` is the natural-language hint the model uses to decide
+# whether the tool is relevant to the user's request — write it like a
+# good docstring.
+#
+# The return value (any JSON-serializable object) is fed back to the model
+# as the tool's result; here we return fake but realistic data.
 @define_tool(description="Get the current weather for a given city")
 async def get_weather(params: WeatherParams) -> dict:
-    """Simulates a weather API call."""
-    conditions = ["sunny", "cloudy", "rainy", "partly cloudy", "snowy"]
-    temp_c = random.randint(-5, 35)
     return {
         "city": params.city,
-        "temperature_c": temp_c,
-        "temperature_f": round(temp_c * 9 / 5 + 32),
-        "condition": random.choice(conditions),
-        "humidity": f"{random.randint(30, 90)}%",
+        "temperature_c": random.randint(-5, 35),
+        "condition": random.choice(["sunny", "cloudy", "rainy"]),
     }
 
 
-# ── Tool 2: Unit converter ──────────────────────────────────────
-class ConvertParams(BaseModel):
-    value: float = Field(description="The numeric value to convert")
-    from_unit: str = Field(description="Source unit, e.g. 'km'")
-    to_unit: str = Field(description="Target unit, e.g. 'miles'")
+async def main() -> None:
+    async with CopilotClient() as client:
+        # `tools=[get_weather]` registers our tool for *this session only*.
+        # The agent will see the tool definition in its system prompt and
+        # decide on its own whether to call it.
+        async with await client.create_session(
+            on_permission_request=PermissionHandler.approve_all,
+            model="gpt-4.1",
+            tools=[get_weather],
+        ) as session:
 
+            # `send_and_wait` is the convenience shortcut for "send a prompt
+            # and give me the final assistant message". It returns a single
+            # event whose `.data.content` holds the plain-text reply, so it's
+            # perfect for non-streaming, request/response style code.
+            #
+            # Under the hood it does what example 01 does manually: register
+            # an event listener, wait for `SessionIdleData`, then return.
+            reply = await session.send_and_wait(
+                "What's the weather in Tokyo and Berlin?"
+            )
 
-@define_tool(description="Convert a value between common units (km/miles, kg/lbs, C/F)")
-async def convert_units(params: ConvertParams) -> dict:
-    """Handles a handful of common conversions."""
-    conversions = {
-        ("km", "miles"): lambda v: v * 0.621371,
-        ("miles", "km"): lambda v: v / 0.621371,
-        ("kg", "lbs"): lambda v: v * 2.20462,
-        ("lbs", "kg"): lambda v: v / 2.20462,
-        ("c", "f"): lambda v: v * 9 / 5 + 32,
-        ("f", "c"): lambda v: (v - 32) * 5 / 9,
-    }
-    key = (params.from_unit.lower(), params.to_unit.lower())
-    if key in conversions:
-        result = round(conversions[key](params.value), 2)
-        return {"value": params.value, "from": params.from_unit, "to": params.to_unit, "result": result}
-    return {"error": f"Unsupported conversion: {params.from_unit} → {params.to_unit}"}
-
-
-# ── Main ─────────────────────────────────────────────────────────
-async def main():
-    client = CopilotClient()
-    await client.start()
-
-    # Register both tools with the session
-    session = await client.create_session(
-        on_permission_request=PermissionHandler.approve_all,
-        model="gpt-4.1",
-        streaming=True,
-        tools=[get_weather, convert_units],
-    )
-
-    # Print streaming output
-    def on_event(event):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
-            print(event.data.delta_content, end="", flush=True)
-
-    session.on(on_event)
-
-    # Copilot will automatically call get_weather for each city
-    prompt = "What's the weather in Tokyo, Berlin, and São Paulo? Show temperatures in both °C and °F."
-    print(f"You: {prompt}\n")
-    print("Copilot: ", end="")
-    await session.send_and_wait(prompt)
-    print("\n")
-
-    # This one uses the unit converter tool
-    prompt2 = "Convert 42 km to miles, and 185 lbs to kg."
-    print(f"You: {prompt2}\n")
-    print("Copilot: ", end="")
-    await session.send_and_wait(prompt2)
-    print("\n")
-
-    await session.disconnect()
-    await client.stop()
+            # `reply` is `None` if the timeout (default 60s) fires before the
+            # agent finishes; otherwise it's an `AssistantMessage` event.
+            if reply:
+                print(reply.data.content)
 
 
 if __name__ == "__main__":
