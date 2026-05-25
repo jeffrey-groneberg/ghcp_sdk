@@ -1436,11 +1436,11 @@
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <p>A <strong>custom agent</strong> is a system prompt + a tool allowlist with a name. Bundle several and pick one with the <code>agent=</code> kwarg.</p>
-          <p>Switch mid-conversation with <code>session.rpc.agent.select(…)</code> — history is kept, persona is replaced.</p>
+          <p>Switch mid-conversation with <code>session.rpc.agent.select(&hellip;)</code> &mdash; history is kept, persona is replaced. Verify with <code>rpc.agent.get_current()</code>.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill green">custom_agents</span>
             <span class="pill blue">rpc.agent.select</span>
-            <span class="pill">tools allowlist</span>
+            <span class="pill purple">rpc.agent.get_current</span>
           </div>
         </div>
         <div class="code-window">
@@ -1449,21 +1449,18 @@
             <span class="name">03_custom_agents.py</span>
           </div>
 <pre><code>AGENTS = [
-    {<span class="tk-st">"name"</span>: <span class="tk-st">"researcher"</span>,
-     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"researcher"</span>, <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"view"</span>],
      <span class="tk-st">"prompt"</span>: <span class="tk-st">"Explore code. Never modify."</span>},
-    {<span class="tk-st">"name"</span>: <span class="tk-st">"reviewer"</span>,
-     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"reviewer"</span>, <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"view"</span>],
      <span class="tk-st">"prompt"</span>: <span class="tk-st">"Review for bugs and clarity."</span>},
 ]
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
-    custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>, ...
-) <span class="tk-kw">as</span> session:
-    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>)
-    <span class="tk-kw">await</span> session.rpc.agent.<span class="tk-fn">select</span>(
-        <span class="tk-fn">AgentSelectRequest</span>(name=<span class="tk-st">"reviewer"</span>))
-    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>)<span class="caret"></span></code></pre>
+    custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>, ...) <span class="tk-kw">as</span> s:
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>)
+    <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">select</span>(<span class="tk-fn">AgentSelectRequest</span>(name=<span class="tk-st">"reviewer"</span>))
+    cur = <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">get_current</span>()  <span class="tk-de"># proves swap</span>
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>

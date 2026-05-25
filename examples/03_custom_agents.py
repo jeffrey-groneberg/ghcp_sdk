@@ -14,6 +14,8 @@ them mid-conversation:
 Concepts covered:
   * Declaring multiple agents via `custom_agents=[...]`
   * Picking the initial agent with `agent="..."`
+  * Listing registered personas with `session.rpc.agent.list()`
+  * Inspecting the active persona with `session.rpc.agent.get_current()`
   * Switching agents at runtime with `session.rpc.agent.select(...)`
 
 Run:
@@ -61,6 +63,19 @@ async def main() -> None:
             agent="researcher",
         ) as session:
 
+            # `session.rpc` is the SDK's window onto the JSON-RPC server.
+            # `agent.list()` returns every persona registered with the session
+            # so we can confirm both AGENTS were accepted.
+            listing = await session.rpc.agent.list()
+            print("Registered agents:",
+                  ", ".join(a.name for a in listing.agents))
+
+            # `agent.get_current()` tells us which persona is active. This is
+            # the cheap, definitive way to verify the swap actually happened
+            # (responses alone are circumstantial evidence).
+            current = await session.rpc.agent.get_current()
+            print(f"Active persona: {current.agent.name}\n")
+
             # First turn handled by the researcher. Note the longer timeout —
             # this agent has to do a few grep + view tool calls before it can
             # answer, so 60s (the default) is sometimes too short.
@@ -71,12 +86,14 @@ async def main() -> None:
             if reply:
                 print("Researcher:", reply.data.content, "\n")
 
-            # Mid-conversation agent switch. `session.rpc` exposes the
-            # underlying JSON-RPC namespaces (`agent`, `permissions`,
-            # `tools`, `model`, ...). Calling `.agent.select(...)` swaps
-            # the active persona; the next prompt will be answered by the
-            # reviewer, but the conversation history is preserved.
+            # Mid-conversation agent switch. Calling `.agent.select(...)`
+            # swaps the active persona; the next prompt will be answered by
+            # the reviewer, but the conversation history is preserved.
             await session.rpc.agent.select(AgentSelectRequest(name="reviewer"))
+
+            # Confirm the swap before we send anything else.
+            current = await session.rpc.agent.get_current()
+            print(f"--- swapped --- Active persona: {current.agent.name}\n")
 
             reply = await session.send_and_wait(
                 "Review examples/01_simple_chat.py for error handling issues.",

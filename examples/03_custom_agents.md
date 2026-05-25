@@ -8,6 +8,8 @@
 
 - How to declare multiple agents with `custom_agents=[...]`
 - How to pick the starting agent with `agent="..."`
+- How to introspect the live session with `session.rpc.agent.list()` and
+  `session.rpc.agent.get_current()`
 - How to swap agents at runtime with `session.rpc.agent.select(...)` —
   conversation history is preserved across the swap
 - When personas help: enforcing read-only researchers, opinionated reviewers,
@@ -24,6 +26,10 @@ sequenceDiagram
     participant V as reviewer persona<br/>(read-only tools)
 
     App->>Session: create_session(custom_agents=[...], agent="researcher")
+    App->>Session: rpc.agent.list()
+    Session-->>App: [researcher, reviewer]
+    App->>Session: rpc.agent.get_current()
+    Session-->>App: researcher
     App->>Session: send_and_wait("What language is this project?")
     Session->>R: prompt + researcher system prompt + tool allowlist
     R-->>Session: uses grep / view / glob
@@ -31,6 +37,8 @@ sequenceDiagram
 
     App->>Session: rpc.agent.select(name="reviewer")
     Note over Session: persona swap — history kept,<br/>system prompt swapped
+    App->>Session: rpc.agent.get_current()
+    Session-->>App: reviewer  ← swap verified
     App->>Session: send_and_wait("Review 01_simple_chat.py")
     Session->>V: same conversation, new persona
     V-->>App: "Minimal error handling, ..."
@@ -85,7 +93,27 @@ async with await client.create_session(
 - `agent="researcher"` picks the active one for the first turn. Without it,
   the SDK's default agent is used.
 
-### 3. Talking to the first persona
+### 3. Inspecting what's registered and active
+
+```python
+listing = await session.rpc.agent.list()
+print("Registered agents:", ", ".join(a.name for a in listing.agents))
+
+current = await session.rpc.agent.get_current()
+print("Active persona:", current.agent.name)
+```
+
+`session.rpc` is the SDK's window onto the JSON-RPC server the CLI runs.
+Each namespace (`agent`, `permissions`, `tools`, `model`, `mcp`, …) maps to
+the underlying methods. For agents the useful trio is:
+
+| Call | Returns | Why you care |
+|---|---|---|
+| `agent.list()` | every registered persona | sanity-check that `custom_agents=[...]` was accepted |
+| `agent.get_current()` | the active persona | **the definitive way to verify a swap really happened** |
+| `agent.select(...)` | swaps personas | the swap itself |
+
+### 4. Talking to the first persona
 
 ```python
 reply = await session.send_and_wait(
@@ -97,15 +125,18 @@ reply = await session.send_and_wait(
 We pass `timeout=120` because the researcher may run multiple `grep`/`view`
 calls before answering — the 60 s default is sometimes too short.
 
-### 4. Swapping persona mid-conversation
+### 5. Swapping persona mid-conversation
 
 ```python
 await session.rpc.agent.select(AgentSelectRequest(name="reviewer"))
+
+current = await session.rpc.agent.get_current()
+print(f"--- swapped --- Active persona: {current.agent.name}")
 ```
 
-`session.rpc` exposes the underlying JSON-RPC namespaces: `agent`,
-`permissions`, `tools`, `model`, `ui`, etc. Each namespace has a handful of
-methods you can call directly.
+The follow-up `get_current()` call is the cheapest possible proof that the
+swap landed before you send the next prompt. Responses alone are
+circumstantial evidence — the runtime state is the truth.
 
 After the swap:
 
@@ -115,7 +146,7 @@ After the swap:
 - The **tool allowlist** is replaced too — try giving the reviewer
   `tools=["view"]` and watch it refuse to grep.
 
-### 5. Talking to the second persona
+### 6. Talking to the second persona
 
 ```python
 reply = await session.send_and_wait(
@@ -135,14 +166,25 @@ python examples/03_custom_agents.py
 Expected output (abbreviated):
 
 ```
-Researcher: Based on the presence of pyproject.toml and requirements.txt files,
-this project is written in Python.
+Registered agents: researcher, reviewer
+Active persona: researcher
 
-Reviewer: The file examples/01_simple_chat.py has minimal error handling.
+Researcher: This project is written in Python. The presence of multiple
+`.py` files in the repository indicates Python as the primary programming
+language.
+
+--- swapped --- Active persona: reviewer
+
+Reviewer: The file `examples/01_simple_chat.py` has minimal error handling.
 Potential issues:
-- No try/except blocks: ...
-- The on_event handler assumes event.data always matches expected types ...
+- If `CopilotClient` or `create_session` fails ...
+- The `on_event` handler does not handle unexpected event types ...
+- No try/except blocks around async operations ...
 ```
+
+The `Active persona:` lines are what prove the swap. If you see
+`Active persona: researcher` followed by `--- swapped --- Active persona:
+reviewer`, the `agent.select()` round-trip landed before the next `send`.
 
 ## Try this next
 
