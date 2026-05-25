@@ -1,1126 +1,1391 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Copilot SDK — Agents for Every App</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Copilot SDK · Teaching deck</title>
+
+  <!--
+    Typography: Mona Sans is GitHub's own official typeface (open source,
+    released by GitHub in 2022). JetBrains Mono is the monospace family
+    used by many GitHub Codespaces images. Both via Google Fonts.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" />
+
   <style>
+    /* =================================================================
+       THEME — GitHub Primer (dark) colour tokens
+       Change these :root variables to re-skin the whole deck.
+       Tokens mirror the official Primer dark palette so they match
+       github.com, the docs site and the CLI output identically.
+       ================================================================= */
     :root {
-      --gh-blue: #58a6ff;
-      --gh-green: #3fb950;
-      --gh-purple: #bc8cff;
-      --gh-orange: #f0883e;
-      --gh-red: #f85149;
-      --gh-bg: #0d1117;
-      --gh-surface: #161b22;
-      --gh-border: #30363d;
-      --gh-text: #e6edf3;
-      --gh-muted: #8b949e;
+      /* Canvas / surfaces */
+      --gh-canvas:        #0d1117;
+      --gh-canvas-inset:  #010409;
+      --gh-canvas-subtle: #161b22;
+      --gh-border:        #30363d;
+      --gh-border-muted:  #21262d;
+
+      /* Foreground */
+      --gh-fg:            #e6edf3;
+      --gh-fg-muted:      #8b949e;
+      --gh-fg-subtle:     #6e7681;
+
+      /* Brand accents (Primer 2024) */
+      --gh-blue:          #58a6ff;
+      --gh-blue-emphasis: #1f6feb;
+      --gh-purple:        #bc8cff;
+      --gh-green:         #3fb950;
+      --gh-orange:        #f78166;
+      --gh-pink:          #ff7b72;
+      --gh-yellow:        #d29922;
+
+      /* Type scale — every size uses clamp() for viewport fitting */
+      --font-display: 'Mona Sans', system-ui, sans-serif;
+      --font-body:    'Mona Sans', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+      --title-size:    clamp(2rem, 6vw, 5rem);
+      --h2-size:       clamp(1.25rem, 3.5vw, 2.5rem);
+      --h3-size:       clamp(1rem,    2.4vw, 1.5rem);
+      --body-size:     clamp(0.78rem, 1.3vw, 1.05rem);
+      --small-size:    clamp(0.65rem, 1vw,  0.85rem);
+      --mono-size:     clamp(0.7rem,  1.1vw, 0.95rem);
+
+      --slide-padding: clamp(1.25rem, 4vw, 4rem);
+      --content-gap:   clamp(0.75rem, 2vw, 2rem);
+      --element-gap:   clamp(0.4rem,  1vw, 1rem);
+
+      /* Motion tokens */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration:      0.55s;
     }
-    .reveal { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--gh-text); }
-    .reveal .slides { text-align: left; width: 100%; }
-    .reveal .slides section { padding: 20px 50px; box-sizing: border-box; }
-    .reveal h1, .reveal h2, .reveal h3 { color: var(--gh-blue); font-weight: 700; text-align: left; }
-    .reveal h1 { font-size: 2.2em; }
-    .reveal h2 { font-size: 1.4em; border-bottom: 2px solid var(--gh-border); padding-bottom: 8px; margin-bottom: 14px; }
-    .reveal h3 { font-size: 1em; color: var(--gh-purple); }
-    .reveal p, .reveal li { font-size: 0.65em; line-height: 1.5; }
-    .reveal ul { list-style: none; padding-left: 0; }
-    .reveal ul li::before { content: "▸ "; color: var(--gh-green); font-weight: bold; }
-    .reveal code { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 6px; padding: 2px 6px; font-size: 0.85em; }
-    .reveal pre { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); margin: 8px 0; }
-    .reveal pre code { background: none; border: none; padding: 0; font-size: 0.5em; line-height: 1.4; }
-    .reveal table { font-size: 0.6em; border-collapse: collapse; width: 100%; margin: 10px 0; }
-    .reveal table th { background: var(--gh-surface); color: var(--gh-blue); padding: 6px 12px; text-align: left; border-bottom: 2px solid var(--gh-border); }
-    .reveal table td { padding: 5px 12px; border-bottom: 1px solid var(--gh-border); }
-    .badge { display: inline-block; background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 20px; padding: 4px 14px; font-size: 0.65em; margin: 4px; }
-    .badge-blue { border-color: var(--gh-blue); color: var(--gh-blue); }
-    .badge-green { border-color: var(--gh-green); color: var(--gh-green); }
-    .badge-purple { border-color: var(--gh-purple); color: var(--gh-purple); }
-    .badge-orange { border-color: var(--gh-orange); color: var(--gh-orange); }
-    .grid { display: grid; gap: 10px; margin-top: 12px; }
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-    .card { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 8px; padding: 12px 14px; }
-    .card h3 { margin-top: 0; margin-bottom: 4px; font-size: 0.85em; }
-    .card p { font-size: 0.55em; color: var(--gh-muted); margin: 0; }
-    .highlight-box { background: linear-gradient(135deg, rgba(88,166,255,0.1), rgba(188,140,255,0.1)); border: 1px solid var(--gh-blue); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
-    .accent { color: var(--gh-green); font-weight: bold; }
-    .muted { color: var(--gh-muted); font-size: 0.6em; }
-    .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
-    .flow-arrow { color: var(--gh-blue); font-size: 1.2em; }
-    .flow-box { background: var(--gh-surface); border: 1px solid var(--gh-border); border-radius: 6px; padding: 6px 12px; font-size: 0.6em; }
-    .title-slide h1 { font-size: 2.8em; text-align: center; margin-bottom: 8px; background: linear-gradient(135deg, var(--gh-blue), var(--gh-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .title-slide p { text-align: center; font-size: 0.85em; color: var(--gh-muted); }
-    .title-slide .badges { text-align: center; margin-top: 16px; }
-    .section-label { font-size: 0.55em; text-transform: uppercase; letter-spacing: 2px; color: var(--gh-muted); margin-bottom: 2px; }
-    .reveal .slide-number { font-size: 14px; color: var(--gh-muted); }
-    .card ul { margin: 4px 0 0 0; padding: 0; }
-    .card ul li { font-size: 0.55em; }
-    .slide-menu-items .slide-menu-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* =================================================================
+       PASTE OF viewport-base.css (MANDATORY — copied verbatim)
+       Every slide is locked to 100vh, no scrolling within slides.
+       ================================================================= */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; overflow-x: hidden; }
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      background: var(--gh-canvas);
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+
+    .card, .container, .content-box {
+      max-width: min(94vw, 1200px);
+      max-height: min(80vh, 720px);
+    }
+
+    .feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+    .feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.45; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(0.6rem, 1.5vw, 1.2rem);
+    }
+
+    img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
+
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap:   clamp(0.4rem, 1.5vw, 1rem);
+        --title-size:    clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size:       clamp(1rem, 3vw, 1.75rem);
+      }
+    }
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap:   clamp(0.3rem, 1vw, 0.75rem);
+        --title-size:    clamp(1.1rem, 4vw, 2rem);
+        --body-size:     clamp(0.7rem, 1.2vw, 0.95rem);
+      }
+      .nav-dots, .keyboard-hint, .decorative { display: none; }
+    }
+    @media (max-height: 500px) {
+      :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size:    clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size:       clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size:     clamp(0.65rem, 1vw, 0.85rem);
+      }
+    }
+    @media (max-width: 600px) {
+      :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    /* =================================================================
+       BASE LAYOUT
+       ================================================================= */
+    body {
+      font-family: var(--font-body);
+      color: var(--gh-fg);
+      background: var(--gh-canvas);
+      font-feature-settings: 'ss01', 'ss02', 'cv01';
+      letter-spacing: -0.005em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
+    h1 { font-size: var(--title-size); font-weight: 800; line-height: 1.02; }
+    h2 { font-size: var(--h2-size);   font-weight: 700; line-height: 1.05; }
+    h3 { font-size: var(--h3-size);   font-weight: 600; line-height: 1.15; }
+
+    p  { font-size: var(--body-size); line-height: 1.55; color: var(--gh-fg-muted); }
+    a  { color: var(--gh-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code, .mono { font-family: var(--font-mono); font-size: var(--mono-size); }
+
+    /* =================================================================
+       SIGNATURE ELEMENTS — used across slides
+       ================================================================= */
+
+    /* Dot-grid backdrop (subtle "Primer" texture) */
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(rgba(88, 166, 255, 0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: radial-gradient(ellipse at center, black 35%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .slide-content { position: relative; z-index: 1; }
+
+    /* Oversized number watermark for example slides */
+    .watermark {
+      position: absolute;
+      top: -2vh; right: -1vw;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(8rem, 28vw, 28rem);
+      color: var(--gh-canvas-subtle);
+      line-height: 1;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: -0.04em;
+    }
+
+    /* Top "tab strip" — Primer's dotfile / repo tab idiom */
+    .tab-strip {
+      display: flex;
+      gap: clamp(0.5rem, 1.5vw, 1.2rem);
+      align-items: center;
+      padding: clamp(0.6rem, 1.5vh, 1rem) var(--slide-padding);
+      border-bottom: 1px solid var(--gh-border-muted);
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      font-family: var(--font-mono);
+      letter-spacing: 0;
+      z-index: 2;
+    }
+    .tab-strip .dot { width: 0.6em; height: 0.6em; border-radius: 50%; display: inline-block; }
+    .tab-strip .dot.r { background: #ff5f57; }
+    .tab-strip .dot.y { background: #febc2e; }
+    .tab-strip .dot.g { background: #28c840; }
+    .tab-strip .path { color: var(--gh-fg); }
+    .tab-strip .meta { margin-left: auto; }
+    .tab-strip .branch::before { content: ''; display: inline-block; width: 0.8em; height: 0.8em;
+      vertical-align: -1px; margin-right: 0.35em;
+      background: var(--gh-fg-muted);
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.49 2.49 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Z'/></svg>") center/contain no-repeat; }
+
+    /* "Card" surface — Primer card vibe */
+    .card {
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: 12px;
+      padding: clamp(0.9rem, 2vw, 1.4rem);
+      position: relative;
+      overflow: hidden;
+    }
+    .card .num {
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      letter-spacing: 0.05em;
+    }
+    .card h3 { margin: 0.4em 0 0.3em; font-size: var(--h3-size); color: var(--gh-fg); }
+    .card p  { font-size: var(--small-size); }
+    .card.b-blue   { border-top: 3px solid var(--gh-blue); }
+    .card.b-purple { border-top: 3px solid var(--gh-purple); }
+    .card.b-green  { border-top: 3px solid var(--gh-green); }
+    .card.b-orange { border-top: 3px solid var(--gh-orange); }
+    .card.b-pink   { border-top: 3px solid var(--gh-pink); }
+    .card.b-yellow { border-top: 3px solid var(--gh-yellow); }
+
+    /* "Code window" — macOS chrome — used on every example slide */
+    .code-window {
+      background: var(--gh-canvas-inset);
+      border: 1px solid var(--gh-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      width: 100%;
+      max-height: 60vh;
+    }
+    .code-window .titlebar {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid var(--gh-border);
+      background: var(--gh-canvas-subtle);
+    }
+    .code-window .titlebar .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+    .code-window .titlebar .r { background: #ff5f57; }
+    .code-window .titlebar .y { background: #febc2e; }
+    .code-window .titlebar .g { background: #28c840; }
+    .code-window .titlebar .name {
+      margin-left: auto; font-family: var(--font-mono);
+      font-size: var(--small-size); color: var(--gh-fg-muted);
+    }
+    .code-window pre {
+      margin: 0;
+      padding: clamp(0.6rem, 1.5vw, 1.1rem) clamp(0.8rem, 2vw, 1.4rem);
+      font-family: var(--font-mono);
+      font-size: var(--mono-size);
+      line-height: 1.55;
+      overflow: hidden;
+      color: var(--gh-fg);
+    }
+    .code-window code { color: inherit; font-size: inherit; }
+
+    /* Syntax-style colour tokens. Conservative palette — only colour-codes
+       things that matter for comprehension (comments, keywords, strings). */
+    .tk-kw { color: var(--gh-pink); }
+    .tk-fn { color: var(--gh-purple); }
+    .tk-cm { color: var(--gh-fg-subtle); font-style: italic; }
+    .tk-st { color: var(--gh-blue); }
+    .tk-de { color: var(--gh-orange); }
+    .tk-cl { color: #d2a8ff; }
+
+    /* "Pill" badge */
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.4em;
+      padding: 0.25em 0.8em;
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      border-radius: 999px;
+      border: 1px solid var(--gh-border);
+      background: var(--gh-canvas-subtle);
+      color: var(--gh-fg-muted);
+    }
+    .pill.blue   { color: var(--gh-blue);   border-color: rgba(88,166,255,0.4); }
+    .pill.purple { color: var(--gh-purple); border-color: rgba(188,140,255,0.4); }
+    .pill.green  { color: var(--gh-green);  border-color: rgba(63,185,80,0.4);  }
+    .pill.orange { color: var(--gh-orange); border-color: rgba(247,129,102,0.4); }
+    .pill.pink   { color: var(--gh-pink);   border-color: rgba(255,123,114,0.4); }
+    .pill.yellow { color: var(--gh-yellow); border-color: rgba(210,153,34,0.4); }
+
+    /* Bullet list with "primer check" markers */
+    /* Checkmark bullets. We use position:relative + absolute ::before
+       (NOT display:grid) so that inline <strong>/<code> children remain
+       inline-flow instead of being placed into their own grid cells. */
+    .checks { list-style: none; display: flex; flex-direction: column; gap: 0.55em; }
+    .checks li {
+      position: relative;
+      padding-left: 1.8em;
+      font-size: var(--body-size);
+      color: var(--gh-fg);
+      line-height: 1.45;
+    }
+    .checks li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.3em;
+      width: 1em; height: 1em;
+      background: var(--gh-green);
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'/></svg>") center/contain no-repeat;
+    }
+
+    /* Numbered steps — same absolute-marker trick as .checks */
+    .steps { display: flex; flex-direction: column; gap: 0.55em; counter-reset: step;
+             list-style: none; padding: 0; }
+    .steps li {
+      position: relative;
+      padding-left: 2.6em;
+      font-size: var(--body-size);
+      color: var(--gh-fg);
+      line-height: 1.45;
+      list-style: none;
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0.25em;
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-blue);
+    }
+
+    /* Footer line */
+    .slide-footer {
+      position: absolute;
+      bottom: clamp(0.5rem, 1.2vh, 1rem);
+      left: var(--slide-padding);
+      right: var(--slide-padding);
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-subtle);
+      z-index: 2;
+    }
+    .slide-footer .crumb { color: var(--gh-fg-muted); }
+
+    /* =================================================================
+       REVEAL ANIMATIONS — triggered via .visible class
+       ================================================================= */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity var(--duration) var(--ease-out-expo),
+                  transform var(--duration) var(--ease-out-expo);
+    }
+    .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+
+    .reveal:nth-child(1) { transition-delay: 0.05s; }
+    .reveal:nth-child(2) { transition-delay: 0.15s; }
+    .reveal:nth-child(3) { transition-delay: 0.25s; }
+    .reveal:nth-child(4) { transition-delay: 0.35s; }
+    .reveal:nth-child(5) { transition-delay: 0.45s; }
+    .reveal:nth-child(6) { transition-delay: 0.55s; }
+    .reveal:nth-child(7) { transition-delay: 0.65s; }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity var(--duration), transform var(--duration) var(--ease-out-expo);
+    }
+    .slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
+
+    /* Cursor that blinks at the end of code samples */
+    .caret {
+      display: inline-block;
+      width: 0.55em; height: 1.05em;
+      background: var(--gh-blue);
+      vertical-align: -3px;
+      animation: blink 1.05s steps(2, start) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* =================================================================
+       NAVIGATION CHROME
+       ================================================================= */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gh-blue), var(--gh-purple));
+      z-index: 1000;
+      transition: width 0.15s linear;
+      width: 0;
+    }
+
+    .nav-dots {
+      position: fixed;
+      right: clamp(0.75rem, 2vw, 1.5rem);
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 0.55em;
+      z-index: 999;
+    }
+    .nav-dots button {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 1px solid var(--gh-border);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s ease;
+    }
+    .nav-dots button.active {
+      background: var(--gh-blue);
+      border-color: var(--gh-blue);
+      transform: scale(1.4);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      bottom: clamp(0.5rem, 1.5vh, 1rem);
+      right: clamp(0.75rem, 2vw, 1.5rem);
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-subtle);
+      z-index: 999;
+      opacity: 0.75;
+    }
+    .keyboard-hint kbd {
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: 4px;
+      padding: 0.05em 0.4em;
+      font-family: inherit;
+      font-size: 0.9em;
+    }
+
+    /* =================================================================
+       TITLE SLIDE — distinctive treatment
+       ================================================================= */
+    .title-slide .slide-content { justify-content: center; align-items: flex-start; }
+    .title-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5em;
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      letter-spacing: 0.04em;
+    }
+    .title-eyebrow .mark {
+      width: 1.1em; height: 1.1em;
+      background: var(--gh-fg);
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0C3.58 0 0 3.58 0 8a8.013 8.013 0 0 0 5.47 7.59c.4.072.547-.17.547-.385 0-.19-.007-.694-.01-1.36-2.226.482-2.695-1.073-2.695-1.073-.364-.924-.89-1.17-.89-1.17-.725-.496.056-.486.056-.486.803.056 1.225.824 1.225.824.714 1.223 1.873.87 2.33.665.072-.517.278-.87.507-1.07-1.777-.2-3.644-.888-3.644-3.953 0-.873.31-1.587.823-2.147-.083-.202-.358-1.015.077-2.117 0 0 .672-.215 2.2.82a7.633 7.633 0 0 1 2.003-.27 7.65 7.65 0 0 1 2.003.27c1.527-1.035 2.198-.82 2.198-.82.437 1.102.163 1.915.08 2.117.513.56.823 1.274.823 2.147 0 3.073-1.87 3.75-3.653 3.947.287.246.543.738.543 1.487 0 1.073-.01 1.94-.01 2.2 0 .217.144.462.55.385A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z'/></svg>") center/contain no-repeat;
+    }
+    .title-h1 {
+      font-size: var(--title-size);
+      font-weight: 800;
+      line-height: 0.95;
+      margin: clamp(0.4rem, 1.5vh, 1rem) 0;
+    }
+    .title-h1 .accent {
+      background: linear-gradient(135deg, var(--gh-blue), var(--gh-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .title-sub {
+      font-size: clamp(0.9rem, 1.6vw, 1.4rem);
+      color: var(--gh-fg-muted);
+      max-width: 60ch;
+    }
+    .title-meta {
+      margin-top: clamp(1rem, 3vh, 2rem);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+
+    /* Title-slide two-column layout — text left, QR card right. */
+    .title-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: clamp(2rem, 6vw, 5rem);
+      align-items: center;
+      width: 100%;
+    }
+    .title-qr {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+      padding: clamp(0.8rem, 1.6vw, 1.2rem);
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: 14px;
+      box-shadow: 0 18px 60px -20px rgba(0,0,0,0.65);
+    }
+    .title-qr svg {
+      width:  clamp(140px, 16vw, 220px);
+      height: clamp(140px, 16vw, 220px);
+      display: block;
+      border-radius: 6px;
+    }
+    .title-qr .qr-caption {
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .title-qr .qr-caption strong { color: var(--gh-fg); font-weight: 600; }
+    @media (max-width: 820px) {
+      .title-grid { grid-template-columns: 1fr; }
+      .title-qr { justify-self: flex-start; }
+    }
+
+
+    .closing-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: clamp(2rem, 6vw, 5rem);
+      align-items: center;
+      width: 100%;
+    }
+    .closing-qr svg {
+      width:  clamp(120px, 13vw, 180px);
+      height: clamp(120px, 13vw, 180px);
+    }
+    @media (max-width: 820px) { .closing-grid { grid-template-columns: 1fr; } }
+
+    /* Animated gradient blobs for the title slide */
+    .title-slide::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 78% 35%, rgba(188, 140, 255, 0.22), transparent 55%),
+        radial-gradient(ellipse at 25% 80%, rgba(88, 166, 255, 0.18),  transparent 60%);
+      animation: drift 18s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0)        scale(1); }
+      100% { transform: translate(2vw, -3vh)   scale(1.06); }
+    }
+
+    /* =================================================================
+       LAYOUT HELPERS
+       ================================================================= */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: clamp(1rem, 2.5vw, 2rem);
+      align-items: stretch;
+    }
+    .two-col > * { min-width: 0; }   /* keep code-window from blowing out */
+
+    .stack-tight { display: flex; flex-direction: column; gap: clamp(0.45rem, 1vh, 0.8rem); }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.6em;
+      font-family: var(--font-mono);
+      font-size: var(--small-size);
+      color: var(--gh-fg-muted);
+      letter-spacing: 0.05em;
+    }
+    .eyebrow .chip {
+      padding: 0.1em 0.55em;
+      border: 1px solid var(--gh-border);
+      border-radius: 4px;
+      color: var(--gh-blue);
+      background: rgba(88,166,255,0.08);
+    }
+
+    .lede {
+      font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+      color: var(--gh-fg);
+      max-width: 50ch;
+      line-height: 1.5;
+    }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.6rem, 1.2vw, 1rem); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(0.6rem, 1.2vw, 1rem); }
+    @media (max-width: 760px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Arch diagram nodes */
+    .arch {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      align-items: stretch;
+      gap: clamp(0.5rem, 1.2vw, 1rem);
+    }
+    .arch .node {
+      background: var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: 12px;
+      padding: clamp(0.6rem, 1.5vw, 1rem);
+      text-align: center;
+      position: relative;
+    }
+    .arch .node h4 {
+      font-family: var(--font-display);
+      font-size: var(--body-size);
+      font-weight: 700;
+      color: var(--gh-fg);
+      margin-bottom: 0.2em;
+    }
+    .arch .node p { font-size: var(--small-size); }
+    .arch .arrow {
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); color: var(--gh-fg-subtle);
+    }
+    .arch .node.app    { border-top: 3px solid var(--gh-blue); }
+    .arch .node.sdk    { border-top: 3px solid var(--gh-purple); }
+    .arch .node.cli    { border-top: 3px solid var(--gh-orange); }
+    .arch .node.model  { border-top: 3px solid var(--gh-green); }
+
+    /* CTA / Codespaces card */
+    .cta-card {
+      background:
+        radial-gradient(ellipse at top right, rgba(188,140,255,0.18), transparent 55%),
+        var(--gh-canvas-subtle);
+      border: 1px solid var(--gh-border);
+      border-radius: 14px;
+      padding: clamp(1rem, 2.5vw, 2rem);
+      max-width: 80ch;
+    }
+    .cta-card .button-row { display: flex; flex-wrap: wrap; gap: 0.7em; margin-top: 0.8em; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5em;
+      padding: 0.55em 1.1em;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--body-size);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn.primary { background: var(--gh-green); color: #04140a; }
+    .btn.primary:hover { background: #56d364; transform: translateY(-1px); }
+    .btn.ghost { background: transparent; color: var(--gh-fg); border: 1px solid var(--gh-border); }
+    .btn.ghost:hover { background: var(--gh-canvas-subtle); }
   </style>
 </head>
 <body>
-<div class="reveal">
-<div class="slides">
-
-
-<!-- ========================================== -->
-<!-- SECTION 1: INSPIRE                         -->
-<!-- ========================================== -->
-
-<!-- ============ SLIDE 1: Title ============ -->
-<section class="title-slide">
-  <p class="section-label">Technical Preview · v0.2.0 · March 2026</p>
-  <h1>GitHub Copilot SDK</h1>
-  <p>Agents for Every App</p>
-  <p style="font-size:0.8em; color:var(--gh-text);">Embed Copilot's agentic workflows in your application</p>
-  <div class="badges">
-    <span class="badge badge-blue">TypeScript</span>
-    <span class="badge badge-green">Python</span>
-    <span class="badge badge-purple">Go</span>
-    <span class="badge badge-orange">.NET</span>
-    <span class="badge badge-blue">Java</span>
+  <!-- ===============================================================
+       NAVIGATION CHROME — generated by JS at runtime
+       =============================================================== -->
+  <div class="progress-bar" id="progressBar"></div>
+  <nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+  <div class="keyboard-hint">
+    <kbd>↑</kbd><kbd>↓</kbd> or <kbd>Space</kbd>
   </div>
-  <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 16px;">
-    <img src="qr.svg" alt="QR code to examples repo" style="width: 150px; height: 150px; border-radius: 8px; background: #fff; padding: 6px;">
-    <div style="text-align: left;">
-      <p style="font-size: 0.6em; color: var(--gh-muted); margin: 0;">Examples &amp; slides</p>
-      <p style="font-size: 0.65em; margin: 0;"><a href="https://github.com/jeffreygroneberg/ghcp_sdk" style="color: var(--gh-blue);">github.com/jeffreygroneberg/ghcp_sdk</a></p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
-</section>
 
-<!-- ============ SLIDE 2: What is the SDK? ============ -->
-<section>
-  <h2>What is the GitHub Copilot SDK?</h2>
-  <p>A programmable SDK that brings Copilot's agent runtime into your application — no orchestration to build.</p>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>🏗️ Production-Tested</h3>
-      <p>Same runtime behind Copilot CLI, battle-tested at scale</p>
+  <!-- ===============================================================
+       SLIDE 1 — Title
+       =============================================================== -->
+  <section class="slide title-slide">
+    <div class="slide-content">
+      <div class="title-grid">
+        <div class="title-text">
+      <span class="title-eyebrow reveal"><span class="mark"></span> github / copilot-sdk</span>
+      <h1 class="title-h1 reveal">
+        Build agentic apps with<br/>
+        <span class="accent">GitHub Copilot SDK</span>
+      </h1>
+      <p class="title-sub reveal">
+        A hands-on tour of the Python SDK in six minimal examples — from
+        streaming chat to MCP-powered, resumable, human-in-the-loop agents.
+      </p>
+      <div class="title-meta reveal">
+        <span class="pill blue">Public Preview · v0.3.0</span>
+        <span class="pill purple">Python</span>
+        <span class="pill green">Codespaces ready</span>
+      </div>
+        </div>
+        <aside class="title-qr reveal" aria-label="Scan to open repo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" aria-label="QR code: https://github.com/jeffrey-groneberg/ghcp_sdk"><rect width="41" height="41" fill="#ffffff"/><path d="M4 4h7v1h-7zM13 4h1v1h-1zM15 4h2v1h-2zM20 4h1v1h-1zM22 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h4v1h-4zM18 6h1v1h-1zM24 6h3v1h-3zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h2v1h-2zM19 7h1v1h-1zM22 7h1v1h-1zM25 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h5v1h-5zM24 8h2v1h-2zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM17 9h2v1h-2zM21 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h1v1h-1zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h5v1h-5zM20 12h2v1h-2zM23 12h1v1h-1zM30 12h5v1h-5zM6 13h4v1h-4zM11 13h2v1h-2zM14 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM7 14h4v1h-4zM13 14h1v1h-1zM16 14h6v1h-6zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM16 15h2v1h-2zM20 15h4v1h-4zM28 15h1v1h-1zM32 15h3v1h-3zM36 15h1v1h-1zM4 16h2v1h-2zM8 16h1v1h-1zM10 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM23 16h7v1h-7zM31 16h3v1h-3zM6 17h1v1h-1zM8 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM19 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM5 18h1v1h-1zM7 18h1v1h-1zM9 18h4v1h-4zM15 18h1v1h-1zM18 18h4v1h-4zM24 18h1v1h-1zM26 18h1v1h-1zM29 18h2v1h-2zM32 18h4v1h-4zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h4v1h-4zM33 19h2v1h-2zM4 20h1v1h-1zM7 20h5v1h-5zM15 20h3v1h-3zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h3v1h-3zM36 20h1v1h-1zM4 21h1v1h-1zM6 21h3v1h-3zM11 21h2v1h-2zM14 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h8v1h-8zM15 22h3v1h-3zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h2v1h-2zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM9 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h4v1h-4zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h3v1h-3zM18 24h1v1h-1zM22 24h2v1h-2zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h3v1h-3zM11 25h1v1h-1zM14 25h7v1h-7zM24 25h4v1h-4zM29 25h2v1h-2zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM15 26h1v1h-1zM17 26h2v1h-2zM21 26h3v1h-3zM29 26h1v1h-1zM32 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM12 27h1v1h-1zM15 27h3v1h-3zM20 27h1v1h-1zM22 27h6v1h-6zM29 27h2v1h-2zM32 27h4v1h-4zM4 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h3v1h-3zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h7v1h-7zM35 28h2v1h-2zM12 29h1v1h-1zM16 29h2v1h-2zM21 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h4v1h-4zM24 30h1v1h-1zM26 30h3v1h-3zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h2v1h-2zM21 31h2v1h-2zM24 31h1v1h-1zM27 31h2v1h-2zM32 31h3v1h-3zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h3v1h-3zM20 32h1v1h-1zM23 32h4v1h-4zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM16 33h1v1h-1zM18 33h2v1h-2zM22 33h1v1h-1zM27 33h3v1h-3zM32 33h3v1h-3zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM16 34h5v1h-5zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM33 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM14 35h1v1h-1zM18 35h2v1h-2zM25 35h4v1h-4zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h6v1h-6zM19 36h3v1h-3zM26 36h3v1h-3zM31 36h1v1h-1zM35 36h1v1h-1z" fill="#0d1117"/></svg>
+          <span class="qr-caption">scan to clone<br><strong>github.com/jeffrey-groneberg/ghcp_sdk</strong></span>
+        </aside>
+      </div>
     </div>
-    <div class="card">
-      <h3>🌐 Multi-Language</h3>
-      <p>TypeScript, Python, Go, .NET, and Java SDKs available</p>
+    <div class="slide-footer">
+      <span class="crumb">deck · github copilot sdk</span>
+      <span>01 / 13</span>
     </div>
-    <div class="card">
-      <h3>🔧 Extensible</h3>
-      <p>Custom tools, agents, MCP servers, hooks, and skills</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md" style="color:var(--gh-blue);">README.md</a></p>
-</section>
+  </section>
 
-<!-- ============ SLIDE 3: Architecture ============ -->
-<section>
-  <h2>Architecture</h2>
-  <div class="flow">
-    <div class="flow-box"><strong>Your Application</strong></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>SDK Client</strong><br><span class="muted">TS / Python / Go / .NET / Java</span></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>Copilot CLI</strong><br><span class="muted">JSON-RPC (stdio / TCP)</span></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-box"><strong>Model Provider</strong><br><span class="muted">GitHub · OpenAI · Azure · Anthropic · Local</span></div>
-  </div>
-  <div class="grid grid-3" style="margin-top:14px;">
-    <div class="card"><p>⚡ Auto-managed or external CLI</p></div>
-    <div class="card"><p>💾 Session persistence</p></div>
-    <div class="card"><p>👥 Multi-client support (v3)</p></div>
-    <div class="card"><p>📡 40+ streaming event types</p></div>
-    <div class="card"><p>📈 Horizontal scaling</p></div>
-    <div class="card"><p>🔍 OpenTelemetry tracing</p></div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#architecture" style="color:var(--gh-blue);">README.md — Architecture</a></p>
-</section>
-
-<!-- ============ SLIDE 6: Available SDKs ============ -->
-<section>
-  <h2>Available SDKs</h2>
-  <table>
-    <tr><th>Language</th><th>Install Command</th></tr>
-    <tr><td>Node.js / TypeScript</td><td><code>npm install @github/copilot-sdk</code></td></tr>
-    <tr><td>Python</td><td><code>pip install github-copilot-sdk</code></td></tr>
-    <tr><td>Go</td><td><code>go get github.com/github/copilot-sdk/go</code></td></tr>
-    <tr><td>.NET</td><td><code>dotnet add package GitHub.Copilot.SDK</code></td></tr>
-    <tr><td>Java</td><td><code>com.github:copilot-sdk-java</code> (Maven/Gradle)</td></tr>
-  </table>
-  <p class="muted">Community SDKs also available: Rust, Clojure, C++</p>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#available-sdks" style="color:var(--gh-blue);">README.md — Available SDKs</a></p>
-</section>
-
-<!-- ============ SLIDE 7: Key Features ============ -->
-<section>
-  <h2>Key Features</h2>
-  <div class="grid grid-4">
-    <div class="card">
-      <h3>🔧 Custom Tools</h3>
-      <p>Define functions Copilot can invoke</p>
+  <!-- ===============================================================
+       SLIDE 2 — Why the SDK
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / why.md</span>
+      <span class="meta"><span class="branch">main</span></span>
     </div>
-    <div class="card">
-      <h3>🤖 Custom Agents</h3>
-      <p>Specialized AI personas with scoped tools</p>
-    </div>
-    <div class="card">
-      <h3>🔌 MCP Servers</h3>
-      <p>External tool integration via standard protocol</p>
-    </div>
-    <div class="card">
-      <h3>📚 Skills</h3>
-      <p>Reusable prompt modules from directories</p>
-    </div>
-    <div class="card">
-      <h3>🪝 Hooks</h3>
-      <p>Intercept sessions for security and auditing</p>
-    </div>
-    <div class="card">
-      <h3>📡 Streaming</h3>
-      <p>40+ real-time event types</p>
-    </div>
-    <div class="card">
-      <h3>🔑 BYOK</h3>
-      <p>Bring your own model provider API keys</p>
-    </div>
-    <div class="card">
-      <h3>📊 Observability</h3>
-      <p>Built-in OpenTelemetry instrumentation</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
-</section>
-
-<!-- ============ SLIDE 16: Use Cases 1 ============ -->
-<section>
-  <h2>What Can You Build?</h2>
-  <p>Real problems your teams face today — solved with the SDK</p>
-  <div class="grid grid-2" style="margin-top: 10px;">
-    <div class="card" style="border-left: 3px solid var(--gh-red);">
-      <h3>🔍 Automated Code Review</h3>
-      <p style="color:var(--gh-muted);">Problem: Manual reviews miss security issues and take days</p>
-      <p><span class="accent">→</span> Deploy a security auditor agent that reviews every PR in seconds using OWASP-focused prompts and read-only tools</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-blue);">
-      <h3>🚀 CI/CD Pipeline Intelligence</h3>
-      <p style="color:var(--gh-muted);">Problem: Pipelines fail silently; debugging takes hours</p>
-      <p><span class="accent">→</span> Run agents in your pipeline that analyze failures, suggest fixes, and auto-generate test coverage</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-purple);">
-      <h3>🗄️ Database Query Assistants</h3>
-      <p style="color:var(--gh-muted);">Problem: Non-technical teams can't self-serve data queries</p>
-      <p><span class="accent">→</span> Connect MCP servers to your database — users ask in natural language, agent writes and explains SQL</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-orange);">
-      <h3>📝 Documentation Generation</h3>
-      <p style="color:var(--gh-muted);">Problem: Docs are always outdated, nobody wants to write them</p>
-      <p><span class="accent">→</span> Agents analyze your codebase and produce up-to-date, comprehensive documentation on every release</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
-</section>
-
-<!-- ============ SLIDE 17: Use Cases 2 ============ -->
-<section>
-  <h2>More Use Cases</h2>
-  <div class="grid grid-2" style="margin-top: 10px;">
-    <div class="card" style="border-left: 3px solid var(--gh-green);">
-      <h3>💡 AI-Powered SaaS Products</h3>
-      <p style="color:var(--gh-muted);">Problem: Building AI features requires custom orchestration and model plumbing</p>
-      <p><span class="accent">→</span> Embed Copilot's agent runtime in your product with per-user OAuth, session isolation, and streaming — ship AI features in days, not months</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-blue);">
-      <h3>🤝 Multi-Agent Workflows</h3>
-      <p style="color:var(--gh-muted);">Problem: Complex tasks need multiple specialized AI roles working together</p>
-      <p><span class="accent">→</span> Use Microsoft Agent Framework to orchestrate Copilot alongside Azure OpenAI and Anthropic in sequential or parallel pipelines</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-orange);">
-      <h3>⚙️ DevOps Automation</h3>
-      <p style="color:var(--gh-muted);">Problem: Incident response and infrastructure changes require deep expertise</p>
-      <p><span class="accent">→</span> Agents that diagnose production issues, manage infrastructure, and automate deployments with guardrailed shell access</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-purple);">
-      <h3>🏗️ Internal Developer Platforms</h3>
-      <p style="color:var(--gh-muted);">Problem: Internal tools lack intelligence and require constant maintenance</p>
-      <p><span class="accent">→</span> Embed Copilot in your developer portal, CLI tools, and dashboards — let third-party teams build on your AI-powered platform</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" style="color:var(--gh-blue);">docs/features/index.md</a></p>
-</section>
-
-
-<!-- ========================================== -->
-<!-- SECTION 2: INFORM                          -->
-<!-- ========================================== -->
-
-<!-- ============ SLIDE 7b: Built-in Tools ============ -->
-<section>
-  <h2>Built-in Tools</h2>
-  <p>First-party tools available to every session — all enabled by default</p>
-  <div class="grid grid-3" style="margin-top:10px;">
-    <div class="card" style="border-left: 3px solid var(--gh-blue);">
-      <h3>📖 File System — Reading</h3>
-      <ul>
-        <li><code>read_file</code> — Read file contents</li>
-        <li><code>view</code> — View file or directory</li>
-        <li><code>glob</code> — Find files by name pattern</li>
-        <li><code>grep</code> — Search contents (ripgrep)</li>
-        <li><code>list_dir</code> — List directory contents</li>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> Why a Copilot SDK?</span>
+      <h2 class="reveal">The agent loop, packaged.</h2>
+      <p class="lede reveal">
+        Copilot CLI is great in a terminal. The <strong>SDK</strong> is what
+        you reach for when you want to embed the same agent loop — tools,
+        permissions, MCP, hooks, persistence — into <em>your own</em> app.
+      </p>
+      <ul class="checks reveal" style="margin-top: var(--content-gap); max-width: 70ch;">
+        <li>Same models, same protocol, same tool catalogue as the CLI</li>
+        <li>Stream tokens, intercept tool calls, swap personas mid-conversation</li>
+        <li>Plug in MCP servers (filesystem, GitHub, anything) in one kwarg</li>
+        <li>Resume any conversation by its <code>session_id</code> — across processes, deployments, days</li>
+        <li>Bring-your-own UI: CLIs, web apps, Slack bots, IDE plugins</li>
       </ul>
     </div>
-    <div class="card" style="border-left: 3px solid var(--gh-green);">
-      <h3>✏️ File System — Writing</h3>
-      <ul>
-        <li><code>edit</code> — Targeted edits to existing files</li>
-        <li><code>create</code> — Create new files</li>
-        <li><code>write_file</code> — Write / overwrite files</li>
-      </ul>
+    <div class="slide-footer">
+      <span class="crumb">why · agent loop, packaged</span>
+      <span>02 / 13</span>
     </div>
-    <div class="card" style="border-left: 3px solid var(--gh-orange);">
-      <h3>⚡ Shell, Web & Agent</h3>
-      <ul>
-        <li><code>bash</code> / <code>shell</code> — Execute commands</li>
-        <li><code>web_fetch</code> — Fetch content from URLs</li>
-        <li><code>task</code> — Delegate to sub-agents</li>
-        <li><code>ask_user</code> — Ask the user a question</li>
-        <li><code>store_memory</code> — Persist facts</li>
-      </ul>
-    </div>
-  </div>
-  <p class="muted" style="text-align:center; margin-top:10px;">Plus: MCP server tools (e.g. GitHub MCP) and your custom tools via <code>@define_tool</code></p>
-    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/README.md#what-tools-are-enabled-by-default" style="color:var(--gh-blue);">README.md — Default tools · docs/features/hooks.md</a></p>
-<aside class="notes">
-    These are the first-party tools the Copilot CLI agent runtime provides. By default, ALL are enabled (equivalent to --allow-all).
-    Five categories: File Reading (read_file, view, glob, grep, list_dir), File Writing (edit, create, write_file), Shell (bash/shell), Web (web_fetch), Agent Infrastructure (task, ask_user, store_memory).
-    Source: https://github.com/github/copilot-sdk/blob/main/README.md#what-tools-are-enabled-by-default
-  </aside>
-</section>
+  </section>
 
-<!-- ============ SLIDE 7c: Controlling Tool Access ============ -->
-<section>
-  <h2>Controlling Tool Access</h2>
-  <p>Three ways to restrict what the agent can do</p>
-  <div class="grid grid-3" style="margin-top:10px;">
-    <div class="card" style="border-top: 3px solid var(--gh-blue);">
-      <h3>1. Session Config</h3>
-      <p>Whitelist or blacklist at creation</p>
-      <pre><code class="language-python">session = await client.create_session(
-  available_tools=[
-    "grep", "glob", "view"
-  ],
-  # OR
-  excluded_tools=[
-    "bash", "shell"
-  ],
-)</code></pre>
+  <!-- ===============================================================
+       SLIDE 3 — What you'll build today
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / examples /</span>
+      <span class="meta"><span class="branch">main</span></span>
     </div>
-    <div class="card" style="border-top: 3px solid var(--gh-green);">
-      <h3>2. onPreToolUse Hook</h3>
-      <p>Dynamic per-call decisions</p>
-      <pre><code class="language-python">ALLOWED = [
-  "read_file", "glob",
-  "grep", "view"
-]
-
-async def on_pre_tool_use(inp, inv):
-  if inp["toolName"] not in ALLOWED:
-    return {
-      "permissionDecision": "deny"
-    }
-  return {
-    "permissionDecision": "allow"
-  }</code></pre>
-    </div>
-    <div class="card" style="border-top: 3px solid var(--gh-orange);">
-      <h3>3. Override Built-ins</h3>
-      <p>Replace with your own (v0.1.30+)</p>
-      <pre><code class="language-python">@define_tool(
-  description="Custom grep",
-  overrides_built_in_tool=True,
-)
-async def grep(params):
-  # Your custom implementation
-  return custom_search(
-    params.query
-  )</code></pre>
-    </div>
-  </div>
-    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" style="color:var(--gh-blue);">docs/features/hooks.md · CHANGELOG v0.1.30</a></p>
-<aside class="notes">
-    Three approaches: Session Config (available_tools whitelist / excluded_tools blacklist), onPreToolUse Hook (dynamic per-call), Override Built-ins (replace with your own implementation since v0.1.30).
-    Source: https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md
-    Source: https://github.com/github/copilot-sdk/releases/tag/v0.1.30
-  </aside>
-</section>
-
-<!-- ============ SLIDE 8: Custom Tools ============ -->
-<section>
-  <h2>Custom Tools</h2>
-  <p>Define custom functions that Copilot can invoke during conversations</p>
-  <div class="highlight-box">
-    <p>You define a tool with a <strong>name</strong>, <strong>description</strong>, <strong>JSON Schema parameters</strong>, and a <strong>handler function</strong>. The agent automatically decides when to call it based on the user's prompt.</p>
-  </div>
-  <div class="grid grid-3">
-    <div class="card"><h3>🔧 Define</h3><p>Name, description, and typed parameters via JSON Schema</p></div>
-    <div class="card"><h3>⚡ Handle</h3><p>Your async function runs when the agent calls the tool</p></div>
-    <div class="card"><h3>🔗 Register</h3><p>Pass tools array to <code>createSession()</code></p></div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
-</section>
-
-<!-- ============ SLIDE 8b: Custom Tools Code ============ -->
-<section>
-  <h2>Custom Tools — Code</h2>
-  <pre><code class="language-typescript">const getWeather = defineTool("get_weather", {
-  description: "Get the current weather for a city",
-  parameters: {
-    type: "object",
-    properties: {
-      city: { type: "string", description: "The city name" },
-    },
-    required: ["city"],
-  },
-  handler: async (args) => {
-    const data = await fetchWeatherAPI(args.city);
-    return { city: args.city, temp: data.temp, condition: data.condition };
-  },
-});
-
-const session = await client.createSession({
-  model: "gpt-4.1",
-  tools: [getWeather],
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
-</section>
-
-<!-- ============ SLIDE 9: Custom Agents ============ -->
-<section>
-  <h2>Custom Agents &amp; Sub-Agent Orchestration</h2>
-  <p>Define specialized AI personas with their own prompts, tool restrictions, and MCP servers</p>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>🔍 Research Agent</h3>
-      <p><strong>Tools:</strong> grep, glob, view</p>
-      <p>Analyze code, answer questions. Read-only.</p>
-    </div>
-    <div class="card">
-      <h3>✏️ Editor Agent</h3>
-      <p><strong>Tools:</strong> view, edit, bash</p>
-      <p>Make minimal, surgical code changes.</p>
-    </div>
-    <div class="card">
-      <h3>🛡️ Security Auditor</h3>
-      <p><strong>Tools:</strong> grep, glob, view</p>
-      <p>Focus on OWASP Top 10 vulnerabilities.</p>
-    </div>
-  </div>
-  <div class="highlight-box" style="margin-top:10px;">
-    <p><strong>Automatic Delegation</strong> — The runtime auto-selects the right agent based on user intent when <code>infer: true</code> is set.</p>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" style="color:var(--gh-blue);">docs/features/custom-agents.md</a></p>
-</section>
-
-<!-- ============ SLIDE 10: MCP Servers ============ -->
-<section>
-  <h2>MCP Server Integration</h2>
-  <p>Model Context Protocol — open standard for connecting AI to external tools</p>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>Local / Stdio</h3>
-      <p>Runs as a subprocess, communicates via stdin/stdout</p>
-      <p class="muted">Local tools, file access, scripts</p>
-    </div>
-    <div class="card">
-      <h3>Remote / HTTP</h3>
-      <p>Accessed via HTTP endpoint, supports SSE</p>
-      <p class="muted">Shared services, cloud tools</p>
-    </div>
-  </div>
-  <div class="highlight-box">
-    <p>Connect to any MCP server from the community directory — GitHub, SQLite, Puppeteer, filesystem, and more. The <code>tools</code> array controls which tools are exposed.</p>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" style="color:var(--gh-blue);">docs/features/mcp.md</a></p>
-</section>
-
-<!-- ============ SLIDE 10b: MCP Code ============ -->
-<section>
-  <h2>MCP Server Integration — Code</h2>
-  <pre><code class="language-typescript">const session = await client.createSession({
-  mcpServers: {
-    github: {
-      type: "http",
-      url: "https://api.githubcopilot.com/mcp/",
-    },
-    filesystem: {
-      type: "local",
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
-      tools: ["*"],
-    },
-  },
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" style="color:var(--gh-blue);">docs/features/mcp.md</a></p>
-</section>
-
-<!-- ============ SLIDE 11: Hooks ============ -->
-<section>
-  <h2>Hooks — Session Lifecycle Control</h2>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>onSessionStart</h3>
-      <p>Add context, audit logging</p>
-    </div>
-    <div class="card">
-      <h3>onUserPromptSubmitted</h3>
-      <p>Modify or filter user input</p>
-    </div>
-    <div class="card">
-      <h3>onPreToolUse</h3>
-      <p>Approve, deny, or modify tool calls</p>
-    </div>
-    <div class="card">
-      <h3>onPostToolUse</h3>
-      <p>Transform results, redact secrets</p>
-    </div>
-    <div class="card">
-      <h3>onErrorOccurred</h3>
-      <p>Custom error handling, retry logic</p>
-    </div>
-    <div class="card">
-      <h3>onSessionEnd</h3>
-      <p>Cleanup, finalize audit trail</p>
-    </div>
-  </div>
-  <p class="muted" style="margin-top:16px;">Use for: permissions, auditing, prompt enrichment, secret redaction, error recovery</p>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" style="color:var(--gh-blue);">docs/features/hooks.md</a></p>
-</section>
-
-<!-- ============ SLIDE 12: Authentication ============ -->
-<section>
-  <h2>Authentication Deep Dive</h2>
-  <p>Four methods — choose based on your deployment scenario</p>
-  <div style="display: flex; gap: 12px; margin-top: 12px;">
-    <!-- Left: Diagram -->
-    <div style="flex: 1;">
-      <div class="card" style="padding: 14px;">
-        <h3 style="color: var(--gh-blue); margin-bottom: 8px;">Auth Flow</h3>
-        <div style="font-size: 0.55em; line-height: 1.7; font-family: monospace;">
-          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 8px;">👤 CLI Login</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-blue); border-radius: 4px; padding: 3px 8px;">🔑 OAuth App</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-purple); border-radius: 4px; padding: 3px 8px;">⚙️ Env Var</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 8px;">🗝️ BYOK</span>
-          </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
-          <div style="text-align: center;">
-            <span style="background: var(--gh-surface); border: 2px solid var(--gh-blue); border-radius: 6px; padding: 4px 20px; display: inline-block;">SDK Client → Copilot CLI</span>
-          </div>
-          <div style="text-align: center; color: var(--gh-blue); font-size: 1.3em; margin: 4px 0;">▼</div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-green); border-radius: 4px; padding: 3px 10px;">☁️ Copilot API <span style="color:var(--gh-green);font-size:0.85em">(subscription)</span></span>
-            <span style="color: var(--gh-muted); align-self: center;">or</span>
-            <span style="background: var(--gh-surface); border: 1px solid var(--gh-orange); border-radius: 4px; padding: 3px 10px;">☁️ BYOK Provider <span style="color:var(--gh-orange);font-size:0.85em">(no sub)</span></span>
-          </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">02</span> The six examples</span>
+      <h2 class="reveal">Six small files. Every core capability.</h2>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>Simple streaming chat</h3>
+          <p>Open a session, stream tokens, react to events with <code>match</code>/<code>case</code>.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>Custom tools</h3>
+          <p>Expose a Python function with <code>@define_tool</code> and a Pydantic schema.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span><h3>Custom agents</h3>
+          <p>Define personas (researcher, reviewer) — swap them mid-conversation.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span><h3>Hooks</h3>
+          <p>Intercept every tool call for audit, telemetry, or soft policy.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">05</span><h3>MCP + persistence</h3>
+          <p>Attach the filesystem MCP server, resume the same conversation later.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">06</span><h3>Human in the loop</h3>
+          <p>Custom permission &amp; <code>ask_user</code> handlers — you stay in control.</p>
         </div>
       </div>
     </div>
-    <!-- Right: Table -->
-    <div style="flex: 1;">
-      <table>
-        <tr><th>Method</th><th>Use Case</th><th>Subscription</th></tr>
-        <tr><td>👤 Signed-in User</td><td>Desktop, local dev</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>🔑 OAuth App</td><td>Web apps, SaaS</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>⚙️ Env Variables</td><td>CI/CD, automation</td><td style="color:var(--gh-green)">Required</td></tr>
-        <tr><td>🗝️ BYOK</td><td>Own API keys</td><td style="color:var(--gh-orange)">Not Required</td></tr>
-      </table>
-      <div class="highlight-box" style="margin-top: 10px; padding: 8px 12px;">
-        <p style="font-size: 0.55em;"><strong>Token support:</strong> <code>gho_</code> ✅ · <code>ghu_</code> ✅ · <code>github_pat_</code> ✅ · <code>ghp_</code> ❌<br>
-        <strong>OAuth Apps + GitHub Apps</strong> both supported for multi-user scenarios</p>
+    <div class="slide-footer">
+      <span class="crumb">examples · 6 capabilities</span>
+      <span>03 / 13</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 4 — Architecture
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / architecture.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> How it fits together</span>
+      <h2 class="reveal">Your app → SDK → CLI → model.</h2>
+      <div class="arch reveal" style="margin-top: var(--content-gap);">
+        <div class="node app"><h4>Your Python app</h4><p>Examples 01 — 06</p></div>
+        <div class="arrow">→</div>
+        <div class="node sdk"><h4>github-copilot-sdk</h4><p>Async client + session</p></div>
+        <div class="arrow">→</div>
+        <div class="node cli"><h4>Copilot CLI</h4><p>JSON-RPC over stdio<br>(bundled)</p></div>
+        <div class="arrow">→</div>
+        <div class="node model"><h4>Model</h4><p>gpt-4.1 · gpt-5-mini<br>claude-haiku-4.5 · …</p></div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 70ch;">
+        Tools, permissions, hooks and MCP servers <em>all live on the CLI</em>.
+        The SDK is a thin, typed, async wrapper that lets you script that
+        loop from Python. No HTTP server, no extra infra.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">architecture · client → cli → model</span>
+      <span>04 / 13</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 5 — The session pattern
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / session_pattern.py</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">04</span> The pattern you'll see in every example</span>
+      <h2 class="reveal">Two async context managers. One required handler.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <ul class="checks">
+          <li><strong>CopilotClient</strong> spawns the bundled CLI as a subprocess and shuts it down for you.</li>
+          <li><strong>create_session</strong> opens a conversation. The <code>session_id</code> can be reused later for resume.</li>
+          <li><strong>on_permission_request</strong> is required — even <code>PermissionHandler.approve_all</code> counts.</li>
+          <li><strong>send / send_and_wait</strong> kick the agent. The reply arrives via events.</li>
+        </ul>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">session_pattern.py</span>
+          </div>
+<pre><code><span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> CopilotClient
+<span class="tk-kw">from</span> copilot.session <span class="tk-kw">import</span> PermissionHandler
+
+<span class="tk-kw">async with</span> CopilotClient() <span class="tk-kw">as</span> client:
+    <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+        on_permission_request=PermissionHandler.approve_all,
+        model=<span class="tk-st">"gpt-4.1"</span>,
+    ) <span class="tk-kw">as</span> session:
+        reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+            <span class="tk-st">"Hello, Copilot."</span>
+        )
+        <span class="tk-fn">print</span>(reply.data.content)<span class="caret"></span></code></pre>
+        </div>
       </div>
     </div>
-  </div>
-    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a></p>
-<aside class="notes">
-    The SDK supports 4 auth methods. Three require a Copilot subscription. BYOK bypasses GitHub auth entirely.
-    OAuth GitHub Apps are fully supported. Supported tokens: gho_, ghu_, github_pat_. NOT supported: ghp_ (classic PAT).
-    Source: https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md
-    Source: https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md
-  </aside>
-</section>
+    <div class="slide-footer">
+      <span class="crumb">pattern · async with × 2</span>
+      <span>05 / 13</span>
+    </div>
+  </section>
 
-<!-- ============ SLIDE 12b: OAuth App Flow ============ -->
-<section>
-  <h2>OAuth GitHub App Integration</h2>
-  <p>Build multi-user apps — each user authenticates with their GitHub account</p>
-  <div class="grid grid-2" style="margin-top: 10px;">
-    <div class="card">
-      <h3>OAuth Flow</h3>
-      <div style="font-size: 0.55em; line-height: 1.9; font-family: monospace; margin-top: 6px;">
-        <span>1. User clicks <strong>"Sign in with GitHub"</strong></span><br>
-        <span>2. Redirect → GitHub OAuth → user approves</span><br>
-        <span>3. Exchange code → <code style="color:var(--gh-green)">gho_xxx</code> token</span><br>
-        <span>4. Pass token → SDK via <code style="color:var(--gh-green)">githubToken</code></span><br>
-        <span>5. Requests made <strong>as that user</strong> (their subscription)</span>
-      </div>
-      <div class="highlight-box" style="margin-top: 8px; padding: 6px 10px;">
-        <p style="font-size: 0.5em;"><strong>Enterprise:</strong> Works with org memberships, EMU, and SAML SSO automatically.</p>
-      </div>
+  <!-- ===============================================================
+       SLIDE 6 — Example 01 · Simple chat
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">01</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 01_simple_chat.py</span>
+      <span class="meta"><span class="branch">main</span></span>
     </div>
-    <div class="card">
-      <h3>Code Example</h3>
-      <pre><code class="language-typescript">const client = new CopilotClient({
-  githubToken: userAccessToken,
-  useLoggedInUser: false,
-});
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 01</span> Streaming chat</span>
+      <h2 class="reveal">Token-by-token, event-driven.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>The SDK is event-driven: <code>session.send()</code> returns immediately and the model's reply arrives as a stream of typed events.</p>
+          <p>We match on just the two we care about: <code>AssistantMessageDeltaData</code> for each fragment and <code>SessionIdleData</code> to know when to exit.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill blue">streaming=True</span>
+            <span class="pill purple">match / case</span>
+            <span class="pill">asyncio.Event</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">01_simple_chat.py</span>
+          </div>
+<pre><code><span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    model=<span class="tk-st">"gpt-4.1"</span>, streaming=<span class="tk-de">True</span>,
+) <span class="tk-kw">as</span> session:
+    done = asyncio.<span class="tk-cl">Event</span>()
 
-const session = await client.createSession({
-  sessionId: `user-${userId}`,
-  model: "gpt-4.1",
-  onPermissionRequest: approveAll,
-});</code></pre>
-    </div>
-  </div>
-  <p class="muted" style="text-align:center; margin-top:6px;">
-    📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md" style="color:var(--gh-blue);">docs/setup/github-oauth.md</a> · <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/index.md" style="color:var(--gh-blue);">docs/auth/index.md</a>
-  </p>
-  <aside class="notes">
-    OAuth GitHub Apps are explicitly supported. Both OAuth Apps and GitHub Apps work.
-    Source: https://github.com/github/copilot-sdk/blob/main/docs/setup/github-oauth.md
-  </aside>
-</section>
+    <span class="tk-kw">def</span> <span class="tk-fn">on_event</span>(event):
+        <span class="tk-kw">match</span> event.data:
+            <span class="tk-kw">case</span> <span class="tk-cl">AssistantMessageDeltaData</span>(delta_content=d):
+                <span class="tk-fn">print</span>(d <span class="tk-kw">or</span> <span class="tk-st">""</span>, end=<span class="tk-st">""</span>, flush=<span class="tk-de">True</span>)
+            <span class="tk-kw">case</span> <span class="tk-cl">SessionIdleData</span>():
+                done.<span class="tk-fn">set</span>()
 
-<!-- ============ SLIDE 13: BYOK ============ -->
-<section>
-  <h2>BYOK — Bring Your Own Key</h2>
-  <p>Use your own model provider API keys — <span class="accent">no Copilot subscription required</span></p>
-  <div class="grid grid-3">
-    <div class="card"><h3>OpenAI</h3><p>Direct API access</p></div>
-    <div class="card"><h3>Azure AI Foundry</h3><p>Enterprise deployments</p></div>
-    <div class="card"><h3>Anthropic</h3><p>Claude models</p></div>
-    <div class="card"><h3>Ollama</h3><p>Local models</p></div>
-    <div class="card"><h3>Foundry Local</h3><p>On-device AI</p></div>
-    <div class="card"><h3>Other</h3><p>vLLM, LiteLLM, etc.</p></div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" style="color:var(--gh-blue);">docs/auth/byok.md</a></p>
-</section>
-
-<!-- ============ SLIDE 13b: BYOK Code ============ -->
-<section>
-  <h2>BYOK — Code</h2>
-  <pre><code class="language-typescript">const session = await client.createSession({
-  model: "gpt-5.2-codex",
-  provider: {
-    type: "openai",
-    baseUrl: "https://your-resource.openai.azure.com/openai/v1/",
-    wireApi: "responses",
-    apiKey: process.env.FOUNDRY_API_KEY,
-  },
-});</code></pre>
-  <div class="highlight-box">
-    <p>The <code>wireApi</code> setting controls the API format — use <code>"responses"</code> for newer GPT-5 series models and <code>"completions"</code> for older ones.</p>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" style="color:var(--gh-blue);">docs/auth/byok.md</a></p>
-</section>
-
-<!-- ============ SLIDE 4: SDK ↔ CLI Communication ============ -->
-<section>
-  <h2>How the SDK Talks to the CLI</h2>
-  <p>All SDKs communicate via JSON-RPC — the SDK manages the CLI process lifecycle automatically</p>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>Mode 1: stdio (Auto-Managed)</h3>
-      <p>SDK spawns CLI as a child process</p>
-      <ul>
-        <li>Zero config — just <code>new CopilotClient()</code></li>
-        <li>CLI dies with your app</li>
-        <li>Best for: local dev, desktop apps</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Mode 2: TCP (External Server)</h3>
-      <p>CLI runs as a headless server on a port</p>
-      <ul>
-        <li><code>copilot --headless --port 4321</code></li>
-        <li>Independent lifecycle, multi-client</li>
-        <li>Best for: APIs, backends, scaling</li>
-      </ul>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/local-cli.md" style="color:var(--gh-blue);">docs/setup/local-cli.md · backend-services.md</a></p>
-</section>
-
-<!-- ============ SLIDE 5: Bundled Deployment ============ -->
-<section>
-  <h2>Ship It — Bundled Deployment</h2>
-  <div class="highlight-box">
-    <p>Package the Copilot CLI binary alongside your application — users don't need to install anything separately.</p>
-  </div>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>Supported Platforms</h3>
-      <ul>
-        <li>Desktop apps (Electron, Tauri)</li>
-        <li>Docker containers</li>
-        <li>Distributable CLI tools</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Multi-Platform Binaries</h3>
-      <ul>
-        <li><code>copilot-darwin-arm64</code></li>
-        <li><code>copilot-linux-x64</code></li>
-        <li><code>copilot-win-x64.exe</code></li>
-      </ul>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/bundled-cli.md" style="color:var(--gh-blue);">docs/setup/bundled-cli.md</a></p>
-</section>
-
-<!-- ============ SLIDE 14: Deployment Patterns ============ -->
-<section>
-  <h2>Deployment Patterns</h2>
-  <div class="grid grid-2">
-    <div class="card">
-      <h3>💻 Local CLI</h3>
-      <p class="section-label">Hobbyist</p>
-      <p>SDK spawns CLI as child process. Simplest path for personal projects and development.</p>
-    </div>
-    <div class="card">
-      <h3>📦 Bundled CLI</h3>
-      <p class="section-label">Desktop App</p>
-      <p>Ship the CLI binary with your app. Standalone apps with zero external dependencies.</p>
-    </div>
-    <div class="card">
-      <h3>🖥️ Backend Services</h3>
-      <p class="section-label">Enterprise</p>
-      <p>CLI as headless server over TCP. Web backends, APIs, and microservices.</p>
-    </div>
-    <div class="card">
-      <h3>📈 Scaling</h3>
-      <p class="section-label">Platform</p>
-      <p>Horizontal scaling with session isolation. Serve thousands of users reliably.</p>
-    </div>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/index.md" style="color:var(--gh-blue);">docs/setup/index.md</a></p>
-</section>
-
-<!-- ============ SLIDE 15: MAF Integration ============ -->
-<section>
-  <h2>Microsoft Agent Framework Integration</h2>
-  <p>Compose Copilot alongside Azure OpenAI, Anthropic, and others in orchestrated workflows</p>
-  <div class="grid grid-2" style="margin-top:10px;">
-    <div class="card">
-      <h3>Sequential Workflow</h3>
-      <div class="flow">
-        <div class="flow-box">Copilot Agent<br><span class="muted">Code Review</span></div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Azure Agent<br><span class="muted">Documentation</span></div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Combined<br><span class="muted">Final Output</span></div>
+    session.<span class="tk-fn">on</span>(on_event)
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send</span>(<span class="tk-st">"Explain the SDK in 3 sentences."</span>)
+    <span class="tk-kw">await</span> done.<span class="tk-fn">wait</span>()<span class="caret"></span></code></pre>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <h3>Concurrent Workflow</h3>
-      <div class="flow">
-        <div class="flow-box">Security Reviewer</div>
-        <div class="flow-box">Perf Reviewer</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Aggregated Result</div>
+    <div class="slide-footer">
+      <span class="crumb">example 01 · streaming chat</span>
+      <span>06 / 13</span>
+    </div>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 7 — Example 02 · Custom tools
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">02</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 02_custom_tools.py</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 02</span> Custom tools</span>
+      <h2 class="reveal">Hand the agent a Python function.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p><code>@define_tool</code> packages a function + a Pydantic schema into a tool the model can call on its own.</p>
+          <p>The <code>Field(description=…)</code> text is the <em>only</em> hint the model gets — write it like a tiny prompt.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill purple">@define_tool</span>
+            <span class="pill blue">pydantic</span>
+            <span class="pill">send_and_wait</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">02_custom_tools.py</span>
+          </div>
+<pre><code><span class="tk-kw">class</span> <span class="tk-cl">WeatherParams</span>(<span class="tk-cl">BaseModel</span>):
+    city: <span class="tk-cl">str</span> = <span class="tk-fn">Field</span>(description=<span class="tk-st">"City, e.g. 'Seattle'"</span>)
+
+<span class="tk-de">@define_tool</span>(description=<span class="tk-st">"Get the current weather for a city"</span>)
+<span class="tk-kw">async def</span> <span class="tk-fn">get_weather</span>(params: <span class="tk-cl">WeatherParams</span>) -> <span class="tk-cl">dict</span>:
+    <span class="tk-kw">return</span> {<span class="tk-st">"city"</span>: params.city,
+            <span class="tk-st">"temp_c"</span>: random.<span class="tk-fn">randint</span>(-5, 35),
+            <span class="tk-st">"condition"</span>: <span class="tk-st">"sunny"</span>}
+
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    model=<span class="tk-st">"gpt-4.1"</span>, tools=[get_weather],
+) <span class="tk-kw">as</span> session:
+    reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"Weather in Tokyo and Berlin?"</span>)<span class="caret"></span></code></pre>
+        </div>
       </div>
     </div>
-  </div>
-  <div style="margin-top:10px;">
-    <span class="badge badge-purple">Unified successor to Semantic Kernel &amp; AutoGen</span>
-    <span class="badge badge-green">.NET and Python</span>
-    <span class="badge badge-blue">A2A protocol support</span>
-    <span class="badge badge-orange">Full streaming</span>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/integrations/microsoft-agent-framework.md" style="color:var(--gh-blue);">docs/integrations/microsoft-agent-framework.md</a></p>
-</section>
+    <div class="slide-footer">
+      <span class="crumb">example 02 · custom tools</span>
+      <span>07 / 13</span>
+    </div>
+  </section>
 
-<!-- ========================================== -->
-<!-- SECTION 3: ENABLE                          -->
-<!-- ========================================== -->
+  <!-- ===============================================================
+       SLIDE 8 — Example 03 · Custom agents
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">03</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 03_custom_agents.py</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 03</span> Custom agents</span>
+      <h2 class="reveal">Multiple personas. One session. Hot swap.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>A <strong>custom agent</strong> is a system prompt + a tool allowlist with a name. Bundle several and pick one with the <code>agent=</code> kwarg.</p>
+          <p>Switch mid-conversation with <code>session.rpc.agent.select(…)</code> — history is kept, persona is replaced.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill green">custom_agents</span>
+            <span class="pill blue">rpc.agent.select</span>
+            <span class="pill">tools allowlist</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">03_custom_agents.py</span>
+          </div>
+<pre><code>AGENTS = [
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"researcher"</span>,
+     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+     <span class="tk-st">"prompt"</span>: <span class="tk-st">"Explore code. Never modify."</span>},
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"reviewer"</span>,
+     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+     <span class="tk-st">"prompt"</span>: <span class="tk-st">"Review for bugs and clarity."</span>},
+]
 
-<!-- ============ SLIDE 18: Demo 1 ============ -->
-<section>
-  <h2>Demo 1: Simple Chat — TypeScript</h2>
-  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
-    <p style="font-size: 0.6em;"><strong>What this does:</strong> Create a client, open a session, send a prompt, and get a response — the "Hello World" of the SDK. Just 6 lines of meaningful code.</p>
-  </div>
-  <pre><code class="language-typescript">import { CopilotClient } from "@github/copilot-sdk";
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>, ...
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>)
+    <span class="tk-kw">await</span> session.rpc.agent.<span class="tk-fn">select</span>(
+        <span class="tk-fn">AgentSelectRequest</span>(name=<span class="tk-st">"reviewer"</span>))
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 03 · custom agents</span>
+      <span>08 / 13</span>
+    </div>
+  </section>
 
-const client = new CopilotClient();
-const session = await client.createSession({
-  model: "gpt-4.1",
-  onPermissionRequest: async () =>
-    ({ kind: "approved" }),
-});
+  <!-- ===============================================================
+       SLIDE 9 — Example 04 · Hooks
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">04</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 04_hooks.py</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 04</span> Hooks</span>
+      <h2 class="reveal">Cross-cutting concerns, without polluting tools.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>Hooks fire at well-defined lifecycle points: <code>on_pre_tool_use</code>, <code>on_post_tool_use</code>, <code>on_user_prompt_submitted</code>, …</p>
+          <p>Return <code>None</code> for "no opinion", or a typed dict to <strong>allow</strong>, <strong>deny</strong>, <strong>rewrite arguments</strong>, or <strong>inject context</strong>.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill orange">on_pre_tool_use</span>
+            <span class="pill orange">on_post_tool_use</span>
+            <span class="pill">permissionDecision</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">04_hooks.py</span>
+          </div>
+<pre><code><span class="tk-kw">async def</span> <span class="tk-fn">on_pre_tool_use</span>(input_data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[pre]  {input_data['toolName']}"</span>)
+    <span class="tk-kw">return</span> <span class="tk-de">None</span>   <span class="tk-cm"># or: {"permissionDecision": "deny", ...}</span>
 
-const response = await session.sendAndWait({
-  prompt: "Explain how async/await works"
-});
+<span class="tk-kw">async def</span> <span class="tk-fn">on_post_tool_use</span>(input_data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[post] {input_data['toolName']} done"</span>)
+    <span class="tk-kw">return</span> <span class="tk-de">None</span>
 
-console.log(response?.data.content);
-await client.stop();</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md" style="color:var(--gh-blue);">docs/getting-started.md</a></p>
-</section>
-
-
-
-
-<!-- ============ SLIDE 18b: Demo 1 Python ============ -->
-<section>
-  <h2>Demo 1: Simple Chat — Python</h2>
-  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
-    <p style="font-size: 0.6em;"><strong>What this does:</strong> Same "Hello World" in Python — identical concept, idiomatic API. The v0.2.0 SDK uses keyword arguments and positional prompts.</p>
-  </div>
-  <pre><code class="language-python">from copilot import CopilotClient
-from copilot import PermissionHandler
-
-client = CopilotClient()
-await client.start()
-
-session = await client.create_session(
-  on_permission_request=
-    PermissionHandler.approve_all,
-  model="gpt-4.1",
-)
-
-response = await session.send_and_wait(
-  "Explain how async/await works"
-)
-
-print(response.data.content)
-await client.stop()</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/python/README.md" style="color:var(--gh-blue);">python/README.md</a></p>
-</section>
-
-<!-- ============ SLIDE 20: Demo 3 ============ -->
-<section>
-  <h2>Demo 2: Custom Tool — Ticket Lookup</h2>
-  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
-    <p style="font-size: 0.6em;"><strong>What this does:</strong> Define a tool that queries your internal ticket system. The agent automatically calls it when a user asks about a ticket — no routing code needed. This pattern works for any internal system: CRMs, dashboards, HR tools.</p>
-  </div>
-  <pre><code class="language-typescript">const lookupTicket = defineTool("lookup_ticket", {
-  description: "Look up a support ticket by ID",
-  parameters: {
-    type: "object",
-    properties: {
-      ticketId: { type: "string", description: "Ticket ID (e.g. TICK-1234)" },
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    model=<span class="tk-st">"gpt-4.1"</span>,
+    hooks={
+        <span class="tk-st">"on_pre_tool_use"</span>: on_pre_tool_use,
+        <span class="tk-st">"on_post_tool_use"</span>: on_post_tool_use,
     },
-    required: ["ticketId"],
-  },
-  handler: async (args) => {
-    const ticket = await db.tickets.findById(args.ticketId);
-    return {
-      id: ticket.id, status: ticket.status,
-      title: ticket.title, assignee: ticket.assignee,
-    };
-  },
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
-</section>
-
-<!-- ============ SLIDE 20b: Demo 3 Usage ============ -->
-<section>
-  <h2>Demo 2: Ticket Lookup — Usage</h2>
-  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
-    <p style="font-size: 0.6em;"><strong>What this does:</strong> Register the tool, send a natural language question. The agent recognizes it needs the ticket tool, calls it automatically, and formulates a human-readable answer from the structured data.</p>
-  </div>
-  <pre><code class="language-typescript">const session = await client.createSession({
-  model: "gpt-4.1",
-  tools: [lookupTicket],
-  onPermissionRequest: async () => ({ kind: "approved" }),
-});
-
-await session.sendAndWait({
-  prompt: "What's the status of TICK-4521?"
-});
-// Copilot automatically calls lookup_ticket("TICK-4521")</code></pre>
-  <div class="highlight-box">
-    <p>This pattern works for any internal system: CRMs, monitoring dashboards, inventory systems, HR tools — anything with an API or database.</p>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md#step-4-add-a-custom-tool" style="color:var(--gh-blue);">docs/getting-started.md — Custom Tools</a></p>
-</section>
-
-<!-- ============ SLIDE 22: Demo 5 ============ -->
-<section>
-  <h2>Demo 3: Backend API Service</h2>
-  <div class="highlight-box" style="padding: 6px 12px; margin-bottom: 8px;">
-    <p style="font-size: 0.6em;"><strong>What this does:</strong> Run Copilot as a production backend — the CLI runs as a headless server, your Express API connects over TCP, each user gets their own session with per-user OAuth. This is the pattern for SaaS products and internal tools at scale.</p>
-  </div>
-  <pre><code class="language-typescript">import express from "express";
-import { CopilotClient } from "@github/copilot-sdk";
-
-const app = express();
-app.use(express.json());
-
-// Connect to headless CLI server
-const client = new CopilotClient({ cliUrl: "localhost:4321" });
-
-app.post("/api/chat", async (req, res) => {
-  const { sessionId, message, userToken } = req.body;
-
-  const session = await client.createSession({
-    sessionId: `user-${sessionId}`,
-    model: "gpt-4.1",
-    githubToken: userToken,  // Per-user OAuth token
-  });
-
-  const response = await session.sendAndWait({ prompt: message });
-  res.json({ sessionId, content: response?.data.content });
-});
-
-app.listen(3000);</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/setup/backend-services.md" style="color:var(--gh-blue);">docs/setup/backend-services.md</a></p>
-</section>
-
-<!-- ============ SLIDE 23: Get Started ============ -->
-<section class="title-slide">
-  <h1>Get Started Today</h1>
-  <div class="grid grid-3" style="text-align:left; margin-top:32px;">
-    <div class="card">
-      <h3>1️⃣ Install Copilot CLI</h3>
-      <p>Follow the Copilot CLI installation guide</p>
+) <span class="tk-kw">as</span> session:
+    ...<span class="caret"></span></code></pre>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <h3>2️⃣ Install Your SDK</h3>
-      <p>npm, pip, go get, dotnet add, or Maven/Gradle</p>
+    <div class="slide-footer">
+      <span class="crumb">example 04 · hooks</span>
+      <span>09 / 13</span>
     </div>
-    <div class="card">
-      <h3>3️⃣ Create Your First Session</h3>
-      <p><code>client.createSession({ model: "gpt-4.1" })</code></p>
+  </section>
+
+  <!-- ===============================================================
+       SLIDE 10 — Example 05 · MCP + persistence
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">05</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 05_mcp_and_persistence.py</span>
+      <span class="meta"><span class="branch">main</span></span>
     </div>
-  </div>
-  <div style="margin-top:32px; text-align:center;">
-    <table style="font-size:0.65em;">
-      <tr><th>Resource</th><th>Link</th></tr>
-      <tr><td>SDK Repository</td><td>github.com/github/copilot-sdk</td></tr>
-      <tr><td>Documentation</td><td>docs/ in the repository</td></tr>
-      <tr><td>Cookbook &amp; Recipes</td><td>github.com/github/awesome-copilot</td></tr>
-      <tr><td>Java SDK</td><td>github.com/github/copilot-sdk-java</td></tr>
-      <tr><td>GitHub MCP Server</td><td>github.com/github/github-mcp-server</td></tr>
-    </table>
-  </div>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk" style="color:var(--gh-blue);">github.com/github/copilot-sdk</a></p>
-</section><!-- ============ SLIDE 19: Demo 2 ============ -->
-<section>
-  <h2>Demo 4: Real-Time Streaming</h2>
-  <p>Stream AI responses token by token for interactive, real-time user experiences</p>
-  <pre><code class="language-typescript">const session = await client.createSession({
-  model: "gpt-4.1",
-  streaming: true,
-  onPermissionRequest: async () => ({ kind: "approved" }),
-});
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 05</span> MCP + persistence</span>
+      <h2 class="reveal">Plug in a tool server. Resume the chat tomorrow.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p><strong>MCP</strong> is the standard plug-in format for LLM tools — filesystem, GitHub, Slack, dozens more.</p>
+          <p>Pass a stable <code>session_id</code> on creation and the SDK can <code>resume_session(id, …)</code> later with full history.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill yellow">mcp_servers</span>
+            <span class="pill blue">session_id</span>
+            <span class="pill">resume_session</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">05_mcp_and_persistence.py</span>
+          </div>
+<pre><code>MCP_SERVERS = {
+    <span class="tk-st">"filesystem"</span>: {
+        <span class="tk-st">"type"</span>: <span class="tk-st">"local"</span>, <span class="tk-st">"command"</span>: <span class="tk-st">"npx"</span>,
+        <span class="tk-st">"args"</span>: [<span class="tk-st">"-y"</span>,
+                 <span class="tk-st">"@modelcontextprotocol/server-filesystem"</span>,
+                 WORKDIR],
+        <span class="tk-st">"tools"</span>: [<span class="tk-st">"*"</span>],
+    },
+}
 
-// Subscribe to real-time streaming events
-session.on("assistant.message_delta", (event) => {
-  process.stdout.write(event.data.delta ?? "");
-});
+<span class="tk-cm"># First run — pass our stable session_id</span>
+session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">create_session</span>(
+    session_id=SESSION_ID, mcp_servers=MCP_SERVERS, ...)
 
-session.on("assistant.message", (event) => {
-  console.log("\n--- Full response complete ---");
-});
+<span class="tk-cm"># Later — same conversation, full history</span>
+session_ctx = <span class="tk-kw">await</span> client.<span class="tk-fn">resume_session</span>(
+    SESSION_ID, mcp_servers=MCP_SERVERS, ...)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 05 · mcp + persistence</span>
+      <span>10 / 13</span>
+    </div>
+  </section>
 
-await session.sendAndWait({
-  prompt: "Write a quicksort implementation in TypeScript"
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" style="color:var(--gh-blue);">docs/features/streaming-events.md</a></p>
-</section>
+  <!-- ===============================================================
+       SLIDE 11 — Example 06 · Human in the loop
+       =============================================================== -->
+  <section class="slide">
+    <span class="watermark reveal-scale">06</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 06_human_in_the_loop.py</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 06</span> Human in the loop</span>
+      <h2 class="reveal">Custom permission + <code>ask_user</code>. You stay in control.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>The permission handler is called for every sensitive action — read, write, shell, MCP, network. Approve, reject, or ask a human.</p>
+          <p><code>on_user_input_request</code> wires the agent's <code>ask_user</code> tool to <em>your</em> UI — terminal, Slack, anything.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill pink">on_permission_request</span>
+            <span class="pill pink">on_user_input_request</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">06_human_in_the_loop.py</span>
+          </div>
+<pre><code><span class="tk-kw">from</span> copilot.session <span class="tk-kw">import</span> PermissionRequestResult
 
+<span class="tk-kw">def</span> <span class="tk-fn">on_permission_request</span>(request, invocation):
+    <span class="tk-kw">if</span> request.kind.value == <span class="tk-st">"read"</span>:
+        <span class="tk-kw">return</span> <span class="tk-fn">PermissionRequestResult</span>(kind=<span class="tk-st">"approve-once"</span>)
+    answer = <span class="tk-fn">input</span>(<span class="tk-st">f"approve {request.kind.value}? [y/N]: "</span>)
+    <span class="tk-kw">return</span> <span class="tk-fn">PermissionRequestResult</span>(
+        kind=<span class="tk-st">"approve-once"</span> <span class="tk-kw">if</span> answer == <span class="tk-st">"y"</span> <span class="tk-kw">else</span> <span class="tk-st">"reject"</span>)
 
-<!-- ========================================== -->
-<!-- APPENDIX                                   -->
-<!-- ========================================== -->
+<span class="tk-kw">def</span> <span class="tk-fn">on_user_input_request</span>(request, invocation):
+    answer = <span class="tk-fn">input</span>(<span class="tk-st">f"{request['question']} "</span>)
+    <span class="tk-kw">return</span> {<span class="tk-st">"answer"</span>: answer, <span class="tk-st">"wasFreeform"</span>: <span class="tk-de">True</span>}
 
-<!-- ============ SLIDE 21: Demo 4 ============ -->
-<section>
-  <h2>Demo 5: Security Audit with Hooks</h2>
-  <p>Combine custom agents with hooks for enterprise-grade auditing</p>
-  <pre><code class="language-typescript">const READ_ONLY_TOOLS = ["read_file", "glob", "grep", "view"];
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=on_permission_request,
+    on_user_input_request=on_user_input_request, ...
+) <span class="tk-kw">as</span> session: ...<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 06 · human in the loop</span>
+      <span>11 / 13</span>
+    </div>
+  </section>
 
-const session = await client.createSession({
-  model: "gpt-4.1",
-  customAgents: [{
-    name: "security-auditor",
-    prompt: "You are a security expert. Focus on OWASP Top 10.",
-    tools: READ_ONLY_TOOLS,
-  }],
-  agent: "security-auditor",
-});</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/hooks/pre-tool-use.md" style="color:var(--gh-blue);">docs/hooks/pre-tool-use.md</a></p>
-</section>
+  <!-- ===============================================================
+       SLIDE 12 — Codespaces CTA
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / .devcontainer / devcontainer.json</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">05</span> Run it now</span>
+      <h2 class="reveal">Open in Codespaces — sixty seconds to a working env.</h2>
+      <div class="cta-card reveal" style="margin-top: var(--content-gap);">
+        <p style="color: var(--gh-fg);">
+          The repo ships with a <code>.devcontainer/</code> that pre-installs
+          Python 3.12, Node.js LTS, the GitHub CLI and the Copilot SDK.
+          Click below, wait for the green dot, then in the terminal:
+        </p>
+        <ul class="steps reveal" style="margin: 1em 0;">
+          <li><code>copilot auth login</code> — one-time browser sign-in</li>
+          <li><code>python examples/01_simple_chat.py</code> — see streaming chat in action</li>
+          <li>Open <code>examples/01_simple_chat.md</code> alongside — every line explained, plus exercises</li>
+        </ul>
+        <div class="button-row">
+          <a class="btn primary" href="https://codespaces.new/jeffrey-groneberg/ghcp_sdk?quickstart=1">
+            ▶  Open in GitHub Codespaces
+          </a>
+          <a class="btn ghost" href="https://github.com/jeffrey-groneberg/ghcp_sdk">
+            View repo
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">codespaces · zero setup</span>
+      <span>12 / 13</span>
+    </div>
+  </section>
 
-<!-- ============ SLIDE 21b: Demo 4 Hooks ============ -->
-<section>
-  <h2>Demo 5: Security Hooks</h2>
-  <pre><code class="language-typescript">hooks: {
-  onPreToolUse: async (input) => {
-    // Enforce read-only: deny any write operations
-    if (!READ_ONLY_TOOLS.includes(input.toolName)) {
-      return { permissionDecision: "deny",
-        permissionDecisionReason: `"${input.toolName}" blocked` };
+  <!-- ===============================================================
+       SLIDE 13 — Closing
+       =============================================================== -->
+  <section class="slide title-slide">
+    <div class="slide-content">
+      <div class="closing-grid">
+        <div class="closing-text">
+          <span class="title-eyebrow reveal"><span class="mark"></span> end of deck — happy hacking</span>
+      <h1 class="title-h1 reveal">
+        Now go <span class="accent">build something</span>.
+      </h1>
+      <p class="title-sub reveal">
+        Every example has a matching <code>.md</code> walkthrough with mermaid
+        diagrams, line-by-line commentary, and small exercises designed for
+        students to adapt. Start with whichever capability fits the problem
+        you actually have.
+      </p>
+      <div class="title-meta reveal">
+        <span class="pill blue">github / copilot-sdk</span>
+        <span class="pill purple">docs / features</span>
+        <span class="pill green">examples /</span>
+      </div>
+        </div>
+        <aside class="closing-qr title-qr reveal" aria-label="Scan to open repo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" aria-label="QR code: https://github.com/jeffrey-groneberg/ghcp_sdk"><rect width="41" height="41" fill="#ffffff"/><path d="M4 4h7v1h-7zM13 4h1v1h-1zM15 4h2v1h-2zM20 4h1v1h-1zM22 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h4v1h-4zM18 6h1v1h-1zM24 6h3v1h-3zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h2v1h-2zM19 7h1v1h-1zM22 7h1v1h-1zM25 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h5v1h-5zM24 8h2v1h-2zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM17 9h2v1h-2zM21 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h1v1h-1zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h5v1h-5zM20 12h2v1h-2zM23 12h1v1h-1zM30 12h5v1h-5zM6 13h4v1h-4zM11 13h2v1h-2zM14 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM7 14h4v1h-4zM13 14h1v1h-1zM16 14h6v1h-6zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM16 15h2v1h-2zM20 15h4v1h-4zM28 15h1v1h-1zM32 15h3v1h-3zM36 15h1v1h-1zM4 16h2v1h-2zM8 16h1v1h-1zM10 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM23 16h7v1h-7zM31 16h3v1h-3zM6 17h1v1h-1zM8 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM19 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM5 18h1v1h-1zM7 18h1v1h-1zM9 18h4v1h-4zM15 18h1v1h-1zM18 18h4v1h-4zM24 18h1v1h-1zM26 18h1v1h-1zM29 18h2v1h-2zM32 18h4v1h-4zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h4v1h-4zM33 19h2v1h-2zM4 20h1v1h-1zM7 20h5v1h-5zM15 20h3v1h-3zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h3v1h-3zM36 20h1v1h-1zM4 21h1v1h-1zM6 21h3v1h-3zM11 21h2v1h-2zM14 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h8v1h-8zM15 22h3v1h-3zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h2v1h-2zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM9 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h4v1h-4zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h3v1h-3zM18 24h1v1h-1zM22 24h2v1h-2zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h3v1h-3zM11 25h1v1h-1zM14 25h7v1h-7zM24 25h4v1h-4zM29 25h2v1h-2zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM15 26h1v1h-1zM17 26h2v1h-2zM21 26h3v1h-3zM29 26h1v1h-1zM32 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM12 27h1v1h-1zM15 27h3v1h-3zM20 27h1v1h-1zM22 27h6v1h-6zM29 27h2v1h-2zM32 27h4v1h-4zM4 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h3v1h-3zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h7v1h-7zM35 28h2v1h-2zM12 29h1v1h-1zM16 29h2v1h-2zM21 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h4v1h-4zM24 30h1v1h-1zM26 30h3v1h-3zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h2v1h-2zM21 31h2v1h-2zM24 31h1v1h-1zM27 31h2v1h-2zM32 31h3v1h-3zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h3v1h-3zM20 32h1v1h-1zM23 32h4v1h-4zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM16 33h1v1h-1zM18 33h2v1h-2zM22 33h1v1h-1zM27 33h3v1h-3zM32 33h3v1h-3zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM16 34h5v1h-5zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM33 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM14 35h1v1h-1zM18 35h2v1h-2zM25 35h4v1h-4zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h6v1h-6zM19 36h3v1h-3zM26 36h3v1h-3zM31 36h1v1h-1zM35 36h1v1h-1z" fill="#0d1117"/></svg>
+          <span class="qr-caption">scan to revisit<br><strong>github.com/jeffrey-groneberg/ghcp_sdk</strong></span>
+        </aside>
+      </div>
+        </div>
+    <div class="slide-footer">
+      <span class="crumb">thanks · q &amp; a</span>
+      <span>13 / 13</span>
+    </div>
+  </section>
+
+  <script>
+    /* =================================================================
+       SLIDE PRESENTATION CONTROLLER
+       - Scroll-snap based navigation
+       - Keyboard (↑/↓/←/→/Space/PgUp/PgDn/Home/End)
+       - Touch / swipe
+       - Mouse-wheel debounced step
+       - Nav dots
+       - Progress bar
+       - Intersection observer triggers .visible class for reveal anims
+       ================================================================= */
+    class SlidePresentation {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.currentSlide = 0;
+        this.lastWheel = 0;
+        this.touchStartY = null;
+
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+      }
+
+      /* IntersectionObserver — add .visible class as slides enter,
+         triggering the CSS opacity/translate reveal animations. */
+      setupIntersectionObserver() {
+        const obs = new IntersectionObserver(entries => {
+          entries.forEach(e => {
+            if (e.isIntersecting && e.intersectionRatio > 0.5) {
+              e.target.classList.add('visible');
+              this.currentSlide = this.slides.indexOf(e.target);
+              this.updateProgressBar();
+              this.updateNavDots();
+            }
+          });
+        }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+        this.slides.forEach(s => obs.observe(s));
+      }
+
+      goTo(index) {
+        index = Math.max(0, Math.min(this.slides.length - 1, index));
+        this.slides[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      setupKeyboardNav() {
+        document.addEventListener('keydown', e => {
+          switch (e.key) {
+            case 'ArrowDown': case 'ArrowRight': case 'PageDown': case ' ':
+              e.preventDefault(); this.goTo(this.currentSlide + 1); break;
+            case 'ArrowUp':   case 'ArrowLeft':  case 'PageUp':
+              e.preventDefault(); this.goTo(this.currentSlide - 1); break;
+            case 'Home':
+              e.preventDefault(); this.goTo(0); break;
+            case 'End':
+              e.preventDefault(); this.goTo(this.slides.length - 1); break;
+          }
+        });
+      }
+
+      setupTouchNav() {
+        document.addEventListener('touchstart', e => {
+          this.touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+          if (this.touchStartY === null) return;
+          const dy = this.touchStartY - e.changedTouches[0].clientY;
+          if (Math.abs(dy) > 50) {
+            this.goTo(this.currentSlide + (dy > 0 ? 1 : -1));
+          }
+          this.touchStartY = null;
+        }, { passive: true });
+      }
+
+      /* Wheel events fire VERY frequently — debounce to one slide per gesture. */
+      setupWheelNav() {
+        window.addEventListener('wheel', e => {
+          const now = Date.now();
+          if (now - this.lastWheel < 700) return;
+          if (Math.abs(e.deltaY) < 12) return;
+          this.lastWheel = now;
+          this.goTo(this.currentSlide + (e.deltaY > 0 ? 1 : -1));
+        }, { passive: true });
+      }
+
+      setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        this.updateProgressBar();
+      }
+      updateProgressBar() {
+        const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
+        this.progressBar.style.width = pct + '%';
+      }
+
+      setupNavDots() {
+        this.navDotsContainer = document.getElementById('navDots');
+        /* Clear before building so re-opening the saved file (or hot
+           reload) doesn't append a duplicate set of dots on top. */
+        this.navDotsContainer.innerHTML = '';
+        this.slides.forEach((slide, i) => {
+          const btn = document.createElement('button');
+          btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
+          btn.addEventListener('click', () => this.goTo(i));
+          this.navDotsContainer.appendChild(btn);
+        });
+        this.updateNavDots();
+      }
+      updateNavDots() {
+        Array.from(this.navDotsContainer.children).forEach((btn, i) => {
+          btn.classList.toggle('active', i === this.currentSlide);
+        });
+      }
     }
-    return { permissionDecision: "allow" };
-  },
-  onPostToolUse: async (input) => {
-    // Redact any secrets found in tool output
-    if (typeof input.toolResult === "string") {
-      const redacted = input.toolResult.replace(
-        /api[_-]?key\s*[:=]\s*["']?[\w\-\.]+["']?/gi, "[REDACTED]");
-      if (redacted !== input.toolResult)
-        return { modifiedResult: redacted };
-    }
-    return null;
-  },
-}</code></pre>
-  <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/blob/main/docs/hooks/pre-tool-use.md" style="color:var(--gh-blue);">docs/hooks/pre-tool-use.md</a></p>
-</section>
 
-<!-- ============ SLIDE: What's New in v0.2.0 ============ -->
-<section>
-  <h2>🚀 What's New in v0.2.0</h2>
-  <p>A major release with new capabilities, API refinements, and breaking changes</p>
-  <div class="grid grid-2" style="margin-top:12px;">
-    <div class="card" style="border-left: 3px solid var(--gh-green);">
-      <h3>✨ New Features</h3>
-      <ul>
-        <li><strong>System prompt customization</strong> — surgically edit 10 prompt sections (identity, tone, safety, …) with replace/append/prepend/transform actions</li>
-        <li><strong>Blob attachments</strong> — send images and binary data inline without writing to disk</li>
-        <li><strong><code>skipPermission</code> on tools</strong> — bypass confirmation for low-risk read-only tools</li>
-        <li><strong>OpenTelemetry</strong> — full distributed tracing across all 4 SDKs</li>
-        <li><strong>New RPC methods</strong> — skills, MCP, extensions, shell, and plugin management</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--gh-orange);">
-      <h3>⚠️ Breaking Changes</h3>
-      <ul>
-        <li><strong>Python API overhaul</strong> — keyword args replace TypedDicts</li>
-        <li><strong><code>autoRestart</code> removed</strong> — deprecated across all SDKs</li>
-        <li><strong>Go <code>Start()</code> context</strong> — cancelling context no longer kills CLI process; use <code>Stop()</code></li>
-        <li><strong>Go <code>LogOptions.Ephemeral</code></strong> — changed from <code>bool</code> to <code>*bool</code></li>
-        <li><strong>Python internal modules</strong> — <code>copilot.jsonrpc</code> → <code>copilot._jsonrpc</code></li>
-      </ul>
-    </div>
-  </div>
-    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/releases/tag/v0.2.0" style="color:var(--gh-blue);">releases/tag/v0.2.0</a></p>
-<aside class="notes">
-    v0.2.0 is a major release. Key highlights: Fine-grained system prompt customization with 10 editable sections, blob attachments for inline binary data, skipPermission for low-risk tools, full OpenTelemetry support, and many new RPC methods. Breaking changes mostly affect Python (TypedDict → keyword args) and Go (context behavior change).
-    Source: https://github.com/github/copilot-sdk/releases/tag/v0.2.0
-  </aside>
-</section>
-
-<!-- ============ SLIDE: System Prompt Customization (v0.2.0) ============ -->
-<section>
-  <h2>v0.2.0: System Prompt Customization</h2>
-  <p>Surgically edit individual sections of the Copilot system prompt</p>
-  <div style="margin: 12px 0;">
-    <div class="flow">
-      <span class="flow-box" style="border-color:var(--gh-blue);">identity</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-purple);">tone</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-green);">tool_efficiency</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-orange);">environment_context</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-red);">code_change_rules</span>
-    </div>
-    <div class="flow">
-      <span class="flow-box" style="border-color:var(--gh-blue);">guidelines</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-purple);">safety</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-green);">tool_instructions</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-orange);">custom_instructions</span>
-      <span class="flow-arrow">→</span>
-      <span class="flow-box" style="border-color:var(--gh-red);">last_instructions</span>
-    </div>
-  </div>
-  <div class="grid grid-2" style="margin-top:6px;">
-    <div class="card">
-      <h3>Actions per section</h3>
-      <table>
-        <tr><td><code>replace</code></td><td>Replace entire section content</td></tr>
-        <tr><td><code>append</code></td><td>Add content after the section</td></tr>
-        <tr><td><code>prepend</code></td><td>Add content before the section</td></tr>
-        <tr><td><code>remove</code></td><td>Remove the section entirely</td></tr>
-        <tr><td><code>transform</code></td><td>Callback — receives text, returns modified</td></tr>
-      </table>
-    </div>
-    <div class="card">
-      <h3>Example</h3>
-      <pre><code class="language-typescript">await client.createSession({
-  systemMessage: {
-    mode: "customize",
-    sections: {
-      identity: {
-        action: (current) =>
-          current.replace("Copilot",
-            "Acme Assistant"),
-      },
-      tone: {
-        action: "replace",
-        content: "Be concise.",
-      },
-    },
-  },
-});</code></pre>
-    </div>
-  </div>
-    <p class="muted" style="text-align:right; margin-top:4px; font-size:0.45em;">📖 <a href="https://github.com/github/copilot-sdk/releases/tag/v0.2.0" style="color:var(--gh-blue);">releases/tag/v0.2.0 · PR #816</a></p>
-<aside class="notes">
-    10 editable sections with 5 actions each (replace, append, prepend, remove, transform).
-    Source: https://github.com/github/copilot-sdk/pull/816
-  </aside>
-</section>
-
-
-
-</div><!-- /slides -->
-</div><!-- /reveal -->
-
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/search/search.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.css">
-<script src="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.js"></script>
-<script>
-  Reveal.initialize({
-    hash: true,
-    slideNumber: true,
-    width: 1280,
-    height: 720,
-    margin: 0.04,
-    transition: 'slide',
-    controls: true,
-    controlsBackArrows: 'visible',
-    navigationMode: 'linear',
-    menu: {
-      side: 'left',
-      titleSelector: 'h1, h2',
-      hideMissingTitles: true,
-      markers: true,
-      themes: false,
-      transitions: false,
-      openButton: true,
-      custom: false,
-      getSlideTitle: function(slide) {
-        var heading = slide.querySelector('h1, h2');
-        if (heading) {
-          return heading.textContent.replace(/\s+/g, ' ').trim();
-        }
-        return '';
-      },
-    },
-    plugins: [ RevealHighlight, RevealSearch, RevealMenu ]
-  });
-</script>
+    new SlidePresentation();
+  </script>
 </body>
 </html>

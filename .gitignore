@@ -41,3 +41,9 @@ Thumbs.db
 # Presentation source
 *.pptx
 *.pdf
+
+# Slides build artifacts (do not commit)
+.tmp_*.py
+docs/.snapshots/
+docs/.qr.svg
+docs/index.reveal-backup.html
