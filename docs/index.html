@@ -467,6 +467,10 @@
       color: var(--gh-fg-subtle);
       z-index: 999;
       opacity: 0.75;
+      animation: keyhint-fade 1s ease-out 6s forwards;
+    }
+    @keyframes keyhint-fade {
+      to { opacity: 0; visibility: hidden; }
     }
     .keyboard-hint kbd {
       background: var(--gh-canvas-subtle);
@@ -475,6 +479,32 @@
       padding: 0.05em 0.4em;
       font-family: inherit;
       font-size: 0.9em;
+    }
+
+    /* =================================================================
+       OCTOCAT ACCENTS — small mascot images from octodex.github.com
+       used as decorative accents on selected slides. Position-absolute
+       against .slide; safe to add to any slide without breaking layout.
+       ================================================================= */
+    .octocat-accent {
+      position: absolute;
+      top: clamp(3.25rem, 6vh, 4.5rem);   /* below the tab-strip */
+      right: clamp(1rem, 2.5vw, 2rem);
+      width: clamp(72px, 8vw, 110px);
+      height: auto;
+      opacity: 0.92;
+      z-index: 3;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+      border-radius: 12px;
+    }
+    .octocat-accent.oc-bottom-left {
+      top: auto;
+      right: auto;
+      bottom: clamp(3rem, 8vh, 5rem);
+      left: clamp(1.5rem, 3vw, 2.5rem);
+      width: clamp(140px, 16vw, 200px);
+      opacity: 0.95;
     }
 
     /* =================================================================
@@ -741,6 +771,7 @@
        SLIDE 1 — Title
        =============================================================== -->
   <section class="slide title-slide">
+    <img class="octocat-accent oc-bottom-left" src="assets/octocats/original.png" alt="" aria-hidden="true">
     <div class="slide-content">
       <div class="title-grid">
         <div class="title-text">
@@ -866,6 +897,7 @@
        SLIDE 4 (NEW) — Use cases · use it on your repo
        =============================================================== -->
   <section class="slide">
+    <img class="octocat-accent" src="assets/octocats/codercat.jpg" alt="" aria-hidden="true">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
       <span class="path">~/ copilot-sdk / use-cases / devloop.md</span>
@@ -924,6 +956,7 @@
        SLIDE 5 (NEW) — Use cases · run it as a service
        =============================================================== -->
   <section class="slide">
+    <img class="octocat-accent" src="assets/octocats/mona-the-rivetertocat.png" alt="" aria-hidden="true">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
       <span class="path">~/ copilot-sdk / use-cases / production.md</span>
@@ -1470,6 +1503,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
        SLIDE 3 — What you'll build today
        =============================================================== -->
   <section class="slide">
+    <img class="octocat-accent" src="assets/octocats/labtocat.png" alt="" aria-hidden="true">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
       <span class="path">~/ ghcp_sdk / examples /</span>
@@ -2193,6 +2227,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
        SLIDE 13 — Closing
        =============================================================== -->
   <section class="slide title-slide">
+    <img class="octocat-accent oc-bottom-left" src="assets/octocats/yogitocat.png" alt="" aria-hidden="true">
     <div class="slide-content">
       <div class="closing-grid">
         <div class="closing-text">
