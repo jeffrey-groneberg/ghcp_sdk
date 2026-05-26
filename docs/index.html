@@ -767,7 +767,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">deck · github copilot sdk</span>
-      <span>01 / 28</span>
+      <span>01 / 30</span>
     </div>
   </section>
   <!-- ===============================================================
@@ -804,7 +804,7 @@
           developer, enterprise architect, principal cloud architect, ending as team
           lead in SAP IT&rsquo;s Cloud Platform Center of Excellence.</p>
           <p>I sit at the seam between legacy enterprise software and AI-assisted,
-          cloud-native development &mdash; which is exactly what the next 26 slides
+          cloud-native development &mdash; which is exactly what the next 28 slides
           are about.</p>
           <div class="about-cards">
             <div class="card b-blue">
@@ -827,7 +827,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">about &middot; jeffrey groneberg</span>
-      <span>02 / 28</span>
+      <span>02 / 30</span>
     </div>
   </section>
 
@@ -859,7 +859,121 @@
     <div class="slide-footer">
       <span class="crumb">why · agent loop, packaged</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
-      <span>03 / 28</span>
+      <span>03 / 30</span>
+    </div>
+  </section>
+  <!-- ===============================================================
+       SLIDE 4 (NEW) — Use cases · use it on your repo
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / use-cases / devloop.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">02</span> Use cases &middot; on your repo</span>
+      <h2 class="reveal">Stop hand-rolling repo automation.</h2>
+      <p class="lede reveal">
+        Six dev workflows that look like CI scripts on the outside &mdash; but
+        on the inside are the same agent loop you ship in your product. Every
+        one of these is &lt; 200 lines with the SDK.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">PR</span><h3>Code review bot</h3>
+          <p>Agent reads the diff, runs the tests, leaves inline comments via
+          <code>gh pr review</code>. Custom persona + hooks for audit.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">DOC</span><h3>Docs &rarr; GitHub Pages</h3>
+          <p>On every push, regenerate API reference and a Pages site.
+          Custom tools wrap <code>mkdocs</code> / <code>pdoc</code> / your
+          generator of choice.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">TST</span><h3>Test coverage filler</h3>
+          <p>Coverage report &rarr; uncovered functions &rarr; PRs that add
+          unit tests. Permission handler keeps writes in <code>tests/</code>.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">TRI</span><h3>Issue triage</h3>
+          <p>On <code>issues.opened</code>, classify, label, suggest
+          duplicates, ping owners. GitHub MCP for repo context.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">REL</span><h3>Release notes</h3>
+          <p>Merged PRs since last tag &rarr; human-readable changelog,
+          posted to the release. Writer-persona agent + <code>gh</code> CLI.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">DEP</span><h3>Dep upgrade assistant</h3>
+          <p><code>pip-audit</code> / <code>npm audit</code> &rarr; agent
+          patches code and opens one PR per advisory. Steering keeps them
+          in order.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">use cases &middot; devloop on github</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
+      <span>04 / 30</span>
+    </div>
+  </section>
+  <!-- ===============================================================
+       SLIDE 5 (NEW) — Use cases · run it as a service
+       =============================================================== -->
+  <section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / use-cases / production.md</span>
+      <span class="meta"><span class="branch">main</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> Use cases &middot; as a service</span>
+      <h2 class="reveal">Beyond the IDE &mdash; agents your users talk to.</h2>
+      <p class="lede reveal">
+        Same SDK, different surface. Stand up a headless TCP server, persist
+        sessions per user, plug in BYOK or MCP &mdash; and ship an internal
+        agent that&rsquo;s grounded in <em>your</em> code and <em>your</em> data.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">KB</span><h3>Internal knowledge agent</h3>
+          <p>Slack / Teams bot grounded in private repos via GitHub MCP.
+          Session persistence per user &mdash; it remembers context.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">911</span><h3>Incident response copilot</h3>
+          <p>Pulls logs, recent PRs, related issues. Drafts a postmortem in
+          minutes. Multiple custom personas collaborate.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">CI</span><h3>CI/CD failure triage</h3>
+          <p>Failed run &rarr; agent reads the log, pinpoints the root cause,
+          posts a one-line summary &amp; the suggested fix.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">CX</span><h3>Customer support copilot</h3>
+          <p>Grounded in your docs &amp; codebase. Resumes per-customer
+          sessions across days. BYOK for data-residency-sensitive tenants.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">SEC</span><h3>Security policy enforcer</h3>
+          <p>Scans PRs for secrets, license violations, banned APIs.
+          Hooks <em>deny</em> disallowed tool calls in real time.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">DEV</span><h3>Internal dev portal</h3>
+          <p>&ldquo;Where does X live? How do I deploy Y?&rdquo; One agent
+          across many repos, MCP-fed, deployed as headless TCP.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">use cases &middot; production agents</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
+      <span>05 / 30</span>
     </div>
   </section>
   <!-- ===============================================================
@@ -872,7 +986,7 @@
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">02</span> Available SDKs</span>
+      <span class="eyebrow reveal"><span class="chip">04</span> Available SDKs</span>
       <h2 class="reveal">One runtime. Every language you ship in.</h2>
       <p class="lede reveal">
         Pick the SDK that matches your stack — they all talk to the same
@@ -909,7 +1023,7 @@
     <div class="slide-footer">
       <span class="crumb">available &middot; 6 SDKs &middot; rust in preview</span>
       <a class="src" href="https://github.com/github/copilot-sdk" target="_blank" rel="noopener">github/copilot-sdk</a>
-      <span>04 / 28</span>
+      <span>06 / 30</span>
     </div>
   </section>
 
@@ -924,7 +1038,7 @@
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">03</span> How it fits together</span>
+      <span class="eyebrow reveal"><span class="chip">05</span> How it fits together</span>
       <h2 class="reveal">Your app → SDK → CLI → model.</h2>
       <div class="arch reveal" style="margin-top: var(--content-gap);">
         <div class="node app"><h4>Your Python app</h4><p>Examples 01 — 06</p></div>
@@ -944,7 +1058,7 @@
     <div class="slide-footer">
       <span class="crumb">architecture · client → cli → model</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
-      <span>05 / 28</span>
+      <span>07 / 30</span>
     </div>
   </section>
   <!-- ===============================================================
@@ -957,7 +1071,7 @@
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">04</span> Authentication</span>
+      <span class="eyebrow reveal"><span class="chip">06</span> Authentication</span>
       <h2 class="reveal">Four ways in. Pick the one that matches your deployment.</h2>
       <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -990,7 +1104,7 @@
     <div class="slide-footer">
       <span class="crumb">auth · cli &middot; oauth &middot; env &middot; byok</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/auth/authenticate.md" target="_blank" rel="noopener">docs/auth/authenticate.md</a>
-      <span>06 / 28</span>
+      <span>08 / 30</span>
     </div>
   </section>
 
@@ -1005,7 +1119,7 @@
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">05</span> BYOK &middot; bring your own key</span>
+      <span class="eyebrow reveal"><span class="chip">07</span> BYOK &middot; bring your own key</span>
       <h2 class="reveal">Your keys. Your models. Your bill.</h2>
       <p class="lede reveal" style="max-width: 80ch;">
         Point the SDK at <em>any</em> OpenAI-compatible endpoint &mdash; Azure AI Foundry,
@@ -1052,7 +1166,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">byok &middot; azure foundry &middot; anthropic &middot; ollama &middot; vllm</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" target="_blank" rel="noopener">docs/auth/byok.md</a>
-      <span>07 / 28</span>
+      <span>09 / 30</span>
     </div>
   </section>
 
@@ -1066,7 +1180,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">06</span> Built-in tools</span>
+      <span class="eyebrow reveal"><span class="chip">08</span> Built-in tools</span>
       <h2 class="reveal">A real toolkit ships in the box.</h2>
       <p class="lede reveal">
         Every session has the same first-party tools the Copilot CLI uses &mdash;
@@ -1110,7 +1224,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">tools · read / write / shell / web / tasks</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" target="_blank" rel="noopener">docs/features/index.md</a>
-      <span>08 / 28</span>
+      <span>10 / 30</span>
     </div>
   </section>
 
@@ -1124,7 +1238,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">07</span> Custom tools</span>
+      <span class="eyebrow reveal"><span class="chip">09</span> Custom tools</span>
       <h2 class="reveal">Hand the agent a Python function &mdash; it calls it when needed.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
@@ -1157,7 +1271,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">custom tools · @define_tool</span>
       <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
-      <span>09 / 28</span>
+      <span>11 / 30</span>
     </div>
   </section>
 
@@ -1171,7 +1285,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">08</span> Custom agents</span>
+      <span class="eyebrow reveal"><span class="chip">10</span> Custom agents</span>
       <h2 class="reveal">Different personas, different tools &mdash; same session.</h2>
       <p class="lede reveal">
         A <em>custom agent</em> is a named persona with its own system prompt
@@ -1205,7 +1319,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">agents · personas with scoped tools</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
-      <span>10 / 28</span>
+      <span>12 / 30</span>
     </div>
   </section>
 
@@ -1219,7 +1333,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">09</span> Hooks lifecycle</span>
+      <span class="eyebrow reveal"><span class="chip">11</span> Hooks lifecycle</span>
       <h2 class="reveal">Intercept the agent loop at every meaningful step.</h2>
       <p class="lede reveal">
         Hooks are async callbacks the SDK fires around session events. Use
@@ -1258,7 +1372,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">hooks · 6 lifecycle callbacks</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
-      <span>11 / 28</span>
+      <span>13 / 30</span>
     </div>
   </section>
 
@@ -1272,7 +1386,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">10</span> MCP servers</span>
+      <span class="eyebrow reveal"><span class="chip">12</span> MCP servers</span>
       <h2 class="reveal">Plug in any tool that speaks Model Context Protocol.</h2>
       <p class="lede reveal">
         MCP is an open standard for connecting AI agents to external tools.
@@ -1302,7 +1416,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">mcp · local stdio &middot; remote http</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
-      <span>12 / 28</span>
+      <span>14 / 30</span>
     </div>
   </section>
 
@@ -1317,7 +1431,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">11</span> The pattern you'll see in every example</span>
+      <span class="eyebrow reveal"><span class="chip">13</span> The pattern you'll see in every example</span>
       <h2 class="reveal">Two async context managers. One required handler.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <ul class="checks">
@@ -1349,7 +1463,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">pattern · async with × 2</span>
       <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#quickstart" target="_blank" rel="noopener">python/ — Quickstart</a>
-      <span>13 / 28</span>
+      <span>15 / 30</span>
     </div>
   </section>
 <!-- ===============================================================
@@ -1362,7 +1476,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">12</span> The seven examples</span>
+      <span class="eyebrow reveal"><span class="chip">14</span> The seven examples</span>
       <h2 class="reveal">Seven small files. Every core capability.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -1398,7 +1512,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">examples &middot; 7 capabilities</span>
       <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python/samples" target="_blank" rel="noopener">python/samples</a>
-      <span>14 / 28</span>
+      <span>16 / 30</span>
     </div>
   </section>
 
@@ -1453,7 +1567,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 01 · streaming chat</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" target="_blank" rel="noopener">docs/features/streaming-events.md</a>
-      <span>15 / 28</span>
+      <span>17 / 30</span>
     </div>
   </section>
 
@@ -1506,7 +1620,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 02 · custom tools</span>
       <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
-      <span>16 / 28</span>
+      <span>18 / 30</span>
     </div>
   </section>
 
@@ -1557,7 +1671,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 03 · custom agents</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
-      <span>17 / 28</span>
+      <span>19 / 30</span>
     </div>
   </section>
 
@@ -1612,7 +1726,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 04 · hooks</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
-      <span>18 / 28</span>
+      <span>20 / 30</span>
     </div>
   </section>
 
@@ -1668,7 +1782,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 05 &middot; mcp servers</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
-      <span>19 / 28</span>
+      <span>21 / 30</span>
     </div>
   </section>
 
@@ -1721,7 +1835,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 06 &middot; session persistence</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md" target="_blank" rel="noopener">docs/features/session-persistence.md</a>
-      <span>20 / 28</span>
+      <span>22 / 30</span>
     </div>
   </section>
 
@@ -1775,7 +1889,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">example 07 &middot; human in the loop</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/auth/authenticate.md" target="_blank" rel="noopener">docs/auth/authenticate.md</a>
-      <span>21 / 28</span>
+      <span>23 / 30</span>
     </div>
   </section>
   <!-- ===============================================================
@@ -1788,7 +1902,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">13</span> Deployment patterns</span>
+      <span class="eyebrow reveal"><span class="chip">15</span> Deployment patterns</span>
       <h2 class="reveal">From your laptop to a horizontally-scaled service.</h2>
       <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -1818,7 +1932,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">deployment · local &middot; bundled &middot; tcp &middot; scaled</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
-      <span>22 / 28</span>
+      <span>24 / 30</span>
     </div>
   </section>
 
@@ -1833,7 +1947,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">14</span> Run it now</span>
+      <span class="eyebrow reveal"><span class="chip">16</span> Run it now</span>
       <h2 class="reveal">Open in Codespaces — sixty seconds to a working env.</h2>
       <div class="cta-card reveal" style="margin-top: var(--content-gap);">
         <p style="color: var(--gh-fg);">
@@ -1859,7 +1973,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">codespaces · zero setup</span>
       <a class="src" href="https://docs.github.com/en/codespaces/overview" target="_blank" rel="noopener">docs.github.com/codespaces</a>
-      <span>23 / 28</span>
+      <span>25 / 30</span>
     </div>
   </section>
   <!-- ===============================================================
@@ -1872,7 +1986,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">15</span> Resources &amp; next steps</span>
+      <span class="eyebrow reveal"><span class="chip">17</span> Resources &amp; next steps</span>
       <h2 class="reveal">Where to go from here.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
@@ -1898,7 +2012,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">resources · install &middot; docs &middot; cookbook</span>
       <a class="src" href="https://github.com/github/copilot-sdk" target="_blank" rel="noopener">github/copilot-sdk</a>
-      <span>24 / 28</span>
+      <span>26 / 30</span>
     </div>
   </section>
 
@@ -1913,7 +2027,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">main</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">21</span> Release timeline</span>
+      <span class="eyebrow reveal"><span class="chip">18</span> Release timeline</span>
       <h2 class="reveal">From <code>0.1</code> to <code>0.3</code> &mdash; four months of API cleanup.</h2>
       <p class="lede reveal">The Python SDK shipped publicly in January 2026 and has been
       iterating fast. Two minor releases since then bring the API closer to
@@ -1942,7 +2056,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">timeline &middot; 0.1 &rarr; 0.2 &rarr; 0.3</span>
       <a class="src" href="https://github.com/github/copilot-sdk/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>
-      <span>28 / 28</span>
+      <span>27 / 30</span>
     </div>
   </section>
 
@@ -1956,7 +2070,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">tag: v0.2.0</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">22</span> What changed &middot; 0.1 &rarr; 0.2.0</span>
+      <span class="eyebrow reveal"><span class="chip">19</span> What changed &middot; 0.1 &rarr; 0.2.0</span>
       <h2 class="reveal">Customizable prompts, distributed tracing, in-memory attachments.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -2005,7 +2119,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">v0.2.0 &middot; 20 mar 2026</span>
       <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/python-v0.2.0" target="_blank" rel="noopener">releases · python-v0.2.0</a>
-      <span>26 / 28</span>
+      <span>28 / 30</span>
     </div>
   </section>
 
@@ -2019,7 +2133,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <span class="meta"><span class="branch">tag: v0.3.0</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">23</span> What changed &middot; 0.2 &rarr; 0.3.0</span>
+      <span class="eyebrow reveal"><span class="chip">20</span> What changed &middot; 0.2 &rarr; 0.3.0</span>
       <h2 class="reveal">Multi-tenant auth, agent-scoped tools, scoped permissions.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -2071,7 +2185,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     <div class="slide-footer">
       <span class="crumb">v0.3.0 &middot; 24 apr 2026 &middot; current release</span>
       <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/python-v0.3.0" target="_blank" rel="noopener">releases · python-v0.3.0</a>
-      <span>27 / 28</span>
+      <span>29 / 30</span>
     </div>
   </section>
 
@@ -2106,7 +2220,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
         </div>
     <div class="slide-footer">
       <span class="crumb">thanks · q &amp; a</span>
-      <span>25 / 28</span>
+      <span>30 / 30</span>
     </div>
   </section>
 
