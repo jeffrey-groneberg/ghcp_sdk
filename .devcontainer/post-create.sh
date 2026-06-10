@@ -21,7 +21,7 @@ GitHub Copilot SDK — Examples ready ✅
 ============================================================
 Sign in to Copilot once (a browser link will appear):
 
-  copilot auth login
+  copilot login
 
 Then run any example:
 

@@ -81,7 +81,7 @@ async def main() -> None:
     async with CopilotClient() as client:
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-4.1",
+            model="gpt-5-mini",
             mcp_servers=MCP_SERVERS,
         ) as session:
             # The MCP server is the only way the agent can see real GitHub

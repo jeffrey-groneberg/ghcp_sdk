@@ -38,7 +38,7 @@ sequenceDiagram
     participant Model
     participant App2 as Process 2 (--resume)
 
-    App1->>CLI: create_session(session_id="demo-...", model="gpt-4.1")
+    App1->>CLI: create_session(session_id="demo-...", model="gpt-5-mini")
     App1->>CLI: send("Please remember: name=Jeffrey, lang=Python")
     CLI->>Model: prompt
     Model-->>App1: "Noted, Jeffrey!"
@@ -69,7 +69,7 @@ the SDK never inspects it. *"Every conversation has an ID; persist it."*
 ```python
 session_ctx = await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-4.1",
+    model="gpt-5-mini",
     session_id=SESSION_ID,
 )
 prompt = (

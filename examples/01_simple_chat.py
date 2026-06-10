@@ -21,7 +21,7 @@ from copilot import CopilotClient
 # Typed event payloads. Every event the SDK emits has a `.data` attribute
 # that is one of these dataclasses — we use `match`/`case` below to react
 # to just the ones we care about.
-from copilot.generated.session_events import (
+from copilot.session_events import (
     AssistantMessageDeltaData,  # fired for every streaming chunk
     SessionIdleData,            # fired once when the agent is done talking
 )
@@ -42,13 +42,13 @@ async def main() -> None:
         # `await` returns a session context manager — entering it
         # connects to the CLI and exiting cleans up resources.
         #
-        # We pick `gpt-4.1` because it's free (multiplier 0) and always
-        # available; switch to any model from `await client.list_models()`.
+        # We pick `gpt-5-mini` — a fast, low-cost GitHub-hosted model that's
+        # ideal for demos; switch to any model from `await client.list_models()`.
         # `streaming=True` makes the agent emit `AssistantMessageDeltaData`
         # events as it generates text, so we can show progress live.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-4.1",
+            model="gpt-5-mini",
             streaming=True,
         ) as session:
 

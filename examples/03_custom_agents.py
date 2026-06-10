@@ -25,7 +25,7 @@ Run:
 import asyncio
 
 from copilot import CopilotClient
-from copilot.generated.rpc import AgentSelectRequest
+from copilot.rpc import AgentSelectRequest
 from copilot.session import PermissionHandler
 
 
@@ -58,7 +58,7 @@ async def main() -> None:
         # turn — without this kwarg the default agent would be used.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-4.1",
+            model="gpt-5-mini",
             custom_agents=AGENTS,
             agent="researcher",
         ) as session:

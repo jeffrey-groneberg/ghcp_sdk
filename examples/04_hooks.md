@@ -24,7 +24,7 @@ sequenceDiagram
     participant Pre as on_pre_tool_use
     participant Tool as built-in `view`
     participant Post as on_post_tool_use
-    participant Model as gpt-4.1
+    participant Model as gpt-5-mini
 
     App->>Session: send_and_wait("List files in cwd")
     Session->>Model: prompt
@@ -88,7 +88,7 @@ Both just log to the console — the simplest possible audit trail.
 ```python
 async with await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-4.1",
+    model="gpt-5-mini",
     hooks={
         "on_pre_tool_use": on_pre_tool_use,
         "on_post_tool_use": on_post_tool_use,
@@ -156,7 +156,7 @@ Expected output:
        return None
    ```
 3. **Rewrite arguments** — intercept `view` calls and rewrite any absolute
-   path that escapes a sandbox dir to a safe value, using `modifiedArgs`.
+   path that escapes a trusted directory to a safe value, using `modifiedArgs`.
 4. **Add `on_user_prompt_submitted`** that prepends *"Always reply in
    bullet points"* — a poor-man's persona system.
 5. **Time the tool calls** — start a timer in pre-hook, log the delta in

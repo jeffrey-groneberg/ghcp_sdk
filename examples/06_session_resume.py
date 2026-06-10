@@ -64,7 +64,7 @@ async def main() -> None:
             # conversation cannot be retrieved.
             session_ctx = await client.create_session(
                 on_permission_request=PermissionHandler.approve_all,
-                model="gpt-4.1",
+                model="gpt-5-mini",
                 session_id=SESSION_ID,
             )
             prompt = (

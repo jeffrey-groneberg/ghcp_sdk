@@ -22,7 +22,7 @@ sequenceDiagram
     participant App as Your script
     participant Client as CopilotClient
     participant CLI as Copilot CLI (subprocess)
-    participant Model as gpt-4.1
+    participant Model as gpt-5-mini
 
     App->>Client: async with CopilotClient()
     Client->>CLI: spawn process (stdio JSON-RPC)
@@ -50,7 +50,7 @@ sequenceDiagram
 
 ```python
 from copilot import CopilotClient
-from copilot.generated.session_events import (
+from copilot.session_events import (
     AssistantMessageDeltaData,   # one for every streamed chunk
     SessionIdleData,             # one when the agent stops talking
 )
@@ -61,7 +61,7 @@ from copilot.session import PermissionHandler
 - The two `*Data` classes are the typed payloads of the events we care about.
   The SDK emits dozens — we only react to two.
 - `PermissionHandler.approve_all` is a one-line built-in that auto-approves
-  every tool call. **Fine for demos, never for production** — see [example 06](06_human_in_the_loop.md)
+  every tool call. **Fine for demos, never for production** — see [example 07](07_human_in_the_loop.md)
   for a real handler.
 
 ### 2. The client / session lifecycle
@@ -70,7 +70,7 @@ from copilot.session import PermissionHandler
 async with CopilotClient() as client:
     async with await client.create_session(
         on_permission_request=PermissionHandler.approve_all,
-        model="gpt-4.1",
+        model="gpt-5-mini",
         streaming=True,
     ) as session:
         ...

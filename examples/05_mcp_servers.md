@@ -110,7 +110,7 @@ MCP_SERVERS = {
 ```python
 async with await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-4.1",
+    model="gpt-5-mini",
     mcp_servers=MCP_SERVERS,
 ) as session:
     reply = await session.send_and_wait(

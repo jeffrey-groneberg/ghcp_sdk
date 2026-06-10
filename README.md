@@ -1,7 +1,7 @@
 # GitHub Copilot SDK — Python Examples
 
 Seven minimal, self-contained examples that show off the core capabilities of the
-[GitHub Copilot SDK](https://github.com/github/copilot-sdk) for Python (`github-copilot-sdk` ≥ 0.3.0).
+[GitHub Copilot SDK](https://github.com/github/copilot-sdk) for Python (`github-copilot-sdk` ≥ 1.0.0).
 
 Every example is < 100 lines, follows the official upstream patterns, and is
 heavily commented so you can read it like a tutorial.
@@ -24,7 +24,7 @@ dependencies pre-installed.
 Once the Codespace boots, in the integrated terminal run:
 
 ```bash
-copilot auth login          # one-time GitHub Copilot sign-in
+copilot login               # one-time GitHub Copilot sign-in
 python examples/01_simple_chat.py
 ```
 
@@ -36,11 +36,11 @@ That's it — skip straight to the [Examples](#examples) table below.
 
 ### Prerequisites
 
-- **Python 3.10+** (3.12 recommended; matches the Codespace)
+- **Python 3.11+** (3.12 recommended; matches the Codespace)
 - **Node.js / `npx`** (only needed for example 5 — MCP server)
 - A **GitHub Copilot subscription** (any tier including the free one)
 - The **[Copilot CLI](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli)**
-  installed and signed in via `copilot auth login`, *or* `COPILOT_GITHUB_TOKEN`
+  installed and signed in via `copilot login`, *or* `COPILOT_GITHUB_TOKEN`
   set in your environment
 
 ### Setup
@@ -63,8 +63,9 @@ pip install -r requirements.txt
 
 ## Examples
 
-All examples default to `gpt-4.1` (free, multiplier × 0). Swap to any model
-returned by `await client.list_models()` if you want to experiment.
+All examples default to `gpt-5-mini` (fast and low-cost). Swap to any model
+returned by `await client.list_models()` (e.g. `gpt-5.4`, `claude-sonnet-4.5`)
+if you want to experiment.
 
 Each example has a **dedicated walkthrough** with mermaid diagrams, line-by-line
 explanations and student exercises — open the linked `.md` files for the full
@@ -78,7 +79,7 @@ story, then read the `.py` to see it in action.
 | 4 | [`04_hooks.md`](examples/04_hooks.md) | [`.py`](examples/04_hooks.py) | **Hooks** — `on_pre_tool_use` / `on_post_tool_use` for audit / policy | [`docs/features/hooks.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md) |
 | 5 | [`05_mcp_servers.md`](examples/05_mcp_servers.md) | [`.py`](examples/05_mcp_servers.py) | **MCP servers** — remote GitHub MCP server, live issue data from `github/copilot-sdk` | [`docs/features/mcp.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md) |
 | 6 | [`06_session_resume.md`](examples/06_session_resume.md) | [`.py`](examples/06_session_resume.py) | **Session persistence** — `session_id` + `resume_session()` across processes | [`docs/features/session-persistence.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md) |
-| 7 | [`07_human_in_the_loop.md`](examples/07_human_in_the_loop.md) | [`.py`](examples/07_human_in_the_loop.py) | **Human-in-the-loop** — custom permission + `ask_user` callbacks | [`docs/auth/authenticate.md`](https://github.com/github/copilot-sdk/blob/main/docs/auth/authenticate.md) |
+| 7 | [`07_human_in_the_loop.md`](examples/07_human_in_the_loop.md) | [`.py`](examples/07_human_in_the_loop.py) | **Human-in-the-loop** — custom permission + `ask_user` callbacks | [`python/README — Permission Handling`](https://github.com/github/copilot-sdk/tree/main/python#permission-handling) |
 
 See [`examples/README.md`](examples/README.md) for the recommended reading order.
 
@@ -163,7 +164,7 @@ line — both point at the exact upstream page the content is grounded in.
 **Release notes**
 
 - [`CHANGELOG.md`](https://github.com/github/copilot-sdk/blob/main/CHANGELOG.md) — full change log
-- [`releases`](https://github.com/github/copilot-sdk/releases) — per-package tags (`python-v0.2.0`, `python-v0.3.0`, …)
+- [`releases`](https://github.com/github/copilot-sdk/releases) — per-package tags (the Python SDK is now at `1.0.0`)
 
 **Ecosystem**
 

@@ -17,45 +17,55 @@ Run:  python examples/07_human_in_the_loop.py
 
 import asyncio
 
-from copilot import CopilotClient
-from copilot.session import PermissionRequestResult
-from copilot.generated.session_events import (
+from copilot import CopilotClient, PermissionRequestResult
+from copilot.rpc import PermissionDecisionApproveOnce, PermissionDecisionReject
+from copilot.session_events import (
     AssistantMessageData,
     SessionIdleData,
+    # `PermissionRequest` is a *discriminated union* of one class per kind.
+    # Import the variants we want to react to and pattern-match on them.
+    PermissionRequestRead,
+    PermissionRequestShell,
+    PermissionRequestWrite,
 )
 
 
 # --- Permission handler ------------------------------------------------------
 #
 # The SDK calls this for *every* sensitive action the agent wants to take.
-# `request.kind` is one of: 'shell', 'write', 'read', 'mcp', 'url', 'memory',
-# 'custom-tool', 'hook'. `request` also exposes useful context such as
-# `command`, `path`, `intention`, `risk`, etc., so you can decide based on
-# what the agent is trying to do.
+# `request` is a discriminated union — one dataclass per kind
+# (`PermissionRequestShell`, `PermissionRequestWrite`, `PermissionRequestRead`,
+# `PermissionRequestMcp`, ...) — so we `match`/`case` on the variant to read
+# its per-kind fields (`full_command_text`, `file_name`, `path`, `intention`).
 #
-# Return a `PermissionRequestResult(kind=...)` where kind is one of:
-#   "approve-once"       → allow this single call
-#   "reject"             → block (the agent will see this and pick another path)
-#   "user-not-available" → no human around; let the SDK use its default policy
-#   "no-result"          → defer (rarely needed)
+# Return one of the permission-decision objects from `copilot.rpc`:
+#   PermissionDecisionApproveOnce()           → allow this single call
+#   PermissionDecisionReject(feedback="...")  → block; the agent sees the
+#                                               feedback and can pick another path
+#   PermissionDecisionUserNotAvailable()      → no human around; SDK default policy
 #
 # `PermissionHandler.approve_all` in the SDK is literally one line:
-#   return PermissionRequestResult(kind="approve-once")
+#   return PermissionDecisionApproveOnce()
 def on_permission_request(request, invocation) -> PermissionRequestResult:
-    kind = request.kind.value  # enum → str, e.g. "read"
+    match request:
+        # Reads are safe (listing dirs, viewing files): auto-approve.
+        case PermissionRequestRead():
+            return PermissionDecisionApproveOnce()
+        case PermissionRequestShell(full_command_text=cmd):
+            detail = f"run shell command: {cmd}"
+        case PermissionRequestWrite(file_name=name):
+            detail = f"write file: {name}"
+        case _:
+            detail = getattr(request, "intention", type(request).__name__)
 
-    # Reads are safe (listing dirs, viewing files): auto-approve.
-    if kind == "read":
-        return PermissionRequestResult(kind="approve-once")
-
-    # Anything else (shell, write, network, ...) goes to the human.
-    # `input()` here is just for the demo; a real app would surface a UI
-    # prompt, a Slack message, etc.
-    print(f"\n[permission] agent wants: {kind} — {getattr(request, 'intention', '')}")
+    # Anything that isn't a plain read goes to the human. `input()` here is
+    # just for the demo; a real app would surface a UI prompt, a Slack
+    # message, etc.
+    print(f"\n[permission] agent wants to {detail}")
     answer = input("approve? [y/N]: ").strip().lower()
     if answer == "y":
-        return PermissionRequestResult(kind="approve-once")
-    return PermissionRequestResult(kind="reject")
+        return PermissionDecisionApproveOnce()
+    return PermissionDecisionReject(feedback="User rejected the request.")
 
 
 # --- ask_user handler --------------------------------------------------------
@@ -79,10 +89,10 @@ def on_user_input_request(request, invocation) -> dict:
 
 async def main() -> None:
     # The two handlers above are wired up via `create_session` kwargs.
-    # `request_user_input=True` activates the ask_user callback path.
+    # Passing `on_user_input_request` is what activates the ask_user path.
     async with CopilotClient() as client:
         async with await client.create_session(
-            model="gpt-4.1",
+            model="gpt-5-mini",
             on_permission_request=on_permission_request,
             on_user_input_request=on_user_input_request,
         ) as session:

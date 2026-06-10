@@ -85,7 +85,7 @@ Each agent is a plain dict. Useful keys:
 ```python
 async with await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-4.1",
+    model="gpt-5-mini",
     custom_agents=AGENTS,
     agent="researcher",
 ) as session:

@@ -4,9 +4,9 @@ version = "0.1.0"
 description = "Example scripts demonstrating the GitHub Copilot SDK for Python"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "github-copilot-sdk>=0.3.0",
+    "github-copilot-sdk>=1.0.0",
     "pydantic>=2.0",
 ]
 

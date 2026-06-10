@@ -55,7 +55,7 @@ async def main() -> None:
         # decide on its own whether to call it.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-4.1",
+            model="gpt-5-mini",
             tools=[get_weather],
         ) as session:
 

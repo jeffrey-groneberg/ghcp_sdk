@@ -54,12 +54,12 @@ async def on_post_tool_use(input_data, invocation):
 async def main() -> None:
     async with CopilotClient() as client:
         # Hooks are registered as a plain dict keyed by hook name. The
-        # SDK supports several others — `on_user_prompt_submit`,
-        # `on_stop`, `on_session_start`, ... — but the two below cover
+        # SDK supports several others — `on_user_prompt_submitted`,
+        # `on_session_start`, `on_session_end`, ... — but the two below cover
         # 90% of real-world use cases.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-4.1",
+            model="gpt-5-mini",
             hooks={
                 "on_pre_tool_use": on_pre_tool_use,
                 "on_post_tool_use": on_post_tool_use,

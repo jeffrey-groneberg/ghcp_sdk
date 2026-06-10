@@ -22,7 +22,7 @@ sequenceDiagram
     autonumber
     participant App as Your script
     participant Session
-    participant Model as gpt-4.1
+    participant Model as gpt-5-mini
     participant Tool as get_weather()
 
     App->>Session: session.send_and_wait("Weather in Tokyo & Berlin?")
@@ -79,7 +79,7 @@ async def get_weather(params: WeatherParams) -> dict:
 ```python
 async with await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-4.1",
+    model="gpt-5-mini",
     tools=[get_weather],
 ) as session:
     ...
@@ -144,5 +144,5 @@ The current weather is:
 
 ## Further reading
 
-- Upstream tools doc: <https://github.com/github/copilot-sdk/blob/main/docs/features/tools.md>
+- Upstream tools doc: <https://github.com/github/copilot-sdk/tree/main/python#tools>
 - Pydantic v2 docs: <https://docs.pydantic.dev/latest/>
