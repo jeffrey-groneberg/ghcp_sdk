@@ -5,14 +5,22 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Use whichever interpreter the base image provides. `python3` is guaranteed
+# on every devcontainer image; fall back to `python` just in case.
+PY="$(command -v python3 || command -v python)"
+echo "Using interpreter: $PY ($("$PY" --version 2>&1))"
+
 echo "── Installing Python dependencies ────────────────────────────"
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+"$PY" -m pip install --upgrade pip || true
+# Install the deps. If the base image marks its Python as externally managed
+# (PEP 668), retry with --break-system-packages so the build still succeeds.
+"$PY" -m pip install -r requirements.txt \
+  || "$PY" -m pip install --break-system-packages -r requirements.txt
 
 echo
 echo "── Verifying the bundled Copilot CLI ─────────────────────────"
 # The Python SDK bundles the Copilot CLI binary; this confirms it is reachable.
-python -c "from copilot import CopilotClient; print('SDK ready:', CopilotClient.__module__)"
+"$PY" -c "from copilot import CopilotClient; print('SDK ready:', CopilotClient.__module__)"
 
 cat <<'EOF'
 

@@ -1,0 +1,9 @@
+# Normalize line endings in the repo.
+# Shell scripts MUST be LF — they run inside Linux containers / Codespaces,
+# where CRLF breaks the shebang, heredocs, and command parsing.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.bash text eol=lf
+
+# Let git auto-detect text vs binary for everything else.
+*      text=auto

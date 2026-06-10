@@ -1,5 +1,8 @@
 {
   "name": "GitHub Copilot SDK Examples",
+
+  // Dedicated Python dev container on Debian bookworm. Python 3.12 satisfies
+  // the SDK's >=3.11 floor. Node.js LTS + the GitHub CLI are added as features.
   "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
 
   "features": {
