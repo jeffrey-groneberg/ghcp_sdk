@@ -1,124 +1,125 @@
 # 04 · Hooks
 
-📖 **Source:** [`github/copilot-sdk · docs/features/hooks.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md)
+📖 **Sources (SDK v1.0.13):**
+[hook overview](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/hooks.md),
+[Python hook types and dispatch](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
+[pre-tool-use](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/hooks/pre-tool-use.md).
 
-> Hooks are callbacks the SDK fires at well-defined points in the agent's
-> lifecycle: *just before* a tool runs, *just after*, on user prompt, on
-> stop, etc. Perfect for cross-cutting concerns that don't belong in a tool.
-
-## What you'll learn
-
-- The full hook signature and return-value protocol
-- When to use a hook vs. a custom tool vs. a permission handler
-- How `on_pre_tool_use` can **block** a call, **rewrite arguments** or
-  inject **additional context**
-- How `on_post_tool_use` lets you log, cache or audit results
+Open [the runnable source](04_hooks.py). Three callbacks print tool names
+while the agent lists the current directory. `glob` and `view` are the
+only session tools; shell/write tools are not exposed.
 
 ## The flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant App as Your script
-    participant Session
+    participant App
+    participant Runtime
     participant Pre as on_pre_tool_use
-    participant Tool as built-in `view`
+    participant Tool as glob or view
     participant Post as on_post_tool_use
-    participant Model as gpt-5-mini
-
-    App->>Session: send_and_wait("List files in cwd")
-    Session->>Model: prompt
-    Model-->>Session: tool_call view(path=".")
-    Session->>Pre: input_data, invocation
-    Pre-->>Session: None  (allow)
-    Session->>Tool: run view(path=".")
-    Tool-->>Session: directory listing
-    Session->>Post: input_data, invocation
-    Post-->>Session: None  (no opinion)
-    Session->>Model: tool result
-    Model-->>Session: final answer
-    Session-->>App: AssistantMessageData
+    App->>Runtime: send_and_wait(list files, timeout=120)
+    Runtime->>Pre: toolName + toolArgs + context
+    Pre-->>Runtime: None (no opinion)
+    Note over Runtime: Normal permission/policy checks still apply
+    Runtime->>Tool: execute permitted call
+    Tool-->>Runtime: successful result
+    Runtime->>Post: toolName + toolArgs + toolResult
+    Post-->>Runtime: None (unchanged)
+    Runtime-->>App: assistant message, then idle
 ```
 
 ## Code walkthrough
 
-### 1. The hook signature
-
-Both hooks share the same shape:
-
-```python
-async def on_pre_tool_use(input_data, invocation):
-    ...
-    return None    # or a decision dict
-```
-
-| Argument | Contents |
-|----------|----------|
-| `input_data` | `{ "toolName": str, "toolInput": dict, "timestamp": int, "cwd": str, ... }` |
-| `invocation` | `{ "session_id": str }` — context if you have many sessions |
-
-The return value controls what happens next:
-
-| Return | Meaning |
-|--------|---------|
-| `None` | No opinion — proceed as normal |
-| `{ "permissionDecision": "allow" }` | Force-allow (skips the permission handler) |
-| `{ "permissionDecision": "deny", "permissionDecisionReason": "..." }` | Block the call; the agent sees the reason and can adapt |
-| `{ "permissionDecision": "ask" }` | Defer to the permission handler |
-| `{ "modifiedArgs": { ... } }` | Replace the tool's arguments before it runs |
-| `{ "additionalContext": "..." }` | Append extra context to the tool's input |
-| `{ "suppressOutput": True }` | Hide the tool's output from the model |
-
-### 2. The two hooks in this example
+### 1. Observe without logging secrets
 
 ```python
 async def on_pre_tool_use(input_data, invocation):
     print(f"[pre]  {input_data['toolName']}")
-    return None  # allow
+    return None
 
 async def on_post_tool_use(input_data, invocation):
-    print(f"[post] {input_data['toolName']} done")
+    print(f"[post] {input_data['toolName']} succeeded")
+    return None
+
+async def on_post_tool_use_failure(input_data, invocation):
+    print(f"[failed] {input_data['toolName']}")
     return None
 ```
 
-Both just log to the console — the simplest possible audit trail.
+`None` means **no opinion**, not “force allow.” `on_post_tool_use` runs
+**after successful execution only**; failed results use
+`on_post_tool_use_failure` instead. The example logs names only: arguments
+and results can include private source, tokens or personal data.
 
-### 3. Registering hooks
+The tagged Python `PreToolUseHookInput` contains:
 
-```python
-async with await client.create_session(
-    on_permission_request=PermissionHandler.approve_all,
-    model="gpt-5-mini",
-    hooks={
-        "on_pre_tool_use": on_pre_tool_use,
-        "on_post_tool_use": on_post_tool_use,
-    },
-) as session:
-```
+| Field | Type / meaning |
+|---|---|
+| `sessionId` | Runtime session ID |
+| `timestamp` | `datetime` in the Python type |
+| `workingDirectory` | Working directory |
+| `toolName` | Tool identifier |
+| `toolArgs` | Arguments (`Any`, not necessarily an object) |
+| `toolResult` | Post-hook only: returned result |
 
-Hooks are registered as a **plain dict** keyed by hook name. The SDK
-recognises several others — pick the ones you need:
+The separate `invocation` context contains `session_id`.
+Older walkthrough spellings `toolInput` / `cwd` are not these Python types.
 
-| Hook | When it fires |
-|------|---------------|
-| `on_pre_tool_use` | Before any tool (built-in or custom) is invoked |
-| `on_post_tool_use` | After a tool returns (success or failure) |
-| `on_user_prompt_submitted` | After the user hits send, before the model sees the prompt |
-| `on_session_start` | Once, when the session connects |
-| `on_session_end` | Once, when the session disconnects |
-| `on_error_occurred` | Whenever the SDK or CLI raises an error |
-
-### 4. The prompt
+### 2. Register callbacks
 
 ```python
-reply = await session.send_and_wait(
-    "List the files in the current directory.",
-    timeout=120,
-)
+available_tools=["builtin:glob", "builtin:view"],
+hooks={
+    "on_pre_tool_use": on_pre_tool_use,
+    "on_post_tool_use": on_post_tool_use,
+    "on_post_tool_use_failure": on_post_tool_use_failure,
+},
 ```
 
-This is chosen because it forces the agent to use at least one built-in tool
-(usually `glob` or `view`) — so you can actually see both hooks fire.
+The SDK accepts synchronous or asynchronous callbacks. Use non-blocking
+async I/O if a hook must call a service. Callbacks should stay short.
+
+### 3. Distinguish hook output shapes
+
+| Pre-tool output | Meaning |
+|---|---|
+| `None` | No override; normal handling continues |
+| `{"permissionDecision": "allow"}` | Request approval under runtime policy |
+| `{"permissionDecision": "deny", "permissionDecisionReason": "..."}` | Deny with a reason |
+| `{"permissionDecision": "ask"}` | Defer to permission handling |
+| `{"modifiedArgs": ...}` | Replace arguments |
+| `{"additionalContext": "..."}` | Supply additional context |
+
+Post-tool output instead supports `modifiedResult`, `additionalContext`
+and `suppressOutput`. Do not return pre-tool decision fields from a post
+hook and expect enforcement. Runtime managed policy can still restrict
+tool use; hooks and `approve_all` are not a sandbox or policy bypass.
+
+### 4. Know the related hooks
+
+The tagged **hooks overview lists eight hooks**, rather than the original six:
+
+| Python callback | When it fires |
+|---|---|
+| `on_session_start` | Session begins, new or resumed |
+| `on_user_prompt_submitted` | User sends a message |
+| `on_user_prompt_transformed` | Runtime builds the model-facing prompt |
+| `on_pre_tool_use` | Before tool execution |
+| `on_post_tool_use` | After successful tool execution only |
+| `on_post_tool_use_failure` | After a tool returns failure |
+| `on_session_end` | Runtime session ends |
+| `on_error_occurred` | Runtime reports an error |
+
+The tagged Python `SessionHooks` type additionally exposes
+`on_pre_mcp_tool_call` and `on_agent_stop`; the eight-row overview is not
+the complete Python type surface. This demo registers pre-tool, successful
+post-tool and failed-result callbacks. A failed call uses the failure hook,
+not the success hook; an absent post-success event is not missing cleanup.
+
+Session detachment is also not necessarily the end of a shared runtime
+session. Do not rely on `on_session_end` as the only place to clean up
+application-owned resources; use context managers / `finally`.
 
 ## Run it
 
@@ -126,55 +127,30 @@ This is chosen because it forces the agent to use at least one built-in tool
 python examples/04_hooks.py
 ```
 
-Expected output:
+Illustrative output:
 
-```
+```text
 [pre]  view
-[post] view done
-
-  The current directory contains the following files and folders:
-- .devcontainer
-- .git
-- ...
+[post] view succeeded
+The repository contains README.md, examples/, docs/, ...
 ```
+
+The prompt **requests** tool use; only an observed trace shows a call happened.
+`send_and_wait(timeout=120)` raises on timeout/session error. `None` raises
+a visible error in this example. The surrounding operation has a 180-second
+deadline and uses normal session/client cleanup.
 
 ## Try this next
 
-1. **Build a real audit log** — append to a JSON-Lines file with
-   `{timestamp, toolName, args}` for every call. Now you have a forensic
-   record of what the agent did.
-2. **Block a tool** dynamically:
-
-   ```python
-   FORBIDDEN = {"bash", "shell"}
-   async def on_pre_tool_use(inp, inv):
-       if inp["toolName"] in FORBIDDEN:
-           return {
-               "permissionDecision": "deny",
-               "permissionDecisionReason": "Shell is disabled in this app.",
-           }
-       return None
-   ```
-3. **Rewrite arguments** — intercept `view` calls and rewrite any absolute
-   path that escapes a trusted directory to a safe value, using `modifiedArgs`.
-4. **Add `on_user_prompt_submitted`** that prepends *"Always reply in
-   bullet points"* — a poor-man's persona system.
-5. **Time the tool calls** — start a timer in pre-hook, log the delta in
-   post-hook. You'll quickly find slow tools.
+1. Return an explicit denial for a tool and observe the failure path.
+2. Request a nonexistent file and observe the failed-result trace.
+3. Record duration with a correlation key; avoid conflating concurrent calls.
+4. Add a mocked hook test that checks the correct output dictionary keys.
 
 ## Common pitfalls
 
-- **Returning a truthy value** like `True` is **not** the same as
-  `{"permissionDecision": "allow"}` — only the typed dict is recognised.
-- **Hooks must be `async def`** — sync functions are wrapped automatically
-  but it's noisy and error-prone.
-- **Long-running hooks** block the agent — keep them fast (≤ 100 ms).
-  Offload heavy work to a queue.
-- **Throwing in a hook** is treated as a hard failure — wrap with
-  `try/except` if you have flaky I/O.
-
-## Further reading
-
-- Upstream hooks doc: <https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md>
-- Hook input/output TypedDicts: see `copilot/session.py` in the installed SDK
-  (search for `PreToolUseHookInput`, `PreToolUseHookOutput`, etc.)
+- `True` is not a valid replacement for a structured hook result.
+- `None` does not bypass the required permission handler.
+- A hook exception is not an explicit policy-denial contract. Return the
+  documented decision instead of relying on exception behavior.
+- Rewriting a path alone is not a complete filesystem security boundary.

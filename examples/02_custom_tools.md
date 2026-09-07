@@ -1,108 +1,97 @@
 # 02 · Custom tools
 
-📖 **Source:** [`github/copilot-sdk · python/ — Tools`](https://github.com/github/copilot-sdk/tree/main/python#tools) &middot; [`docs/features/index.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/index.md)
+📖 **Sources (SDK v1.0.13):**
+[Python tools](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py),
+[session tool filters](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
+[1.0.13 release](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
-> Give the agent a Python function it can call on its own. Here it's a fake
-> weather lookup; in a real app it could be a DB query, an HTTP call to your
-> internal API, or anything else.
-
-## What you'll learn
-
-- How to declare a tool with `@define_tool`
-- Why the tool's parameters live in a **Pydantic** model — the SDK turns it
-  into the JSON-Schema the model sees
-- How to register tools with a session via `tools=[...]`
-- The difference between `session.send(...)` (event-driven) and
-  `session.send_and_wait(...)` (request/response)
+Open [the runnable source](02_custom_tools.py). A Pydantic schema describes
+one custom function that returns **fictional weather**, not a live forecast.
 
 ## The flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant App as Your script
-    participant Session
-    participant Model as gpt-5-mini
-    participant Tool as get_weather()
-
-    App->>Session: session.send_and_wait("Weather in Tokyo & Berlin?")
-    Session->>Model: prompt + tool catalogue
-    Note over Model: Sees "get_weather" tool<br/>decides it's relevant
-    Model-->>Session: tool_call get_weather(city="Tokyo")
-    Session->>Tool: invoke handler
-    Tool-->>Session: {"city":"Tokyo","temperature_c":12,...}
-    Model-->>Session: tool_call get_weather(city="Berlin")
-    Session->>Tool: invoke handler
-    Tool-->>Session: {"city":"Berlin",...}
-    Model-->>Session: final text answer
-    Session-->>App: AssistantMessageData
-    App->>App: print(reply.data.content)
+    participant App
+    participant Model
+    participant Tool as get_weather handler
+    App->>Model: prompt + registered tool schema
+    Model->>Tool: city=Tokyo
+    Tool-->>Model: random demo weather + explicit source label
+    Model->>Tool: city=Berlin
+    Tool-->>Model: random demo weather + explicit source label
+    Model-->>App: assistant message; then idle
 ```
+
+Tool choice and ordering are model decisions; the diagram illustrates a
+possible run, not a guaranteed call schedule.
 
 ## Code walkthrough
 
-### 1. Describing parameters with Pydantic
+### 1. Describe valid arguments
 
 ```python
 class WeatherParams(BaseModel):
-    city: str = Field(description="City name, e.g. 'Seattle'")
+    city: str = Field(min_length=1, description="City name, e.g. 'Seattle'")
 ```
 
-The `Field(description=...)` text is the **only hint the model sees** about
-what to put in that argument. Treat it like a tiny piece of prompt engineering:
+The schema includes field names, types, constraints and descriptions.
+Descriptions help the model; they are not its only information. Pydantic
+validates arguments before calling the decorated function.
 
-- ✅ `"Three-letter ISO currency code (e.g. 'EUR', 'USD')"`
-- ❌ `"the currency"`
-
-### 2. Declaring the tool
+### 2. Label the stub honestly
 
 ```python
-@define_tool(description="Get the current weather for a given city")
+@define_tool(description="Generate fictional demo weather for a city; NOT live weather")
 async def get_weather(params: WeatherParams) -> dict:
     return {
         "city": params.city,
         "temperature_c": random.randint(-5, 35),
         "condition": random.choice(["sunny", "cloudy", "rainy"]),
+        "source": "fictional demo data, not a live weather service",
     }
 ```
 
-- `@define_tool` packages your function + Pydantic schema into a `Tool` object
-  the SDK can ship to the model.
-- The `description` is what makes the model pick this tool over another, so
-  be explicit (e.g. *"Get current weather. Only call this if the user asks
-  about weather in a specific city"*).
-- The return value can be any JSON-serialisable object; the model receives
-  it back as the tool result and weaves it into the answer.
+`@define_tool` produces a `Tool` with schema and handler; the decorated name
+is no longer a plain Python function. Both synchronous and asynchronous
+handlers are supported in 1.0.13. This example uses `async def` so a real
+async API could replace the stub without blocking the event loop.
 
-### 3. Wiring the tool into the session
+Return values are serialized for the model. Pydantic models are supported
+directly (JSON-mode serialization was fixed in **1.0.9**); **1.0.13** also
+handles native values such as dates, enums, UUIDs and decimals. A plain dict
+keeps this workshop easy to read.
 
-```python
-async with await client.create_session(
-    on_permission_request=PermissionHandler.approve_all,
-    model="gpt-5-mini",
-    tools=[get_weather],
-) as session:
-    ...
-```
-
-`tools=[...]` registers them **for this session only**. Other sessions on the
-same client don't see them.
-
-### 4. One-shot reply with `send_and_wait`
+### 3. Register and scope the tool
 
 ```python
-reply = await session.send_and_wait(
-    "What's the weather in Tokyo and Berlin?"
-)
-if reply:
-    print(reply.data.content)
+tools=[get_weather],
+available_tools=["custom:get_weather"],
 ```
 
-- `send_and_wait` is the *"give me the final answer"* shortcut. Under the
-  hood it does what [example 01](01_simple_chat.md) does manually: register a
-  listener, wait for `SessionIdleData`, return the last `AssistantMessage`.
-- `reply` is `None` if the default 60 s timeout fires before the agent
-  finishes — always check, or pass `timeout=…` to extend it.
+Registration and exposure are distinct. `available_tools` filters the
+**entire merged catalogue**, including custom tools. Omitting the custom
+name from a non-empty allowlist hides it. These source-qualified names are
+documented by the [tagged ToolSet tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
+
+`approve_all` is only for trusted demos. Actual business tools need
+authorization, validation, credential isolation and side-effect controls.
+An allowlist does not sandbox what your Python handler itself can do.
+
+### 4. Wait for a final answer
+
+The prompt explicitly asks for fictional weather and `send_and_wait` uses
+`timeout=60`. Timeout raises `TimeoutError`; `None` means idle without an
+assistant message, so the example raises instead of silently succeeding.
+The whole operation has a 180-second deadline.
+
+### 5. Respect cancellation
+
+In 1.0.13, runtime completion/session termination cancels in-flight
+**async external-tool tasks**. For a real HTTP/database tool, use async
+I/O, `async with` and `finally`. Do not swallow `asyncio.CancelledError`;
+cancellation does not undo a side effect already committed. Synchronous
+blocking work is not magically interruptible.
 
 ## Run it
 
@@ -110,39 +99,27 @@ if reply:
 python examples/02_custom_tools.py
 ```
 
-Expected output (numbers vary — the data is random):
+Illustrative output (random values and wording vary):
 
-```
-The current weather is:
-- Tokyo: Sunny, -5°C
-- Berlin: Rainy, 11°C
+```text
+Fictional demo weather, not a live forecast:
+- Tokyo: sunny, 22°C
+- Berlin: cloudy, 9°C
 ```
 
 ## Try this next
 
-1. **Add a second tool** `convert_temperature(celsius: float, to: str)` that
-   converts to Fahrenheit or Kelvin. Ask: *"What's the weather in Tokyo in
-   Fahrenheit?"* — the model should chain both tools.
-2. **Make the description vague** (`description="weather thing"`) and watch
-   how the model stops calling it. This is your best intuition pump for how
-   important descriptions are.
-3. **Make the tool raise an exception** and see how the agent reports the
-   failure to the user — usually it gracefully retries or apologises.
-4. **Force a tool call** by adding `"You MUST call get_weather"` to the prompt
-   and observe the agent's behaviour.
+1. Replace randomness with fixed fixtures for deterministic exercises.
+2. Add a temperature conversion tool and include its `custom:` name in the
+   session allowlist.
+3. Return a Pydantic response object and inspect its serialized tool result.
+4. In a mocked test, cancel a sleeping async handler and verify its `finally`
+   block runs.
 
 ## Common pitfalls
 
-- **No `description`** on `@define_tool` or `Field` → the model can't tell
-  when to call your tool, so it never does.
-- **Forgetting `async`** on the handler — `@define_tool` only supports
-  `async def` functions in v0.3.x.
-- **Returning a `BaseModel`** instead of a plain dict — Pydantic objects are
-  not JSON-serialisable by default; call `.model_dump()` first.
-- **Using mutable state** in handlers can race if the agent calls them in
-  parallel — keep handlers pure and idempotent.
-
-## Further reading
-
-- Upstream tools doc: <https://github.com/github/copilot-sdk/tree/main/python#tools>
-- Pydantic v2 docs: <https://docs.pydantic.dev/latest/>
+- A tool-call request in a prompt is not proof that the model called it.
+- Blocking I/O inside `async def` still blocks the event loop.
+- Concurrent handler calls must not corrupt shared mutable state.
+- Tool exceptions become failure results; do not replace failures with fake
+  successful business data. Test rejection/error paths as well as happy paths.

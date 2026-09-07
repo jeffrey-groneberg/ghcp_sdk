@@ -2,8 +2,8 @@
 Example 03 — Custom agents
 
 A *custom agent* is a named persona you bundle with the session: a system
-prompt, an allowlist of tools, and a description. The model can be told
-to "act as" one of them and is restricted to that agent's toolset.
+prompt, tool scope, and a description. This uses stable SDK 1.0.13.
+Tool filters narrow exposure; they are not an operating-system sandbox.
 
 This demo defines two agents in the same session and switches between
 them mid-conversation:
@@ -33,7 +33,7 @@ from copilot.session import PermissionHandler
 #   name        → identifier you use to select the agent later
 #   prompt      → the system prompt that shapes its behaviour
 #   tools       → built-in tool names this agent is *allowed* to use
-#                 (`grep`, `glob`, `view`, `bash`, `write`, ...)
+#                 (`grep`, `glob`, `view`, `bash`, `edit`, ...)
 #   description → shown to the model when listing available agents
 AGENTS = [
     {
@@ -52,6 +52,11 @@ AGENTS = [
 
 
 async def main() -> None:
+    async with asyncio.timeout(360):
+        await run_conversation()
+
+
+async def run_conversation() -> None:
     async with CopilotClient() as client:
         # `custom_agents=AGENTS` registers our personas with the session.
         # `agent="researcher"` makes that one the active agent for the first
@@ -61,6 +66,9 @@ async def main() -> None:
             model="gpt-5-mini",
             custom_agents=AGENTS,
             agent="researcher",
+            # Apply the read-tool scope session-wide as well as per persona.
+            # approve_all is acceptable only in a trusted, non-sensitive checkout.
+            available_tools=["builtin:grep", "builtin:glob", "builtin:view"],
         ) as session:
 
             # `session.rpc` is the SDK's window onto the JSON-RPC server.
@@ -74,6 +82,8 @@ async def main() -> None:
             # the cheap, definitive way to verify the swap actually happened
             # (responses alone are circumstantial evidence).
             current = await session.rpc.agent.get_current()
+            if current.agent is None or current.agent.name != "researcher":
+                raise RuntimeError("The researcher persona was not selected.")
             print(f"Active persona: {current.agent.name}\n")
 
             # First turn handled by the researcher. Note the longer timeout —
@@ -83,8 +93,9 @@ async def main() -> None:
                 "What programming language is this project written in?",
                 timeout=120,
             )
-            if reply:
-                print("Researcher:", reply.data.content, "\n")
+            if reply is None:
+                raise RuntimeError("Researcher became idle without an assistant message.")
+            print("Researcher:", reply.data.content, "\n")
 
             # Mid-conversation agent switch. Calling `.agent.select(...)`
             # swaps the active persona; the next prompt will be answered by
@@ -93,14 +104,17 @@ async def main() -> None:
 
             # Confirm the swap before we send anything else.
             current = await session.rpc.agent.get_current()
+            if current.agent is None or current.agent.name != "reviewer":
+                raise RuntimeError("The reviewer persona was not selected.")
             print(f"--- swapped --- Active persona: {current.agent.name}\n")
 
             reply = await session.send_and_wait(
                 "Review examples/01_simple_chat.py for error handling issues.",
                 timeout=120,
             )
-            if reply:
-                print("Reviewer:", reply.data.content)
+            if reply is None:
+                raise RuntimeError("Reviewer became idle without an assistant message.")
+            print("Reviewer:", reply.data.content)
 
 
 if __name__ == "__main__":

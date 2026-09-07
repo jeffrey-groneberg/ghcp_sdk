@@ -1,88 +1,60 @@
 """
-Example 01 — Simple streaming chat
+Example 01 — Streaming chat with GitHub Copilot SDK 1.0.13.
 
-The "hello world" of the GitHub Copilot SDK. We open a session, send a
-prompt, and stream the model's reply token-by-token to the console.
-
-Concepts covered:
-  * The `CopilotClient` / `CopilotSession` lifecycle (context managers)
-  * Permission handlers (required on every session)
-  * Event-driven streaming via `session.on(...)`
-  * Pattern-matching SDK events with `match` / `case`
-
-Run:
-    python examples/01_simple_chat.py
+Run: python examples/01_simple_chat.py
+Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py
 """
 
 import asyncio
 
 from copilot import CopilotClient
-
-# Typed event payloads. Every event the SDK emits has a `.data` attribute
-# that is one of these dataclasses — we use `match`/`case` below to react
-# to just the ones we care about.
-from copilot.session_events import (
-    AssistantMessageDeltaData,  # fired for every streaming chunk
-    SessionIdleData,            # fired once when the agent is done talking
-)
-
-# Built-in permission handler that auto-approves everything. Good for
-# trusted demos; see example 06 for how to write a custom one that asks
-# the human for confirmation.
 from copilot.session import PermissionHandler
+from copilot.session_events import AssistantMessageDeltaData
 
 
 async def main() -> None:
-    # `async with CopilotClient()` spawns the bundled Copilot CLI binary
-    # as a subprocess (over local stdio JSON-RPC) on enter, and cleanly
-    # shuts it down on exit. No manual `start()` / `stop()` calls needed.
-    async with CopilotClient() as client:
+    # Bound startup, the conversation, and normal shutdown as a whole.
+    async with asyncio.timeout(180):
+        # New in 1.0.13: optional application identity on server.connect.
+        # These describe THIS app, not the model or your GitHub credentials.
+        async with CopilotClient(
+            client_info={
+                "application_name": "ghcp-sdk-examples",
+                "application_version": "0.1.0",
+                "integration_name": "python-workshop",
+                "integration_version": "1.0.13",
+            },
+        ) as client:
+            async with await client.create_session(
+                # Auto-approval is for trusted demos, not a security sandbox.
+                on_permission_request=PermissionHandler.approve_all,
+                model="gpt-5-mini",
+                available_tools=[],  # This text-only conversation needs no tools.
+                streaming=True,
+            ) as session:
+                def on_event(event) -> None:
+                    match event.data:
+                        case AssistantMessageDeltaData(delta_content=delta):
+                            print(delta or "", end="", flush=True)
 
-        # `create_session()` starts a *conversation* with the agent.
-        # `await` returns a session context manager — entering it
-        # connects to the CLI and exiting cleans up resources.
-        #
-        # We pick `gpt-5-mini` — a fast, low-cost GitHub-hosted model that's
-        # ideal for demos; switch to any model from `await client.list_models()`.
-        # `streaming=True` makes the agent emit `AssistantMessageDeltaData`
-        # events as it generates text, so we can show progress live.
-        async with await client.create_session(
-            on_permission_request=PermissionHandler.approve_all,
-            model="gpt-5-mini",
-            streaming=True,
-        ) as session:
+                # Register BEFORE sending so early chunks aren't missed.
+                unsubscribe = session.on(on_event)
+                try:
+                    # Streaming events still arrive while this helper waits.
+                    # It handles session.error and raises TimeoutError on expiry;
+                    # a hand-written idle Event alone could wait forever.
+                    reply = await session.send_and_wait(
+                        "Explain what the GitHub Copilot SDK is in 3 sentences.",
+                        timeout=60,
+                    )
+                    if reply is None:
+                        raise RuntimeError("Session became idle without an assistant message.")
+                finally:
+                    unsubscribe()
+                    print()  # Keep the terminal tidy even after partial output.
 
-            # The SDK is fully async / event-driven: `session.send()` returns
-            # immediately and the reply arrives over a stream of events.
-            # We use an `asyncio.Event` to know when the agent is done so we
-            # can fall through to clean shutdown.
-            done = asyncio.Event()
-
-            def on_event(event) -> None:
-                # `event.data` is a typed dataclass — pattern matching keeps
-                # this readable as we add cases. We only handle two events:
-                # streaming text and the terminal "idle" signal.
-                match event.data:
-                    case AssistantMessageDeltaData(delta_content=delta):
-                        # Each delta is a small fragment of the response.
-                        # `flush=True` makes the terminal show it immediately.
-                        print(delta or "", end="", flush=True)
-                    case SessionIdleData():
-                        # Agent has finished — wake up `main()` so it can exit.
-                        done.set()
-
-            # Register the listener. `session.on()` returns an unsubscribe
-            # function (ignored here since we're tearing down anyway).
-            session.on(on_event)
-
-            # Fire the prompt. `send()` is non-blocking; the model's response
-            # arrives via the event stream we registered above.
-            await session.send("Explain what the GitHub Copilot SDK is in 3 sentences.")
-
-            # Block until the `SessionIdleData` event fires. Without this the
-            # context manager would tear down before the reply was streamed.
-            await done.wait()
-            print()  # final newline after the streamed text
+            # Session exit calls disconnect() -> session.detach in 1.0.13.
+            # Persisted state remains; client exit stops its owned CLI process.
 
 
 if __name__ == "__main__":

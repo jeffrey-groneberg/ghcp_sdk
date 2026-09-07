@@ -54,7 +54,7 @@
       --h3-size:       clamp(1rem,    2.4vw, 1.5rem);
       --body-size:     clamp(0.78rem, 1.3vw, 1.05rem);
       --small-size:    clamp(0.65rem, 1vw,  0.85rem);
-      --mono-size:     clamp(0.7rem,  1.1vw, 0.95rem);
+      --mono-size:     clamp(0.7rem, min(1.1vw, 1.6vh), 0.95rem);
 
       --slide-padding: clamp(1.25rem, 4vw, 4rem);
       --content-gap:   clamp(0.75rem, 2vw, 2rem);
@@ -166,7 +166,7 @@
 
     h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
     h1 { font-size: var(--title-size); font-weight: 800; line-height: 1.02; }
-    h2 { font-size: var(--h2-size);   font-weight: 700; line-height: 1.05; }
+    h2 { font-size: var(--h2-size);   font-weight: 700; line-height: 1.15; }
     h3 { font-size: var(--h3-size);   font-weight: 600; line-height: 1.15; }
 
     p  { font-size: var(--body-size); line-height: 1.55; color: var(--gh-fg-muted); }
@@ -261,7 +261,7 @@
       background: var(--gh-canvas-inset);
       border: 1px solid var(--gh-border);
       border-radius: 12px;
-      overflow: hidden;
+      overflow: auto;
       box-shadow: 0 12px 40px rgba(0,0,0,0.45);
       width: 100%;
       max-height: 60vh;
@@ -286,7 +286,7 @@
       font-family: var(--font-mono);
       font-size: var(--mono-size);
       line-height: 1.55;
-      overflow: hidden;
+      overflow-x: auto;
       color: var(--gh-fg);
     }
     .code-window code { color: inherit; font-size: inherit; }
@@ -431,8 +431,10 @@
       height: 2px;
       background: linear-gradient(90deg, var(--gh-blue), var(--gh-purple));
       z-index: 1000;
-      transition: width 0.15s linear;
-      width: 0;
+      transition: transform 0.15s linear;
+      transform-origin: left;
+      transform: scaleX(0);
+      width: 100%;
     }
 
     .nav-dots {
@@ -460,7 +462,7 @@
 
     .keyboard-hint {
       position: fixed;
-      bottom: clamp(0.5rem, 1.5vh, 1rem);
+      bottom: clamp(2.25rem, 4vh, 3rem);
       right: clamp(0.75rem, 2vw, 1.5rem);
       font-family: var(--font-mono);
       font-size: var(--small-size);
@@ -755,6 +757,31 @@
       .about-grid { grid-template-columns: 1fr; }
       .about-cards { grid-template-columns: 1fr; }
     }
+
+    h2 code { font-size: 0.9em; }
+    @media (max-width: 760px) {
+      .slide-content {
+        min-height: 0;
+        max-height: none;
+        justify-content: flex-start;
+        overflow-y: auto;
+        overflow-wrap: anywhere;
+      }
+      .slide-content > *, .tab-strip, .slide-footer { flex-shrink: 0; }
+      .two-col, .grid-3, .grid-2 { grid-template-columns: minmax(0, 1fr); }
+      .grid-3 > .card { grid-column: auto !important; }
+      .card, .code-window { max-height: none; }
+      .slide-footer {
+        position: static;
+        flex-wrap: wrap;
+        gap: 0.4rem 1rem;
+        padding: 0.65rem var(--slide-padding);
+        border-top: 1px solid var(--gh-border-muted);
+      }
+      .slide-footer .crumb { display: none; }
+      .slide-footer .src { min-width: 0; overflow-wrap: anywhere; flex: 1; }
+      .keyboard-hint, .nav-dots, .octocat-accent { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -785,7 +812,7 @@
         streaming chat to MCP-powered, resumable, human-in-the-loop agents.
       </p>
       <div class="title-meta reveal">
-        <span class="pill blue">Stable · v1.0.0</span>
+        <span class="pill blue">Stable · v1.0.13 · September 2026</span>
         <span class="pill purple">Python</span>
         <span class="pill green">Codespaces ready</span>
       </div>
@@ -798,7 +825,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">deck · github copilot sdk</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/releases" target="_blank" rel="noopener">releases · python 1.0.0</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/v1.0.13" target="_blank" rel="noopener">releases · python 1.0.13</a>
       <span>01 / 30</span>
     </div>
   </section>
@@ -891,7 +918,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">why · agent loop, packaged</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
       <span>03 / 30</span>
     </div>
   </section>
@@ -911,7 +938,7 @@
       <p class="lede reveal">
         Six dev workflows that look like CI scripts on the outside &mdash; but
         on the inside are the same agent loop you ship in your product. Every
-        one of these is &lt; 200 lines with the SDK.
+        pattern starts with the same client, session and tool APIs.
       </p>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
@@ -950,7 +977,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">use cases &middot; devloop on github</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
       <span>04 / 30</span>
     </div>
   </section>
@@ -991,7 +1018,7 @@
         <div class="card b-green">
           <span class="num">CX</span><h3>Customer support copilot</h3>
           <p>Grounded in your docs &amp; codebase. Resumes per-customer
-          sessions across days. BYOK for data-residency-sensitive tenants.</p>
+          sessions across days. BYOK with a provider and region you configure.</p>
         </div>
         <div class="card b-yellow">
           <span class="num">SEC</span><h3>Security policy enforcer</h3>
@@ -1007,7 +1034,7 @@
     </div>
     <div class="slide-footer">
       <span class="crumb">use cases &middot; production agents</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
       <span>05 / 30</span>
     </div>
   </section>
@@ -1050,13 +1077,13 @@
           <p>Maven / Gradle &mdash; <code>com.github:copilot-sdk-java</code></p>
         </div>
         <div class="card b-pink">
-          <span class="num">RS</span><h3>Rust <em style="font-style: normal; color: var(--gh-fg-muted); font-size: 0.78em;">(technical preview)</em></h3>
+          <span class="num">RS</span><h3>Rust</h3>
           <p><code>cargo add github-copilot-sdk</code></p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">available &middot; 6 SDKs &middot; rust in preview</span>
+      <span class="crumb">available &middot; 6 SDKs &middot; one runtime</span>
       <a class="src" href="https://github.com/github/copilot-sdk" target="_blank" rel="noopener">github/copilot-sdk</a>
       <span>06 / 30</span>
     </div>
@@ -1076,23 +1103,23 @@
       <span class="eyebrow reveal"><span class="chip">05</span> How it fits together</span>
       <h2 class="reveal">Your app → SDK → CLI → model.</h2>
       <div class="arch reveal" style="margin-top: var(--content-gap);">
-        <div class="node app"><h4>Your Python app</h4><p>Examples 01 — 06</p></div>
+        <div class="node app"><h4>Your Python app</h4><p>Examples 01 — 07</p></div>
         <div class="arrow">→</div>
         <div class="node sdk"><h4>github-copilot-sdk</h4><p>Async client + session</p></div>
         <div class="arrow">→</div>
-        <div class="node cli"><h4>Copilot CLI</h4><p>JSON-RPC over stdio<br>(bundled)</p></div>
+        <div class="node cli"><h4>Copilot runtime</h4><p>JSON-RPC over stdio<br>SDK-managed · 1.0.83</p></div>
         <div class="arrow">→</div>
-        <div class="node model"><h4>Model</h4><p>gpt-5-mini · gpt-5.4<br>claude-sonnet-4.5 · …</p></div>
+        <div class="node model"><h4>Model</h4><p>gpt-5-mini in this workshop<br>Discover with list_models()</p></div>
       </div>
       <p class="reveal" style="margin-top: var(--content-gap); max-width: 70ch;">
-        Tools, permissions, hooks and MCP servers <em>all live on the CLI</em>.
-        The SDK is a thin, typed, async wrapper that lets you script that
-        loop from Python. No HTTP server, no extra infra.
+        The CLI owns the agent loop and built-in tools. Your Python process
+        runs custom tool handlers, permission callbacks and hooks; the CLI
+        connects to MCP servers. Local demos need no HTTP server.
       </p>
     </div>
     <div class="slide-footer">
       <span class="crumb">architecture · client → cli → model</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
       <span>07 / 30</span>
     </div>
   </section>
@@ -1132,13 +1159,14 @@
         </div>
       </div>
       <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
-        Enterprise extras: works with EMU accounts and SAML SSO out of the box;
-        OAuth honours org memberships automatically.
+        New in 1.0.13: <code>github_token_provider</code> can acquire and
+        refresh short-lived session credentials. Do not combine it with
+        <code>github_token</code>; tenant access still needs your app&rsquo;s policy.
       </p>
     </div>
     <div class="slide-footer">
       <span class="crumb">auth · cli &middot; oauth &middot; env &middot; byok</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/auth/authenticate.md" target="_blank" rel="noopener">docs/auth/authenticate.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/authenticate.md" target="_blank" rel="noopener">docs/auth/authenticate.md</a>
       <span>08 / 30</span>
     </div>
   </section>
@@ -1157,21 +1185,20 @@
       <span class="eyebrow reveal"><span class="chip">07</span> BYOK &middot; bring your own key</span>
       <h2 class="reveal">Your keys. Your models. Your bill.</h2>
       <p class="lede reveal" style="max-width: 80ch;">
-        Point the SDK at <em>any</em> OpenAI-compatible endpoint &mdash; Azure AI Foundry,
-        Anthropic, Ollama, vLLM, LiteLLM, Foundry Local &mdash; with a single
-        <code>provider</code> kwarg. No Copilot subscription required, your traffic
-        never touches GitHub.
+        Choose an OpenAI-compatible or Anthropic endpoint with
+        <code>provider</code>. Inference is billed by that provider, not Copilot.
+        Tool traffic, telemetry and data residency need their own configuration.
       </p>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <h3 style="margin:0; color: var(--gh-fg);">Supported providers</h3>
           <ul class="checks">
-            <li><strong>Azure AI Foundry</strong> &mdash; <code>type: "openai"</code>, API-key auth, EU/DE data residency</li>
+            <li><strong>Microsoft Foundry</strong> &mdash; <code>type: "openai"</code> for <code>/openai/v1/</code>; keys or Entra tokens</li>
             <li><strong>OpenAI direct</strong> &mdash; <code>type: "openai"</code> + <code>api_key</code></li>
             <li><strong>Anthropic</strong> &mdash; <code>type: "anthropic"</code> for Claude Sonnet/Opus</li>
-            <li><strong>Ollama / Foundry Local</strong> &mdash; air-gapped, on-device inference</li>
-            <li><strong>vLLM / LiteLLM / any OpenAI-compatible gateway</strong> &mdash; one shape fits all</li>
-            <li><strong><code>on_list_models</code> hook</strong> &mdash; surface your private model catalogue to the agent loop</li>
+            <li><strong>Ollama / Foundry Local</strong> &mdash; local inference; this alone does not make the app offline</li>
+            <li><strong><code>bearer_token_provider</code></strong> &mdash; refresh Entra tokens via Azure Identity / managed identity</li>
+            <li><strong><code>on_list_models</code></strong> &mdash; client callback for your private model catalogue</li>
           </ul>
         </div>
         <div class="code-window">
@@ -1180,7 +1207,8 @@
             <span class="name">azure_foundry_byok.py</span>
           </div>
 <pre><code><span class="tk-kw">import</span> os
-<span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> CopilotClient, ProviderConfig
+<span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> CopilotClient
+<span class="tk-kw">from</span> copilot.session <span class="tk-kw">import</span> PermissionHandler, ProviderConfig
 
 provider = <span class="tk-fn">ProviderConfig</span>(
     type=<span class="tk-st">"openai"</span>,
@@ -1191,16 +1219,17 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 
 <span class="tk-kw">async with</span> <span class="tk-fn">CopilotClient</span>() <span class="tk-kw">as</span> client:
     <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
-        provider=provider,
-        model=<span class="tk-st">"gpt-5"</span>,
+        provider=provider, available_tools=[],
+        on_permission_request=PermissionHandler.approve_all,
+        model=os.environ[<span class="tk-st">"FOUNDRY_MODEL"</span>],
     ) <span class="tk-kw">as</span> session:
-        <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Hi"</span>)<span class="caret"></span></code></pre>
+        <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Hi"</span>, timeout=120)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">byok &middot; azure foundry &middot; anthropic &middot; ollama &middot; vllm</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/auth/byok.md" target="_blank" rel="noopener">docs/auth/byok.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md" target="_blank" rel="noopener">docs/auth/byok.md</a>
       <span>09 / 30</span>
     </div>
   </section>
@@ -1219,25 +1248,25 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <h2 class="reveal">A real toolkit ships in the box.</h2>
       <p class="lede reveal">
         Every session has the same first-party tools the Copilot CLI uses &mdash;
-        all enabled by default. Whitelist with <code>available_tools=</code>,
-        blacklist with <code>excluded_tools=</code>, or gate them dynamically
-        with an <code>on_pre_tool_use</code> hook.
+        the exact catalogue depends on runtime and configuration.
+        Restrict with <code>available_tools</code> or <code>excluded_tools</code>.
+        Permissions and sandboxing are separate controls.
       </p>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
           <span class="num">RD</span><h3>Read</h3>
-          <p><code>read_file</code>, <code>view</code>, <code>list_dir</code>,
-          <code>glob</code>, <code>grep</code> (ripgrep).</p>
+          <p><code>view</code> for files / directories,
+          <code>glob</code> for paths and <code>grep</code> for content.</p>
         </div>
         <div class="card b-purple">
           <span class="num">WR</span><h3>Write</h3>
-          <p><code>edit</code>, <code>create</code>, <code>write_file</code> &mdash;
+          <p><code>edit</code>, <code>create</code>, <code>apply_patch</code> &mdash;
           gated by the permission handler.</p>
         </div>
         <div class="card b-orange">
           <span class="num">SH</span><h3>Shell</h3>
-          <p><code>bash</code> / <code>shell</code> for arbitrary commands.
-          Disable in production; whitelist a few safe ones.</p>
+          <p>Platform-specific execution, such as <code>bash</code>.
+          Expose only what the task needs; review permissions.</p>
         </div>
         <div class="card b-green">
           <span class="num">WB</span><h3>Web</h3>
@@ -1258,7 +1287,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-footer">
       <span class="crumb">tools · read / write / shell / web / tasks</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/index.md" target="_blank" rel="noopener">docs/features/index.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
       <span>10 / 30</span>
     </div>
   </section>
@@ -1297,7 +1326,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 <pre><code><span class="tk-kw">class</span> <span class="tk-cl">WeatherArgs</span>(<span class="tk-cl">BaseModel</span>):
     city: <span class="tk-cl">str</span> = <span class="tk-fn">Field</span>(description=<span class="tk-st">"City name"</span>)
 
-<span class="tk-de">@define_tool</span>(<span class="tk-st">"get_weather"</span>, <span class="tk-st">"Current weather"</span>, <span class="tk-cl">WeatherArgs</span>)
+<span class="tk-de">@define_tool</span>(description=<span class="tk-st">"Get current weather for a city"</span>)
 <span class="tk-kw">async def</span> <span class="tk-fn">get_weather</span>(args: <span class="tk-cl">WeatherArgs</span>) -&gt; <span class="tk-cl">dict</span>:
     <span class="tk-kw">return</span> <span class="tk-kw">await</span> <span class="tk-fn">fetch_weather</span>(args.city)<span class="caret"></span></code></pre>
         </div>
@@ -1305,7 +1334,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-footer">
       <span class="crumb">custom tools · @define_tool</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
       <span>11 / 30</span>
     </div>
   </section>
@@ -1332,7 +1361,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
         <div class="card b-blue">
           <span class="num">RS</span><h3>Researcher</h3>
           <p>Tools: <code>grep</code>, <code>glob</code>, <code>view</code>.
-          Read-only by construction.</p>
+          Read-oriented tool scope; not a sandbox.</p>
         </div>
         <div class="card b-purple">
           <span class="num">CW</span><h3>Code writer</h3>
@@ -1348,12 +1377,12 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
         Set <code>agent=&quot;name&quot;</code> on session create to pick the
         starting persona; switch with <code>session.rpc.agent.select(&hellip;)</code>.
-        Example 03 walks through an explicit writer&nbsp;&rarr;&nbsp;reviewer handoff.
+        Example 03 walks through an explicit researcher&nbsp;&rarr;&nbsp;reviewer handoff.
       </p>
     </div>
     <div class="slide-footer">
       <span class="crumb">agents · personas with scoped tools</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
       <span>12 / 30</span>
     </div>
   </section>
@@ -1382,17 +1411,18 @@ provider = <span class="tk-fn">ProviderConfig</span>(
           <p>Inject context, open an audit trail, attach a request id.</p>
         </div>
         <div class="card b-purple">
-          <span class="num">02</span><h3>on_user_prompt_submitted</h3>
-          <p>Sanitise, redact PII, or enrich the user message before the
-          model sees it.</p>
+          <span class="num">02</span><h3>Prompt hooks</h3>
+          <p><code>on_user_prompt_submitted</code> edits user input;
+          <code>on_user_prompt_transformed</code> sees the model-facing prompt.</p>
         </div>
         <div class="card b-orange">
           <span class="num">03</span><h3>on_pre_tool_use</h3>
-          <p>Allow / deny / modify any tool call. The hard-policy point.</p>
+          <p>Allow / deny / modify a tool call. Use managed policy and sandboxing for stronger boundaries.</p>
         </div>
         <div class="card b-green">
-          <span class="num">04</span><h3>on_post_tool_use</h3>
-          <p>Transform tool output &mdash; redact secrets, trim noise, log.</p>
+          <span class="num">04</span><h3>Tool-result hooks</h3>
+          <p><code>on_post_tool_use</code> handles success;
+          <code>on_post_tool_use_failure</code> handles failures.</p>
         </div>
         <div class="card b-yellow">
           <span class="num">05</span><h3>on_error_occurred</h3>
@@ -1405,8 +1435,8 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">hooks · 6 lifecycle callbacks</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
+      <span class="crumb">hooks · 8 documented callbacks; Python exposes 10</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
       <span>13 / 30</span>
     </div>
   </section>
@@ -1431,13 +1461,13 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
           <span class="num">LO</span><h3>Local / stdio</h3>
-          <p>The SDK launches a subprocess and talks over stdin/stdout.
+          <p>The CLI launches a subprocess and talks over stdin/stdout.
           Great for filesystem, SQLite, Puppeteer, local scripts.</p>
           <p style="margin-top:0.6em;"><span class="pill blue">command + args</span></p>
         </div>
         <div class="card b-purple">
           <span class="num">HT</span><h3>Remote / HTTP</h3>
-          <p>The SDK connects to an MCP endpoint over HTTP (SSE for streaming).
+          <p>The CLI connects to an MCP endpoint over HTTP.
           Use for shared services and cloud tools.</p>
           <p style="margin-top:0.6em;"><span class="pill purple">type: &quot;http&quot;</span></p>
         </div>
@@ -1445,12 +1475,12 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
         Combine with <strong>session persistence</strong> (a <code>session_id</code>
         you store on disk) to resume the same conversation later &mdash; with
-        the same MCP servers re-attached. Example 05 shows both.
+        the same MCP servers re-attached. Example 05 covers MCP; example 06 covers resume.
       </p>
     </div>
     <div class="slide-footer">
       <span class="crumb">mcp · local stdio &middot; remote http</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
       <span>14 / 30</span>
     </div>
   </section>
@@ -1470,10 +1500,10 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <h2 class="reveal">Two async context managers. One required handler.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <ul class="checks">
-          <li><strong>CopilotClient</strong> spawns the bundled CLI as a subprocess and shuts it down for you.</li>
+          <li><strong>CopilotClient</strong> provisions the matching runtime, starts it and shuts down its child process.</li>
           <li><strong>create_session</strong> opens a conversation. The <code>session_id</code> can be reused later for resume.</li>
-          <li><strong>on_permission_request</strong> is required — even <code>PermissionHandler.approve_all</code> counts.</li>
-          <li><strong>send / send_and_wait</strong> kick the agent. The reply arrives via events.</li>
+          <li><strong>on_permission_request</strong> is required. <code>approve_all</code> is for trusted demos, not production policy.</li>
+          <li><strong>send_and_wait</strong> waits for idle with a timeout; session exit detaches without deleting saved history.</li>
         </ul>
         <div class="code-window">
           <div class="titlebar">
@@ -1486,18 +1516,20 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 <span class="tk-kw">async with</span> CopilotClient() <span class="tk-kw">as</span> client:
     <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
         on_permission_request=PermissionHandler.approve_all,
+        available_tools=[],
         model=<span class="tk-st">"gpt-5-mini"</span>,
     ) <span class="tk-kw">as</span> session:
         reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
-            <span class="tk-st">"Hello, Copilot."</span>
+            <span class="tk-st">"Hello, Copilot."</span>, timeout=120,
         )
-        <span class="tk-fn">print</span>(reply.data.content)<span class="caret"></span></code></pre>
+        <span class="tk-kw">if</span> reply:
+            <span class="tk-fn">print</span>(reply.data.content)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">pattern · async with × 2</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#quick-start" target="_blank" rel="noopener">python/ — Quickstart</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#quick-start" target="_blank" rel="noopener">python/ — Quickstart</a>
       <span>15 / 30</span>
     </div>
   </section>
@@ -1513,7 +1545,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-content">
       <span class="eyebrow reveal"><span class="chip">14</span> The seven examples</span>
-      <h2 class="reveal">Seven small files. Every core capability.</h2>
+      <h2 class="reveal">Seven small files. The core patterns.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
           <span class="num">01</span><h3>Simple streaming chat</h3>
@@ -1547,7 +1579,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-footer">
       <span class="crumb">examples &middot; 7 capabilities</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python/samples" target="_blank" rel="noopener">python/samples</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples" target="_blank" rel="noopener">python/samples</a>
       <span>16 / 30</span>
     </div>
   </section>
@@ -1569,11 +1601,13 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <p>The SDK is event-driven: <code>session.send()</code> returns immediately and the model's reply arrives as a stream of typed events.</p>
-          <p>We match on just the two we care about: <code>AssistantMessageDeltaData</code> for each fragment and <code>SessionIdleData</code> to know when to exit.</p>
+          <p>Match <code>AssistantMessageDeltaData</code> for fragments.
+          <code>send_and_wait</code> handles idle, timeout and session errors
+          while your listener keeps streaming.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill blue">streaming=True</span>
             <span class="pill purple">match / case</span>
-            <span class="pill">asyncio.Event</span>
+            <span class="pill">bounded wait</span>
           </div>
         </div>
         <div class="code-window">
@@ -1583,26 +1617,24 @@ provider = <span class="tk-fn">ProviderConfig</span>(
           </div>
 <pre><code><span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
     on_permission_request=PermissionHandler.approve_all,
+    available_tools=[],
     model=<span class="tk-st">"gpt-5-mini"</span>, streaming=<span class="tk-de">True</span>,
 ) <span class="tk-kw">as</span> session:
-    done = asyncio.<span class="tk-cl">Event</span>()
-
     <span class="tk-kw">def</span> <span class="tk-fn">on_event</span>(event):
         <span class="tk-kw">match</span> event.data:
             <span class="tk-kw">case</span> <span class="tk-cl">AssistantMessageDeltaData</span>(delta_content=d):
                 <span class="tk-fn">print</span>(d <span class="tk-kw">or</span> <span class="tk-st">""</span>, end=<span class="tk-st">""</span>, flush=<span class="tk-de">True</span>)
-            <span class="tk-kw">case</span> <span class="tk-cl">SessionIdleData</span>():
-                done.<span class="tk-fn">set</span>()
-
     session.<span class="tk-fn">on</span>(on_event)
-    <span class="tk-kw">await</span> session.<span class="tk-fn">send</span>(<span class="tk-st">"Explain the SDK in 3 sentences."</span>)
-    <span class="tk-kw">await</span> done.<span class="tk-fn">wait</span>()<span class="caret"></span></code></pre>
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"Explain the SDK in 3 sentences."</span>, timeout=120,
+    )
+    <span class="tk-fn">print</span>()<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 01 · streaming chat</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md" target="_blank" rel="noopener">docs/features/streaming-events.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md" target="_blank" rel="noopener">docs/features/streaming-events.md</a>
       <span>17 / 30</span>
     </div>
   </section>
@@ -1623,7 +1655,9 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <p><code>@define_tool</code> packages a function + a Pydantic schema into a tool the model can call on its own.</p>
-          <p>The <code>Field(description=…)</code> text is the <em>only</em> hint the model gets — write it like a tiny prompt.</p>
+          <p><code>Field(description=…)</code> explains each parameter.
+          In 1.0.13, cancelled requests cancel async tool tasks too:
+          clean up in <code>finally</code>, and let cancellation propagate.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill purple">@define_tool</span>
             <span class="pill blue">pydantic</span>
@@ -1638,24 +1672,25 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 <pre><code><span class="tk-kw">class</span> <span class="tk-cl">WeatherParams</span>(<span class="tk-cl">BaseModel</span>):
     city: <span class="tk-cl">str</span> = <span class="tk-fn">Field</span>(description=<span class="tk-st">"City, e.g. 'Seattle'"</span>)
 
-<span class="tk-de">@define_tool</span>(description=<span class="tk-st">"Get the current weather for a city"</span>)
+<span class="tk-de">@define_tool</span>(description=<span class="tk-st">"Get simulated weather for a city"</span>)
 <span class="tk-kw">async def</span> <span class="tk-fn">get_weather</span>(params: <span class="tk-cl">WeatherParams</span>) -> <span class="tk-cl">dict</span>:
     <span class="tk-kw">return</span> {<span class="tk-st">"city"</span>: params.city,
-            <span class="tk-st">"temp_c"</span>: random.<span class="tk-fn">randint</span>(-5, 35),
+            <span class="tk-st">"temperature_c"</span>: random.<span class="tk-fn">randint</span>(-5, 35),
             <span class="tk-st">"condition"</span>: <span class="tk-st">"sunny"</span>}
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
     on_permission_request=PermissionHandler.approve_all,
     model=<span class="tk-st">"gpt-5-mini"</span>, tools=[get_weather],
+    available_tools=[<span class="tk-st">"custom:get_weather"</span>],
 ) <span class="tk-kw">as</span> session:
     reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
-        <span class="tk-st">"Weather in Tokyo and Berlin?"</span>)<span class="caret"></span></code></pre>
+        <span class="tk-st">"Weather in Tokyo and Berlin?"</span>, timeout=120)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 02 · custom tools</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
       <span>18 / 30</span>
     </div>
   </section>
@@ -1696,17 +1731,20 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 ]
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
-    custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>, ...) <span class="tk-kw">as</span> s:
-    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>)
+    model=<span class="tk-st">"gpt-5-mini"</span>, custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>,
+    available_tools=[<span class="tk-st">"builtin:grep"</span>, <span class="tk-st">"builtin:view"</span>],
+    on_permission_request=PermissionHandler.approve_all,
+) <span class="tk-kw">as</span> s:
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>, timeout=120)
     <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">select</span>(<span class="tk-fn">AgentSelectRequest</span>(name=<span class="tk-st">"reviewer"</span>))
     cur = <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">get_current</span>()  <span class="tk-de"># proves swap</span>
-    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>)<span class="caret"></span></code></pre>
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>, timeout=120)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 03 · custom agents</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
       <span>19 / 30</span>
     </div>
   </section>
@@ -1727,7 +1765,10 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <p>Hooks fire at well-defined lifecycle points: <code>on_pre_tool_use</code>, <code>on_post_tool_use</code>, <code>on_user_prompt_submitted</code>, …</p>
-          <p>Return <code>None</code> for "no opinion", or a typed dict to <strong>allow</strong>, <strong>deny</strong>, <strong>rewrite arguments</strong>, or <strong>inject context</strong>.</p>
+          <p><code>on_post_tool_use</code> handles success. Register
+          <code>on_post_tool_use_failure</code> separately for failures.
+          <code>None</code> keeps default behavior; a hook result can deny,
+          rewrite arguments or inject context.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill orange">on_pre_tool_use</span>
             <span class="pill orange">on_post_tool_use</span>
@@ -1741,27 +1782,30 @@ provider = <span class="tk-fn">ProviderConfig</span>(
           </div>
 <pre><code><span class="tk-kw">async def</span> <span class="tk-fn">on_pre_tool_use</span>(input_data, invocation):
     <span class="tk-fn">print</span>(<span class="tk-st">f"[pre]  {input_data['toolName']}"</span>)
-    <span class="tk-kw">return</span> <span class="tk-de">None</span>   <span class="tk-cm"># or: {"permissionDecision": "deny", ...}</span>
 
 <span class="tk-kw">async def</span> <span class="tk-fn">on_post_tool_use</span>(input_data, invocation):
     <span class="tk-fn">print</span>(<span class="tk-st">f"[post] {input_data['toolName']} done"</span>)
-    <span class="tk-kw">return</span> <span class="tk-de">None</span>
+
+<span class="tk-kw">async def</span> <span class="tk-fn">on_post_tool_use_failure</span>(data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[failed] {data['toolName']}"</span>)
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
     on_permission_request=PermissionHandler.approve_all,
     model=<span class="tk-st">"gpt-5-mini"</span>,
+    available_tools=[<span class="tk-st">"builtin:glob"</span>, <span class="tk-st">"builtin:view"</span>],
     hooks={
         <span class="tk-st">"on_pre_tool_use"</span>: on_pre_tool_use,
         <span class="tk-st">"on_post_tool_use"</span>: on_post_tool_use,
+        <span class="tk-st">"on_post_tool_use_failure"</span>: on_post_tool_use_failure,
     },
 ) <span class="tk-kw">as</span> session:
-    ...<span class="caret"></span></code></pre>
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"List files."</span>, timeout=120)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 04 · hooks</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
       <span>20 / 30</span>
     </div>
   </section>
@@ -1782,7 +1826,10 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
           <p><strong>MCP</strong> is the open standard for plugging tool servers into LLMs &mdash; <code>local/stdio</code> or <code>http/SSE</code>.</p>
-          <p>Here we attach the official <strong>remote GitHub MCP server</strong>, scope it to three tools, and ask <code>gpt-5-mini</code> to pull <em>live</em> issues from <code>github/copilot-sdk</code> &mdash; data the model can&rsquo;t hallucinate.</p>
+          <p>Attach the official <strong>remote GitHub MCP server</strong>,
+          scope it to issue-reading tools, and request live issues from
+          <code>github/copilot-sdk</code>. Check the returned links; tool use
+          does not eliminate hallucinations.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill yellow">mcp_servers</span>
             <span class="pill blue">type: http</span>
@@ -1801,23 +1848,25 @@ provider = <span class="tk-fn">ProviderConfig</span>(
         <span class="tk-st">"headers"</span>: {<span class="tk-st">"Authorization"</span>:
                      <span class="tk-st">f"Bearer {github_token()}"</span>},
         <span class="tk-st">"tools"</span>: [<span class="tk-st">"list_issues"</span>,
-                  <span class="tk-st">"get_issue"</span>,
+                  <span class="tk-st">"issue_read"</span>,
                   <span class="tk-st">"search_issues"</span>],
     },
 }
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
-    mcp_servers=MCP_SERVERS, model=<span class="tk-st">"gpt-5-mini"</span>, ...
+    mcp_servers=MCP_SERVERS, model=<span class="tk-st">"gpt-5-mini"</span>,
+    available_tools=[<span class="tk-st">"mcp:github-list_issues"</span>],
+    on_permission_request=PermissionHandler.approve_all,
 ) <span class="tk-kw">as</span> session:
     <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
-        <span class="tk-st">"List 3 most recent open issues on github/copilot-sdk."</span>
+        <span class="tk-st">"List 3 recent open issues on github/copilot-sdk."</span>, timeout=180,
     )<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 05 &middot; mcp servers</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
       <span>21 / 30</span>
     </div>
   </section>
@@ -1837,8 +1886,13 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <h2 class="reveal">New process. Same memory.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
-          <p>Pass a stable <code>session_id</code> on creation, and the SDK persists the entire conversation history &mdash; messages, tool calls, agent state &mdash; to disk.</p>
-          <p>Later, <code>client.resume_session(id, ...)</code> rehydrates it in a fresh Python process. We prove it with a memory test: turn 1 says &ldquo;remember my name&rdquo;, turn 2 (new process) asks &ldquo;what is my name?&rdquo; and gets the right answer back.</p>
+          <p>Keep <code>session.session_id</code>, or choose your own ID.
+          The CLI persists conversation state on disk; a new process
+          must use the same state storage.</p>
+          <p><code>resume_session</code> restores context. Re-register
+          handlers, tools and MCP configuration; re-supply injected
+          <code>managed_settings</code>. Context-manager exit detaches;
+          <code>delete_session</code> permanently removes saved state.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill blue">session_id</span>
             <span class="pill">resume_session</span>
@@ -1854,23 +1908,25 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 
 <span class="tk-cm"># Turn 1 — fresh process, store memory</span>
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
-    session_id=SESSION_ID, model=<span class="tk-st">"gpt-5-mini"</span>, ...
+    session_id=SESSION_ID, model=<span class="tk-st">"gpt-5-mini"</span>, available_tools=[],
+    on_permission_request=PermissionHandler.approve_all,
 ) <span class="tk-kw">as</span> session:
     <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
-        <span class="tk-st">"My name is Jeffrey. Remember it."</span>)
+        <span class="tk-st">"My name is Jeffrey. Remember it."</span>, timeout=120)
 
 <span class="tk-cm"># Turn 2 — new process, recall memory</span>
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">resume_session</span>(
-    SESSION_ID, model=<span class="tk-st">"gpt-5-mini"</span>, ...
+    SESSION_ID, available_tools=[],
+    on_permission_request=PermissionHandler.approve_all,
 ) <span class="tk-kw">as</span> session:
     <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
-        <span class="tk-st">"What is my name?"</span>)  <span class="tk-cm"># → "Jeffrey"</span><span class="caret"></span></code></pre>
+        <span class="tk-st">"What is my name?"</span>, timeout=120)<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 06 &middot; session persistence</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md" target="_blank" rel="noopener">docs/features/session-persistence.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/session-persistence.md" target="_blank" rel="noopener">docs/features/session-persistence.md</a>
       <span>22 / 30</span>
     </div>
   </section>
@@ -1890,8 +1946,12 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       <h2 class="reveal">Custom permission + <code>ask_user</code>. You stay in control.</h2>
       <div class="two-col reveal" style="margin-top: var(--content-gap);">
         <div class="stack-tight">
-          <p>The permission handler is called for every sensitive action — read, write, shell, MCP, network. Approve, reject, or ask a human.</p>
-          <p><code>on_user_input_request</code> wires the agent's <code>ask_user</code> tool to <em>your</em> UI — terminal, Slack, anything.</p>
+          <p>Permission requests describe reads, writes, shell and MCP
+          operations. Approve or reject explicitly; tool scope is not a sandbox.</p>
+          <p><code>ask_user_variant="legacy"</code> uses
+          <code>on_user_input_request</code>. The full example supplies
+          <code>read_answer</code>, a bounded console reader, and validates
+          choice labels. Elicitation uses a separate form handler.</p>
           <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
             <span class="pill pink">on_permission_request</span>
             <span class="pill pink">on_user_input_request</span>
@@ -1902,32 +1962,30 @@ provider = <span class="tk-fn">ProviderConfig</span>(
             <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
             <span class="name">07_human_in_the_loop.py</span>
           </div>
-<pre><code><span class="tk-kw">from</span> copilot.rpc <span class="tk-kw">import</span> PermissionDecisionApproveOnce, PermissionDecisionReject
-<span class="tk-kw">from</span> copilot.session_events <span class="tk-kw">import</span> PermissionRequestRead, PermissionRequestShell
+<pre><code><span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> rpc
+<span class="tk-kw">from</span> copilot.session_events <span class="tk-kw">import</span> PermissionRequestShell
 
-<span class="tk-kw">def</span> <span class="tk-fn">on_permission_request</span>(request, invocation):
-    <span class="tk-kw">match</span> request:                  <span class="tk-cm"># discriminated union — match the kind</span>
-        <span class="tk-kw">case</span> <span class="tk-fn">PermissionRequestRead</span>():
-            <span class="tk-kw">return</span> <span class="tk-fn">PermissionDecisionApproveOnce</span>()
+<span class="tk-kw">async def</span> <span class="tk-fn">on_permission_request</span>(request, invocation):
+    <span class="tk-kw">match</span> request:
         <span class="tk-kw">case</span> <span class="tk-fn">PermissionRequestShell</span>(full_command_text=cmd):
-            <span class="tk-kw">if</span> <span class="tk-fn">input</span>(<span class="tk-st">f"run {cmd}? [y/N]: "</span>) == <span class="tk-st">"y"</span>:
-                <span class="tk-kw">return</span> <span class="tk-fn">PermissionDecisionApproveOnce</span>()
-            <span class="tk-kw">return</span> <span class="tk-fn">PermissionDecisionReject</span>()
-
-<span class="tk-kw">def</span> <span class="tk-fn">on_user_input_request</span>(request, invocation):
-    answer = <span class="tk-fn">input</span>(<span class="tk-st">f"{request['question']} "</span>)
-    <span class="tk-kw">return</span> {<span class="tk-st">"answer"</span>: answer, <span class="tk-st">"wasFreeform"</span>: <span class="tk-de">True</span>}
+            prompt = <span class="tk-st">f"Run {cmd}? [y/N]: "</span>
+            answer = <span class="tk-kw">await</span> <span class="tk-fn">read_answer</span>(prompt)
+            <span class="tk-kw">if</span> answer.strip().lower() == <span class="tk-st">"y"</span>:
+                <span class="tk-kw">return</span> rpc.<span class="tk-fn">PermissionDecisionApproveOnce</span>()
+    <span class="tk-kw">return</span> rpc.<span class="tk-fn">PermissionDecisionReject</span>()
 
 <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    model=<span class="tk-st">"gpt-5-mini"</span>,
     on_permission_request=on_permission_request,
-    on_user_input_request=on_user_input_request, ...
+    ask_user_variant=<span class="tk-st">"legacy"</span>,
+    on_user_input_request=on_user_input_request,
 ) <span class="tk-kw">as</span> session: ...<span class="caret"></span></code></pre>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">example 07 &middot; human in the loop</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#permission-handling" target="_blank" rel="noopener">python/ — Permission Handling</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#permission-handling" target="_blank" rel="noopener">python/ — Permission Handling</a>
       <span>23 / 30</span>
     </div>
   </section>
@@ -1950,27 +2008,28 @@ provider = <span class="tk-fn">ProviderConfig</span>(
           your app. Zero config &mdash; perfect for scripts and dev.</p>
         </div>
         <div class="card b-purple">
-          <span class="num">02</span><h3>Bundled CLI</h3>
-          <p>Ship <code>copilot-darwin-arm64</code> / <code>linux-x64</code> /
-          <code>win-x64.exe</code> alongside your binary. Electron, Tauri,
-          Docker images &mdash; no separate install for end-users.</p>
+          <span class="num">02</span><h3>Pre-provisioned runtime</h3>
+          <p>Run <code>python -m copilot download-runtime</code> ahead of time.
+          Override with <code>connection=RuntimeConnection.for_stdio(path=...)</code>
+          for an explicitly supplied executable.</p>
         </div>
         <div class="card b-orange">
           <span class="num">03</span><h3>Headless server (TCP)</h3>
-          <p><code>copilot --headless --port 4321</code>. SDKs connect over
-          TCP. Independent lifecycle &mdash; the pattern for backend APIs and
-          SaaS products.</p>
+          <p><code>copilot --headless --port 4321</code>.
+          Connect with <code>RuntimeConnection.for_uri("localhost:4321")</code>.
+          Keep it private; remote access needs network protection and authentication.</p>
         </div>
         <div class="card b-green">
           <span class="num">04</span><h3>Horizontally scaled</h3>
-          <p>Multi-client sessions, per-tenant isolation, OpenTelemetry
-          tracing, 40+ streaming events. Production at scale.</p>
+          <p>Your app must enforce tenant ownership, isolate workspaces,
+          serialize turns and route persisted sessions. The SDK does not
+          supply a tenant boundary or load balancer.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <span class="crumb">deployment · local &middot; bundled &middot; tcp &middot; scaled</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/remote-sessions.md" target="_blank" rel="noopener">docs/features/remote-sessions.md</a>
       <span>24 / 30</span>
     </div>
   </section>
@@ -1987,15 +2046,16 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-content">
       <span class="eyebrow reveal"><span class="chip">16</span> Run it now</span>
-      <h2 class="reveal">Open in Codespaces — sixty seconds to a working env.</h2>
+      <h2 class="reveal">Open in Codespaces. Authenticate, then run.</h2>
       <div class="cta-card reveal" style="margin-top: var(--content-gap);">
         <p style="color: var(--gh-fg);">
           The repo ships with a <code>.devcontainer/</code> that pre-installs
-          Python 3.12, Node.js LTS, the GitHub CLI and the Copilot SDK.
-          Click below, wait for the green dot, then in the terminal:
+          Python 3.12, Node.js LTS, GitHub CLI and the pinned SDK.
+          The matching runtime is downloaded on first use; the interactive
+          <code>copilot</code> command is a separate installation.
         </p>
         <ul class="steps reveal" style="margin: 1em 0;">
-          <li><code>copilot login</code> — one-time browser sign-in</li>
+          <li>Install Copilot CLI and run <code>copilot login</code>, or securely provision <code>COPILOT_GITHUB_TOKEN</code>.</li>
           <li><code>python examples/01_simple_chat.py</code> — see streaming chat in action</li>
           <li>Open <code>examples/01_simple_chat.md</code> alongside — every line explained, plus exercises</li>
         </ul>
@@ -2031,9 +2091,9 @@ provider = <span class="tk-fn">ProviderConfig</span>(
         <div class="stack-tight">
           <h3 style="margin:0; color: var(--gh-fg);">Get started in 3 steps</h3>
           <ol class="steps">
-            <li><strong>Install the CLI</strong> &mdash; follow the official Copilot CLI install guide for your OS.</li>
-            <li><strong>Install the SDK</strong> &mdash; <code>pip install github-copilot-sdk</code> (or your language's equivalent).</li>
-            <li><strong>Open your first session</strong> &mdash; <code>client.create_session(model=&quot;gpt-5-mini&quot;)</code> and start sending prompts.</li>
+            <li><strong>Install the pinned SDK</strong> &mdash; <code>pip install -r requirements.txt</code>; it manages runtime 1.0.83.</li>
+            <li><strong>Authenticate</strong> &mdash; separately install the CLI for <code>copilot login</code>, or use an eligible token / BYOK.</li>
+            <li><strong>Run the full example</strong> &mdash; <code>python examples/01_simple_chat.py</code> includes permissions and cleanup.</li>
           </ol>
         </div>
         <div class="stack-tight">
@@ -2067,164 +2127,163 @@ provider = <span class="tk-fn">ProviderConfig</span>(
     </div>
     <div class="slide-content">
       <span class="eyebrow reveal"><span class="chip">18</span> Release timeline</span>
-      <h2 class="reveal">From <code>0.1</code> to <code>1.0</code> &mdash; five months to a stable API.</h2>
-      <p class="lede reveal">The Python SDK shipped publicly in January 2026 and iterated fast.
-      Two refinement releases tightened the API, and <strong>1.0.0 landed on
-      2&nbsp;Jun&nbsp;2026</strong> as the first stable, semver-backed release &mdash;
-      here is what changed at each step.</p>
+      <h2 class="reveal">The stable SDK keeps moving.</h2>
+      <p class="lede reveal">This workshop is pinned to <strong>1.0.13</strong>,
+      released <strong>4 September 2026</strong>. The original 1.0 API remains
+      the foundation; the newer releases extend identity, permissions and
+      session control. Baseline checked 7 September 2026.</p>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
-          <span class="num">0.1</span>
-          <h3>0.1.x &middot; Jan&ndash;Mar 2026</h3>
-          <p>Public preview baseline. Client / session lifecycle, streaming
-          events, tool registration, permission handler, MCP, hooks.</p>
+          <span class="num">1.0</span>
+          <h3>1.0.0 &middot; 2 June</h3>
+          <p>Stable foundation: public event / RPC modules, permission
+          decision objects, custom tools, hooks, MCP and persistence.</p>
         </div>
         <div class="card b-purple">
-          <span class="num">0.2<br>0.3</span>
-          <h3>0.2&ndash;0.3 &middot; Mar&ndash;Apr 2026</h3>
-          <p>Refinement toward GA: prompt customization, OpenTelemetry,
-          per-session auth, agent-scoped tools &amp; skills, scoped permissions.</p>
+          <span class="num">1.0.x</span>
+          <h3>Summer updates</h3>
+          <p>Richer prompt / tool-failure hooks and refreshed provider
+          authentication. Entra tokens can rotate through a BYOK callback.</p>
         </div>
         <div class="card b-green">
-          <span class="num">1.0</span>
-          <h3>1.0.0 &middot; 02 Jun 2026 &middot; current</h3>
-          <p>First <strong>stable</strong> release. Public <code>copilot.session_events</code>
-          &amp; <code>copilot.rpc</code> modules, permission decision objects,
-          infinite sessions, BYOK providers.</p>
+          <span class="num">1.0.13</span>
+          <h3>4 September &middot; current stable</h3>
+          <p>Client identity, rotating session credentials, selectable
+          <code>ask_user</code>, tool cancellation and detach-based cleanup.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">timeline &middot; 0.1 &rarr; 0.3 &rarr; 1.0</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>
+      <span class="crumb">timeline &middot; stable baseline as of 7 sep 2026</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/v1.0.13" target="_blank" rel="noopener">v1.0.13 release notes</a>
       <span>27 / 30</span>
     </div>
   </section>
 
   <!-- ===============================================================
-       SLIDE 28 — What's new in 1.0.0
+       SLIDE 28 — What's new in 1.0.13
        =============================================================== -->
   <section class="slide">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <span class="path">~/ copilot-sdk / releases / v1.0.0.md</span>
-      <span class="meta"><span class="branch">tag: v1.0.0</span></span>
+      <span class="path">~/ copilot-sdk / releases / v1.0.13.md</span>
+      <span class="meta"><span class="branch">tag: v1.0.13</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">19</span> What changed &middot; 0.3 &rarr; 1.0.0</span>
-      <h2 class="reveal">1.0 &mdash; the first <em>stable</em> SDK. A public, semver-backed API.</h2>
+      <span class="eyebrow reveal"><span class="chip">19</span> What changed &middot; 1.0.13</span>
+      <h2 class="reveal">More control at the application boundary.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
           <span class="num">01</span>
-          <h3>Public, stable modules</h3>
-          <p>Import from <code>copilot.session_events</code> and
-          <code>copilot.rpc</code> &mdash; no more <code>copilot.generated.*</code>.
-          Semantic versioning now applies to the public surface.</p>
+          <h3>Identify your application</h3>
+          <p><code>client_info</code> attributes runtime telemetry to your
+          app and integration. Optional; sent during connection setup.</p>
         </div>
         <div class="card b-purple">
           <span class="num">02</span>
-          <h3>Permission decision objects</h3>
-          <p><code>PermissionRequest</code> is a discriminated union;
-          handlers return objects like <code>PermissionDecisionApproveOnce()</code>
-          &mdash; no more <code>kind=</code> strings.</p>
+          <h3>Rotate GitHub credentials</h3>
+          <p>A session callback handles initial acquisition and refresh.
+          Return a token and positive remaining lifetime; errors fail
+          instead of falling back to ambient auth.</p>
         </div>
         <div class="card b-green">
           <span class="num">03</span>
-          <h3>Infinite sessions by default</h3>
-          <p>Background context compaction keeps long conversations under
-          the window automatically, with a workspace dir for checkpoints
-          &mdash; tune or disable via <code>infinite_sessions</code>.</p>
+          <h3>Choose the question UI</h3>
+          <p><code>ask_user_variant</code>: <code>"legacy"</code> keeps
+          question / answer callbacks; <code>"elicitation"</code> selects
+          forms with an elicitation handler.</p>
         </div>
         <div class="card b-orange">
           <span class="num">04</span>
-          <h3>BYOK custom providers</h3>
-          <p>First-class <code>provider=</code> config for OpenAI-, Azure-,
-          and Anthropic-compatible endpoints (incl. Ollama / vLLM) &mdash;
-          bring your own key and model.</p>
+          <h3>Cancel host-owned tools</h3>
+          <p>Python cancels async handler tasks when their request ends
+          or session terminates. Release resources in <code>finally</code>;
+          do not swallow <code>CancelledError</code>.</p>
         </div>
         <div class="card b-pink">
           <span class="num">05</span>
-          <h3>Slash commands over RPC</h3>
-          <p>Send <code>/my-command</code> via <code>session.send</code> and
-          receive the command&rsquo;s response through the RPC layer
-          &mdash; previously fire-and-forget.</p>
+          <h3>Inject managed permissions</h3>
+          <p><code>managed_settings</code> adds restrictive startup policy.
+          Re-supply on resume. Requires CLI <code>1.0.79-5+</code>;
+          do not pair with <code>approve_all</code>.</p>
         </div>
         <div class="card b-yellow">
           <span class="num">06</span>
-          <h3>MCP apps &amp; richer results</h3>
-          <p>Opt into interactive MCP apps with <code>enable_mcp_apps</code>;
-          calling an MCP app tool via <code>session.rpc.mcp.apps.call_tool()</code>
-          now returns its JSON result.</p>
+          <h3>Steer Auto routing</h3>
+          <p><code>set_auto_tier("efficiency")</code> stages a preference
+          for the next successful <code>auto</code> turn. Balance and
+          intelligence tiers are also available.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">v1.0.0 &middot; 02 jun 2026 &middot; current release</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/releases" target="_blank" rel="noopener">releases · python 1.0.0</a>
+      <span class="crumb">v1.0.13 &middot; 4 sep 2026 &middot; stable features</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/v1.0.13" target="_blank" rel="noopener">v1.0.13 release notes</a>
       <span>28 / 30</span>
     </div>
   </section>
 
   <!-- ===============================================================
-       SLIDE 29 — Upgrading to 1.0.0
+       SLIDE 29 — Upgrading to 1.0.13
        =============================================================== -->
   <section class="slide">
     <div class="tab-strip reveal">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
       <span class="path">~/ copilot-sdk / docs / upgrading.md</span>
-      <span class="meta"><span class="branch">tag: v1.0.0</span></span>
+      <span class="meta"><span class="branch">tag: v1.0.13</span></span>
     </div>
     <div class="slide-content">
-      <span class="eyebrow reveal"><span class="chip">20</span> Migration &middot; 0.3 &rarr; 1.0.0</span>
-      <h2 class="reveal">Upgrading takes three small edits.</h2>
+      <span class="eyebrow reveal"><span class="chip">20</span> Refresh &middot; 1.0.0 &rarr; 1.0.13</span>
+      <h2 class="reveal">Same core patterns. Tighter lifecycle handling.</h2>
       <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
         <div class="card b-blue">
           <span class="num">01</span>
           <h3>Pin the version</h3>
-          <p>Bump <code>github-copilot-sdk&gt;=1.0.0</code> in
-          <code>requirements.txt</code> / <code>pyproject.toml</code>, then
-          <code>pip install -U</code>.</p>
+          <p>Use <code>github-copilot-sdk==1.0.13</code>.
+          The SDK manages runtime 1.0.83. Explicit executables now use
+          <code>connection=RuntimeConnection.for_stdio(path=...)</code>,
+          not <code>cli_path</code>.</p>
         </div>
         <div class="card b-purple">
           <span class="num">02</span>
-          <h3>Use the public modules</h3>
-          <p>Replace <code>copilot.generated.session_events</code> &rarr;
-          <code>copilot.session_events</code> and
-          <code>copilot.generated.rpc</code> &rarr; <code>copilot.rpc</code>.</p>
+          <h3>Detach is not deletion</h3>
+          <p>Session exit / <code>disconnect()</code> now uses
+          <code>session.detach</code>, without tearing down other owners.
+          Use <code>delete_session</code> only to erase saved state.</p>
         </div>
         <div class="card b-green">
           <span class="num">03</span>
-          <h3>Return decision objects</h3>
-          <p><code>PermissionRequestResult(kind="approve-once")</code> &rarr;
-          <code>PermissionDecisionApproveOnce()</code>. Match on the request
-          variant &mdash; <code>request.kind</code> no longer exists.</p>
+          <h3>Re-register runtime config</h3>
+          <p>Resume restores context, not your Python callbacks.
+          Re-supply tools, hooks, MCP settings and startup-only managed
+          permissions; otherwise that injected policy is cleared.</p>
         </div>
         <div class="card b-orange">
-          <span class="num">⚠</span>
-          <h3>Silent-failure trap</h3>
-          <p>The old <code>request.kind.value</code> raises
-          <code>AttributeError</code>, which the SDK swallows and turns into
-          a <em>denial</em> &mdash; so the agent &ldquo;can&rsquo;t act&rdquo; with no error.</p>
+          <span class="num">04</span>
+          <h3>Bound every turn</h3>
+          <p><code>send_and_wait(..., timeout=120)</code> raises on timeout
+          or session errors. <code>None</code> means idle without a final
+          assistant message, not a timeout.</p>
         </div>
         <div class="card b-pink">
-          <span class="num">04</span>
-          <h3>Pick a current model</h3>
-          <p><code>gpt-4.1</code> is retired. Use
-          <code>list_models()</code> &mdash; e.g. <code>gpt-5-mini</code>,
-          <code>gpt-5.4</code>, <code>claude-sonnet-4.5</code>.</p>
+          <span class="num">05</span>
+          <h3>Discover, don&rsquo;t guess</h3>
+          <p>Use <code>list_models()</code> for your account&rsquo;s catalogue.
+          These examples retain <code>gpt-5-mini</code>.
+          GitHub MCP uses <code>issue_read</code>, not <code>get_issue</code>.</p>
         </div>
         <div class="card b-yellow">
-          <span class="num">✓</span>
-          <h3>Same shape elsewhere</h3>
-          <p>Tools (<code>@define_tool</code>), hooks, MCP config, custom
-          agents and <code>resume_session</code> are unchanged &mdash; the
-          upgrade is mostly imports + permissions.</p>
+          <span class="num">06</span>
+          <h3>Keep demos scoped</h3>
+          <p>Use explicit tool lists and deliberate permission decisions.
+          Keep legacy <code>ask_user</code> unless a structured form handler
+          is ready. New features are opt-in, not mandatory rewrites.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <span class="crumb">upgrading &middot; 0.3 &rarr; 1.0.0</span>
-      <a class="src" href="https://github.com/github/copilot-sdk/tree/main/python#permission-handling" target="_blank" rel="noopener">python/ — Permission Handling</a>
+      <span class="crumb">upgrading &middot; 1.0.0 &rarr; 1.0.13</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/v1.0.13" target="_blank" rel="noopener">v1.0.13 release notes</a>
       <span>29 / 30</span>
     </div>
   </section>
@@ -2315,6 +2374,9 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 
       setupKeyboardNav() {
         document.addEventListener('keydown', e => {
+          if (e.target.closest('a, button, input, textarea, select')) return;
+          if (window.matchMedia('(max-width: 760px)').matches &&
+              !['Home', 'End'].includes(e.key)) return;
           switch (e.key) {
             case 'ArrowDown': case 'ArrowRight': case 'PageDown': case ' ':
               e.preventDefault(); this.goTo(this.currentSlide + 1); break;
@@ -2330,6 +2392,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
 
       setupTouchNav() {
         document.addEventListener('touchstart', e => {
+          if (window.matchMedia('(max-width: 760px)').matches) return;
           this.touchStartY = e.touches[0].clientY;
         }, { passive: true });
         document.addEventListener('touchend', e => {
@@ -2345,6 +2408,8 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       /* Wheel events fire VERY frequently — debounce to one slide per gesture. */
       setupWheelNav() {
         window.addEventListener('wheel', e => {
+          if (window.matchMedia('(max-width: 760px)').matches ||
+              e.target.closest('pre')) return;
           const now = Date.now();
           if (now - this.lastWheel < 700) return;
           if (Math.abs(e.deltaY) < 12) return;
@@ -2359,7 +2424,7 @@ provider = <span class="tk-fn">ProviderConfig</span>(
       }
       updateProgressBar() {
         const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
-        this.progressBar.style.width = pct + '%';
+        this.progressBar.style.transform = `scaleX(${pct / 100})`;
       }
 
       setupNavDots() {

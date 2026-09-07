@@ -1,60 +1,59 @@
 # Examples — student guide
 
-Each example in this folder ships with **two files**:
+**Workshop baseline:** `github-copilot-sdk==1.0.13`, Python 3.11+, Pydantic 2+,
+Copilot CLI/runtime 1.0.83. See [setup and release notes](../README.md).
 
-| File | What it is |
-|------|------------|
-| `0N_*.py` | Runnable, heavily-commented Python source |
-| `0N_*.md` | A walkthrough with a mermaid flow diagram, line-by-line explanation, expected output, exercises and common pitfalls |
-
-Read the `.md` first, then open the `.py` and tinker.
-
-## Recommended reading order
+Each numbered `.py` is independently runnable; its `.md` explains the code,
+shows a flow diagram, and offers exercises. Run scripts from the repository
+root. No shared application framework is required.
 
 ```mermaid
 flowchart LR
-    A[01 Simple chat] --> B[02 Custom tools]
-    B --> C[03 Custom agents]
+    A[01 Streaming] --> B[02 Custom tools]
+    B --> C[03 Agents]
     C --> D[04 Hooks]
-    D --> E[05 MCP servers]
-    E --> F[06 Session persistence]
-    F --> G[07 Human in the loop]
+    D --> E[05 Remote MCP]
+    E --> F[06 Persistence]
+    F --> G[07 Human input]
 ```
 
-| # | Topic | Concepts | 📖 Upstream source |
-|---|-------|----------|--------------------|
-| [01](01_simple_chat.md) | **Streaming chat** | Client / session lifecycle, event stream, `match`/`case` on SDK events | [`docs/features/streaming-events.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md) |
-| [02](02_custom_tools.md) | **Custom tools** | `@define_tool`, Pydantic schemas, request/response with `send_and_wait` | [`python/README — Tools`](https://github.com/github/copilot-sdk/tree/main/python#tools) |
-| [03](03_custom_agents.md) | **Custom agents** | Multiple personas in one session, mid-conversation handoff, `rpc.agent.get_current()` to verify the swap | [`docs/features/custom-agents.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/custom-agents.md) |
-| [04](04_hooks.md) | **Hooks** | Pre/post tool callbacks for audit, telemetry, soft policy | [`docs/features/hooks.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/hooks.md) |
-| [05](05_mcp_servers.md) | **MCP servers** | Attaching the remote GitHub MCP server, scoping with a `tools` allowlist | [`docs/features/mcp.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md) |
-| [06](06_session_resume.md) | **Session persistence** | Stable `session_id` + `resume_session()` proven with a memory test | [`docs/features/session-persistence.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md) |
-| [07](07_human_in_the_loop.md) | **Human in the loop** | Custom permission handler + `ask_user` callback | [`python/README — Permission Handling`](https://github.com/github/copilot-sdk/tree/main/python#permission-handling) |
+| Guide | Concepts | Version-pinned authority |
+|---|---|---|
+| [01 Streaming](01_simple_chat.md) | Client identity, events, bounded completion | [Session implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py) |
+| [02 Tools](02_custom_tools.md) | Pydantic schemas and fictional weather | [Tool implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py) |
+| [03 Agents](03_custom_agents.md) | Select and verify researcher → reviewer | [Custom agents](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md) |
+| [04 Hooks](04_hooks.md) | Pre/post callbacks and policy distinctions | [Hook types/dispatch](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py) |
+| [05 MCP](05_mcp_servers.md) | Remote HTTP, credentials, issue tool allowlists | [MCP](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md) |
+| [06 Persistence](06_session_resume.md) | Detach, saved IDs, cold resume | [Client implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py) |
+| [07 Human input](07_human_in_the_loop.md) | Permission variants, legacy choices, deadlines | [Input/permission types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py) |
 
-## How to run
+## Shared conventions
+
+- Model: `gpt-5-mini`; inspect `await client.list_models()` before switching.
+  Model calls may consume your account's quota; no cost guarantee is implied.
+- Context managers clean up the session and owned client. In 1.0.13,
+  session `disconnect()` uses **detach**, retaining persisted state.
+- `send_and_wait(..., timeout=...)` still emits events to `session.on`.
+  Timeout **raises `TimeoutError`**; `None` means idle without an assistant
+  message. Examples deliberately raise if a required reply is absent.
+- All conversations have deadlines; callbacks do not swallow cancellation.
+  Timeout stops waiting, not necessarily remote agent work.
+- Tools are explicitly scoped. `available_tools` filters the entire merged
+  catalogue: `builtin:view`, `custom:get_weather`, `mcp:github-list_issues`.
+  Source: [tagged ToolSet implementation/tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
+- `approve_all` is a trusted-workshop convenience, **not a sandbox**. Use a
+  non-sensitive checkout and least-privilege credentials. Example 07 asks
+  before shell execution and denies unexpected permission kinds.
+- Console traces log tool names, not credentials or full MCP payloads.
+
+## Run and inspect
 
 ```bash
-# from the repo root
 python examples/01_simple_chat.py
-```
-
-All examples default to the fast, low-cost `gpt-5-mini` model — switch to any
-model from `await client.list_models()` (e.g. `gpt-5.4`, `claude-sonnet-4.5`).
-
-## Where to look up SDK symbols
-
-Every README links to the relevant chapter in the upstream docs:
-[github/copilot-sdk → docs/](https://github.com/github/copilot-sdk/tree/main/docs).
-The SDK source you have installed locally is also a great reference:
-
-```bash
-# Where the SDK lives in your venv
+python -m unittest discover -s examples/tests -v  # mocked, no model calls
 python -c "import copilot, pathlib; print(pathlib.Path(copilot.__file__).parent)"
 ```
 
-## Adapting the examples
-
-Each guide ends with a **"Try this next"** section — small, focused exercises
-that nudge you to take ownership of the example. Pick one and modify the code:
-break things on purpose, add a new tool, change the model, swap the agent
-persona. That's how the patterns stick.
+The source walkthroughs are pinned to the stable release. Consult generated
+Python types when narrative docs and actual signatures differ; do not copy
+unreleased examples without checking the installed version.

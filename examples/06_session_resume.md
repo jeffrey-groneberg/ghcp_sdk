@@ -1,178 +1,137 @@
 # 06 · Session persistence
 
-📖 **Source:** [`github/copilot-sdk · docs/features/session-persistence.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md)
+📖 **Sources (SDK v1.0.13):**
+[Python create/resume implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
+[session ID and detach](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
+[release lifecycle changes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
-> Every Copilot SDK session has a **stable ID**. Pass the same ID to
-> `create_session()` once and to `resume_session()` later, and the CLI
-> replays the entire conversation history back into the model. This is the
-> primitive behind any agent that "remembers" — across processes,
-> deployments, browser refreshes, or overnight pauses.
-
-## What you'll learn
-
-- How to assign a stable `session_id` at creation time
-- How `client.resume_session(session_id, ...)` re-attaches and replays
-  history
-- What is preserved across a resume — and what you **must** re-declare
-  every time (handlers, MCP servers, custom tools)
-
-## The proof
-
-This demo is a deliberate memory test:
-
-1. **Turn 1** — tell the model two facts (*"my name is Jeffrey, my
-   favourite language is Python"*) and exit the process.
-2. **Turn 2 (`--resume`)** — start a fresh Python process and ask the
-   model to repeat those facts back, **without re-supplying them**.
-
-If the second turn answers correctly, persistence worked. There is no
-other source of the information in the second process.
+Open [the runnable source](06_session_resume.py). Run once to supply two
+facts, then resume in a new process without repeating those facts in the
+new prompt. Tools are disabled in both phases so the agent cannot read the
+answers from this source file.
 
 ## The flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant App1 as Process 1
-    participant CLI as Copilot CLI (persists sessions on disk)
-    participant Model
-    participant App2 as Process 2 (--resume)
-
-    App1->>CLI: create_session(session_id="demo-...", model="gpt-5-mini")
-    App1->>CLI: send("Please remember: name=Jeffrey, lang=Python")
-    CLI->>Model: prompt
-    Model-->>App1: "Noted, Jeffrey!"
-    Note over CLI: Conversation persisted<br/>under session_id="demo-..."
-
-    Note over App1, App2: Process 1 exits.<br/>Minutes / hours / days pass.
-
-    App2->>CLI: resume_session("demo-...")
-    CLI->>Model: replay history into context
-    App2->>CLI: send("What did I tell you my name was?")
-    Model-->>App2: "Your name is Jeffrey, language is Python."
+    participant First as First process
+    participant Runtime
+    participant Disk as CLI session storage
+    participant Second as New process
+    First->>Runtime: create_session(session_id=demo-session-resume)
+    First->>Runtime: send_and_wait(remember two facts)
+    Runtime->>Disk: Persist conversation
+    Runtime-->>First: Acknowledgement
+    First->>Runtime: disconnect -> session.detach
+    Note over First,Second: First client exits; same account/storage retained
+    Second->>Runtime: resume_session(same ID, callbacks and tool scope)
+    Runtime->>Disk: Load persisted conversation
+    Second->>Runtime: send_and_wait(recall question)
+    Runtime-->>Second: Answer using previous context
 ```
 
 ## Code walkthrough
 
-### 1. Pick a stable session ID
+### 1. Choose or save an ID
 
 ```python
 SESSION_ID = "demo-session-resume"
 ```
 
-In production this would be a UUID per user / per conversation, stored
-next to your user row in your database. The string itself is opaque —
-the SDK never inspects it. *"Every conversation has an ID; persist it."*
+The command-line `--session-id` option allows separate workshop conversations.
+A real application should use a unique conversation identifier and authorize
+which user may access it. An ID is not an authorization boundary.
 
-### 2. First run — `create_session(session_id=...)`
+**Generated IDs are resumable too.** If `session_id` is omitted, save
+`session.session_id` (not `session.id`), or inspect
+`await client.list_sessions()` and each result's `session_id`. The tagged
+Python implementation takes precedence over old upstream prose claiming
+that generated IDs cannot be retrieved.
+
+### 2. Create, then detach
 
 ```python
 session_ctx = await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
     model="gpt-5-mini",
-    session_id=SESSION_ID,
-)
-prompt = (
-    "Please remember the following two facts for the rest of our "
-    "conversation: my name is Jeffrey, and my favourite "
-    "programming language is Python. ..."
+    session_id=session_id,
+    available_tools=[],
 )
 ```
 
-Passing our chosen `session_id` is what makes the conversation
-**addressable later**. Omit it and the SDK assigns a random UUID; you
-can still resume, but you have to harvest the UUID from
-`session.id` and store it yourself.
+The first prompt supplies the name and language. After a bounded turn,
+exiting `async with session_ctx` calls `disconnect()`. In **1.0.13** this
+uses `session.detach`, leaving persisted conversation/planning state intact.
+The owned client then shuts down. `client.delete_session(id)` is the
+explicit destructive operation; this demo never calls it.
 
-### 3. Later run — `resume_session(session_id)`
+### 3. Cold resume with explicit runtime wiring
 
 ```python
 session_ctx = await client.resume_session(
-    SESSION_ID,
+    session_id,
     on_permission_request=PermissionHandler.approve_all,
-)
-prompt = (
-    "Without re-reading my earlier message, what did I tell you "
-    "my name is and which programming language I prefer?"
+    available_tools=[],
 )
 ```
 
-Notice what we **don't** pass: `model=...`. The original model is
-reused automatically — overriding it on resume isn't supported.
+The resume prompt asks what the user said earlier, without supplying the
+answers. The model reads prior conversation context; “without re-reading
+the earlier message” would be a misleading way to describe persistence.
 
-### 4. What's preserved vs. what isn't
+`model=` **is supported on resume** in 1.0.13. Omitting it retains the prior
+model; specifying it requests a change. Do not claim changing models is
+unsupported or silently ignored.
 
-| Preserved across resume | NOT preserved — re-declare every time |
+### 4. Know what must be re-established
+
+| Category | Resume behavior / responsibility |
 |---|---|
-| Full conversation history (user + assistant turns) | Custom tool implementations (`@define_tool` functions live in your Python process) |
-| The model that was originally selected | MCP server registrations (each process spawns its own subprocesses or HTTP connections) |
-| Custom agent definitions and the active agent | Permission / `ask_user` / hook callbacks (handlers are functions, not data) |
-| Any session-level config (system prompt, telemetry, …) | Anything kept in your application's memory |
+| Conversation history and persisted planning artifacts | Loaded from the same runtime session storage; not arbitrary host memory |
+| Model | Retained if omitted; `model=` can request an override |
+| Custom Python tools, permission/input handlers, hooks | Re-register implementations/callbacks in the new process |
+| MCP connections, custom agent configuration, tool scope | Re-supply the required configuration rather than assuming every startup option persists |
+| Application variables, credentials and authorization | Re-establish explicitly; session history is not a credential store |
+| Injected `managed_settings` (1.0.13) | Startup-only, not persisted; **re-supply on resume** or the injected layer is cleared |
 
-> 💡 **Mental model**: persistence is for the *conversation*. The
-> *runtime wiring* (Python functions, network connections) is your job
-> to re-establish on every process start.
+Managed policy injection is permissions-only and requires CLI **1.0.79-5+**;
+this workshop's release-matched runtime is **1.0.83**. It composes
+restrictively with device/server policy rather than overriding it.
 
 ## Run it
 
 ```bash
-# Turn 1 — sets memory
-python examples/06_session_resume.py
+python examples/06_session_resume.py --session-id workshop-alice
+python examples/06_session_resume.py --resume --session-id workshop-alice
 ```
 
-Output:
+Illustrative second output:
 
-```
-Noted, Jeffrey! I've recorded your name and your favourite programming
-language (Python) for future reference.
-
-Session saved as 'demo-session-resume'. Re-run with --resume to continue.
+```text
+Session ID: workshop-alice
+Your name is Jeffrey, and your preferred programming language is Python.
 ```
 
-```bash
-# Turn 2 — recalls memory (NEW Python process, no shared state)
-python examples/06_session_resume.py --resume
-```
-
-Output:
-
-```
-Your name is Jeffrey, and your favorite programming language is Python.
-```
-
-The second process has zero variables, files, or arguments holding the
-two facts. The model can only answer correctly because `resume_session`
-replayed turn 1 back into its context.
+This demonstrates a model recall task, not a cryptographic proof or a
+guarantee of verbatim history retention. Long conversations may be compacted;
+use explicit application storage for facts that must be recalled exactly.
 
 ## Try this next
 
-1. **Forget on purpose** — delete the session: pick a brand new
-   `SESSION_ID`, run the script with `--resume` first, and watch it
-   fail loudly. (Helpful for understanding "session doesn't exist" errors.)
-2. **Build a tiny chatbot loop** — `while True: prompt = input(); send_and_wait(...)`.
-   Save `SESSION_ID` to disk; on next start, resume if the file exists.
-3. **Combine with example 05** — start a session with both MCP and a
-   `session_id`, then resume in a new process and watch the agent
-   recall *both* the conversation and the GitHub context.
-4. **Per-user IDs** — replace the hard-coded `SESSION_ID` with
-   `f"user-{user_id}-{conversation_id}"` and write a tiny dict mapping
-   chats to sessions. Congratulations — you now have a chat backend.
+1. Omit `session_id` in a copy of the example and persist the returned
+   `session.session_id`.
+2. Try `--resume` with an unknown ID and verify the failure is visible.
+3. Pass an available `model=` on resume and inspect the selected model.
+4. Re-register a custom tool on resume, keeping its source-qualified name
+   in the tool allowlist.
 
 ## Common pitfalls
 
-- **Resuming a session that doesn't exist** raises a `RuntimeError` —
-  the CLI has no record of the ID. (This is the "I changed my
-  `SESSION_ID` and broke everything" bug.)
-- **Forgetting `mcp_servers=` on resume** if you used MCP on turn 1 —
-  the agent loses the MCP tools but doesn't tell you why.
-- **Changing the model on resume is silently ignored** — if you need a
-  different model, start a new session instead.
-- **Session IDs collide across users** if your scheme isn't unique —
-  prefix with the user / tenant ID.
-
-## Further reading
-
-- Upstream sessions doc:
-  <https://github.com/github/copilot-sdk/blob/main/docs/features/session-persistence.md>
-- `client.list_sessions()` enumerates the sessions the CLI currently
-  knows about — useful for cleanup tooling.
+- Use the same account and CLI state location. A new container without the
+  old persisted storage does not acquire history merely from the ID.
+- Run create once, then resume. Use a new ID for a fresh conversation rather
+  than depending on duplicate-create semantics.
+- A timeout raises `TimeoutError`, not `None`; this example fails visibly
+  on either timeout or an absent final message.
+- Do not claim that all system prompts, agents, credentials and session
+  options are automatically persisted.

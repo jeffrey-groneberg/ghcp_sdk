@@ -1,28 +1,12 @@
 """
-Example 05 — MCP servers (remote GitHub MCP server)
+Example 05 — Remote GitHub MCP with GitHub Copilot SDK 1.0.13.
 
-The [Model Context Protocol](https://modelcontextprotocol.io) is the
-standard plug-in format for LLM tools. Hundreds of community servers
-already exist; in this demo we talk to the *official* remote GitHub MCP
-server hosted by GitHub itself:
+Run: python examples/05_mcp_servers.py
+SDK: https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md
+Tools: https://github.com/github/github-mcp-server/blob/v1.12.0/pkg/github/issues.go
 
-    https://api.githubcopilot.com/mcp/
-
-No install, no Docker, no `npx` — just an HTTPS endpoint. The agent
-gains access to GitHub-aware tools (`list_issues`, `get_pull_request`,
-`search_code`, ...) which we use to ask about live issues in the
-`github/copilot-sdk` repo. Because the issues are newer than the model's
-training cutoff, the answer can only come from a real MCP tool call.
-
-Concepts covered:
-  * Configuring an `http` MCP server (vs the `local` / stdio flavour)
-  * Authenticating remote MCP servers with a `Authorization: Bearer`
-    header
-  * Narrowing exposure with an explicit `tools` allowlist
-  * Discovering tokens with `gh auth token` as a sensible fallback
-
-Run:
-    python examples/05_mcp_servers.py
+The official HTTPS endpoint needs no Node, npx, Docker or local MCP server.
+Model authentication and this MCP server's bearer credential are separate.
 """
 
 import asyncio
@@ -31,70 +15,84 @@ import subprocess
 
 from copilot import CopilotClient
 from copilot.session import PermissionHandler
+from copilot.session_events import ToolExecutionStartData
 
 
-# The famous public repo we will ask about. Swap for anything you like.
 TARGET_REPO_OWNER = "github"
 TARGET_REPO_NAME = "copilot-sdk"
+GITHUB_TOOLS = ["list_issues", "issue_read", "search_issues"]
 
 
 def github_token() -> str:
-    """Return a GitHub token from env or fall back to `gh auth token`.
-
-    Order:
-      1. `GITHUB_TOKEN` env var (CI-friendly)
-      2. `GH_TOKEN` env var (gh CLI convention)
-      3. `gh auth token` (uses the user's keyring login)
-    """
+    """Resolve credentials only at run time; never print the value."""
     for var in ("GITHUB_TOKEN", "GH_TOKEN"):
-        if os.environ.get(var):
-            return os.environ[var]
+        token = os.environ.get(var, "").strip()
+        if token:
+            return token
     try:
-        return subprocess.check_output(
-            ["gh", "auth", "token"], text=True
+        token = subprocess.check_output(
+            ["gh", "auth", "token", "--hostname", "github.com"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
         ).strip()
-    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+    except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         raise RuntimeError(
-            "No GitHub token found. Set GITHUB_TOKEN or run `gh auth login`."
-        ) from exc
-
-
-# MCP server configuration.
-#
-#   type     'http'  — talk to a remote MCP server over HTTPS
-#                     ('local' / 'stdio' = spawn a subprocess instead)
-#   url      the official remote GitHub MCP server
-#   headers  bearer token auth (PAT or `gh auth token` output works)
-#   tools    explicit allowlist — *only* these tools are exposed to the
-#            agent. Use ['*'] to expose everything the server offers.
-MCP_SERVERS = {
-    "github": {
-        "type": "http",
-        "url": "https://api.githubcopilot.com/mcp/",
-        "headers": {"Authorization": f"Bearer {github_token()}"},
-        "tools": ["list_issues", "get_issue", "search_issues"],
-    },
-}
+            "Cannot obtain a GitHub MCP token. Set GITHUB_TOKEN or GH_TOKEN, "
+            "or sign in with `gh auth login --hostname github.com`."
+        ) from None
+    if not token:
+        raise RuntimeError("GitHub MCP authentication returned an empty token.")
+    return token
 
 
 async def main() -> None:
-    async with CopilotClient() as client:
-        async with await client.create_session(
-            on_permission_request=PermissionHandler.approve_all,
-            model="gpt-5-mini",
-            mcp_servers=MCP_SERVERS,
-        ) as session:
-            # The MCP server is the only way the agent can see real GitHub
-            # data — without it, the model would have to guess (and likely
-            # hallucinate) recent issue titles.
-            reply = await session.send_and_wait(
-                "Use the GitHub MCP server to list the 3 most recently "
-                f"opened issues on {TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. "
-                "For each issue, give me the number, title, and author.",
-                timeout=180,
-            )
-            if reply:
-                print(reply.data.content)
+    # No credential lookup or subprocess runs when this module is imported.
+    token = github_token()
+    mcp_servers = {
+        "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+                "Authorization": f"Bearer {token}",
+                "X-MCP-Readonly": "true",
+            },
+            # Raw server tool names here; get_issue is now issue_read.
+            "tools": GITHUB_TOOLS,
+        },
+    }
+    async with asyncio.timeout(300):
+        async with CopilotClient() as client:
+            async with await client.create_session(
+                # Trusted demo only. Token permissions/server policy still matter.
+                on_permission_request=PermissionHandler.approve_all,
+                model="gpt-5-mini",
+                mcp_servers=mcp_servers,
+                # Full-catalog filters use source + server-qualified names.
+                available_tools=[f"mcp:github-{name}" for name in GITHUB_TOOLS],
+            ) as session:
+                def on_event(event) -> None:
+                    match event.data:
+                        case ToolExecutionStartData(
+                            mcp_server_name="github", mcp_tool_name=name,
+                        ):
+                            # Show tool evidence, not arguments, headers or tokens.
+                            print(f"[mcp] github/{name}")
+
+                unsubscribe = session.on(on_event)
+                try:
+                    reply = await session.send_and_wait(
+                        "Use the GitHub MCP server to list the 3 most recently "
+                        f"opened issues on {TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. "
+                        "For each issue, give its number, title, author and URL. "
+                        "If the server fails, report the failure; do not invent data.",
+                        timeout=180,
+                    )
+                    if reply is None:
+                        raise RuntimeError("Session became idle without an assistant message.")
+                    print(reply.data.content)
+                finally:
+                    unsubscribe()
 
 
 if __name__ == "__main__":

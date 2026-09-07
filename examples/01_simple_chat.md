@@ -1,124 +1,108 @@
-# 01 · Simple streaming chat
+# 01 · Streaming chat
 
-📖 **Source:** [`github/copilot-sdk · docs/features/streaming-events.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/streaming-events.md) &middot; [`python/ — Streaming quickstart`](https://github.com/github/copilot-sdk/tree/main/python#streaming)
+📖 **Sources (SDK v1.0.13):**
+[client identity](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/client-info.md),
+[streaming events](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md),
+[Python session implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py).
 
-> The "hello world" of the GitHub Copilot SDK. Open a session, send a prompt,
-> stream the response token by token.
-
-## What you'll learn
-
-- How to spin up a `CopilotClient` and a `CopilotSession` using async context
-  managers (`async with`)
-- How the SDK delivers responses through an **event stream** rather than a
-  simple return value
-- How to react to typed event payloads with Python's `match` / `case`
-- The role of a **permission handler** (the SDK refuses to start without one)
+Open [the runnable source](01_simple_chat.py). This example streams text,
+identifies the workshop application, and waits for completion without an
+unbounded hand-written idle event.
 
 ## The flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant App as Your script
-    participant Client as CopilotClient
-    participant CLI as Copilot CLI (subprocess)
-    participant Model as gpt-5-mini
-
-    App->>Client: async with CopilotClient()
-    Client->>CLI: spawn process (stdio JSON-RPC)
-    App->>Client: create_session(streaming=True)
-    Client->>CLI: session.create
-    App->>App: session.on(on_event)
-    App->>Client: session.send("Explain ...")
-    Client->>CLI: session.send
-    CLI->>Model: prompt
-    loop streaming
-        Model-->>CLI: token
-        CLI-->>Client: AssistantMessageDeltaData
-        Client-->>App: on_event(...) fires
-        App->>App: print(delta)
+    participant App
+    participant SDK
+    participant Runtime as Copilot runtime
+    App->>SDK: enter CopilotClient(client_info=...)
+    SDK->>Runtime: server.connect + application identity
+    App->>SDK: create_session(streaming=True, available_tools=[])
+    App->>SDK: session.on(listener)
+    App->>SDK: send_and_wait(prompt, timeout=60)
+    loop Response chunks
+        Runtime-->>SDK: assistant.message_delta
+        SDK-->>App: listener prints delta_content
     end
-    CLI-->>Client: SessionIdleData
-    Client-->>App: on_event(...) fires
-    App->>App: done.set()
-    App->>Client: exit `async with` → cleanup
+    Runtime-->>SDK: assistant.message then session.idle
+    SDK-->>App: final message
+    App->>SDK: unsubscribe; exit session
+    SDK->>Runtime: session.detach
+    App->>SDK: exit owned client
 ```
 
 ## Code walkthrough
 
-### 1. Imports
+### 1. Identify the application
 
 ```python
-from copilot import CopilotClient
-from copilot.session_events import (
-    AssistantMessageDeltaData,   # one for every streamed chunk
-    SessionIdleData,             # one when the agent stops talking
-)
-from copilot.session import PermissionHandler
+async with CopilotClient(
+    client_info={
+        "application_name": "ghcp-sdk-examples",
+        "application_version": "0.1.0",
+        "integration_name": "python-workshop",
+        "integration_version": "1.0.13",
+    },
+) as client:
+    ...
 ```
 
-- `CopilotClient` is the top-level handle to the bundled Copilot CLI.
-- The two `*Data` classes are the typed payloads of the events we care about.
-  The SDK emits dozens — we only react to two.
-- `PermissionHandler.approve_all` is a one-line built-in that auto-approves
-  every tool call. **Fine for demos, never for production** — see [example 07](07_human_in_the_loop.md)
-  for a real handler.
+New in **1.0.13**, all four identity fields are optional. They describe the
+host application/integration, not the model. They are forwarded on the
+`server.connect` handshake for runtime telemetry attribution. This does not
+change authentication or what the runtime records. An unset identity keeps
+default attribution.
 
-### 2. The client / session lifecycle
+### 2. Create a text-only session
 
-```python
-async with CopilotClient() as client:
-    async with await client.create_session(
-        on_permission_request=PermissionHandler.approve_all,
-        model="gpt-5-mini",
-        streaming=True,
-    ) as session:
-        ...
-```
+`create_session` takes `model="gpt-5-mini"`, `streaming=True`,
+`available_tools=[]`, and the required permission handler. The empty
+allowlist removes tools from this conversation. `approve_all` is only a
+trusted-demo convenience, not an authorization system or OS sandbox.
 
-- `async with CopilotClient()` spawns the bundled CLI binary as a subprocess
-  on enter and shuts it down on exit. No manual `start()` / `stop()` calls.
-- `await client.create_session(...)` returns a context manager. The double
-  `async with await ...` is the canonical pattern.
-- `streaming=True` switches the model on to incremental output. Without it
-  you'd get one big `AssistantMessageData` event at the end instead of a
-  stream of `AssistantMessageDeltaData`.
+The client manages a runtime subprocess over stdio by default. The published
+SDK downloads/caches its matching runtime as needed; it does not install the
+interactive `copilot` command. Session creation performs the connection work;
+entering the returned session context manager does not create another session.
 
-### 3. The event listener
+### 3. Listen while using the completion helper
 
 ```python
-done = asyncio.Event()
-
-def on_event(event):
+def on_event(event) -> None:
     match event.data:
         case AssistantMessageDeltaData(delta_content=delta):
             print(delta or "", end="", flush=True)
-        case SessionIdleData():
-            done.set()
 
-session.on(on_event)
+unsubscribe = session.on(on_event)
+try:
+    reply = await session.send_and_wait(
+        "Explain what the GitHub Copilot SDK is in 3 sentences.",
+        timeout=60,
+    )
+    if reply is None:
+        raise RuntimeError("Session became idle without an assistant message.")
+finally:
+    unsubscribe()
+    print()
 ```
 
-- The SDK is **fully event-driven**. `session.send()` returns immediately and
-  the reply arrives as a stream of events.
-- `match event.data` is a clean way to handle just the events that matter.
-  Any other event simply falls through and is ignored.
-- `flush=True` forces the terminal to render each fragment immediately —
-  without it your "streaming" demo would look like a single big print.
-- `done = asyncio.Event()` is how we hold the program open until the agent is
-  finished. When `SessionIdleData` arrives we set it; the `await done.wait()`
-  on the next line unblocks and the context managers tear down cleanly.
+- Register **before** sending so early deltas are observed. Deltas are
+  chunks, not a promise of one token per event.
+- `send_and_wait` continues delivering events to the listener while it
+  watches final messages, idle and session errors.
+- It raises `TimeoutError` after the configured wait; `None` means idle
+  without an assistant message. Session errors propagate too.
+- `finally` unregisters the listener on success, failure or cancellation.
+- `asyncio.timeout(180)` bounds the surrounding operation as well.
 
-### 4. Sending the prompt
+### 4. Understand cleanup
 
-```python
-await session.send("Explain what the GitHub Copilot SDK is in 3 sentences.")
-await done.wait()
-```
-
-- `session.send(...)` takes a plain string. It does **not** return the reply.
-- Without `await done.wait()` the program would exit while events were still
-  in flight — you'd see nothing or a garbled half-response.
+Exiting the session calls `disconnect()` → **`session.detach`** in 1.0.13:
+local handlers are released while persisted session data is retained.
+Exiting the owned client stops its runtime process. A timeout by itself
+does not abort ongoing remote work; a long-lived client should explicitly
+manage `session.abort()` and cancellation.
 
 ## Run it
 
@@ -126,38 +110,23 @@ await done.wait()
 python examples/01_simple_chat.py
 ```
 
-Expected output (your wording will vary):
-
-```
-The GitHub Copilot SDK is a toolkit that enables developers to build, extend,
-and customise AI-powered developer tools and workflows using GitHub Copilot's
-capabilities. It provides APIs, libraries, and integration patterns ...
-```
+Expect a gradually printed explanation; wording, timing and model availability
+vary. Failed authentication, transport or model requests should fail visibly,
+not produce an apparent successful empty response.
 
 ## Try this next
 
-1. **Change the model** to `gpt-5-mini` (also free) and see if the reply style
-   changes. List all available models with `await client.list_models()`.
-2. **Turn streaming off** (`streaming=False`) and switch your `match` arm to
-   `case AssistantMessageData(content=content): print(content)`. Note how the
-   user experience changes.
-3. **Send a follow-up turn** by calling `session.send(...)` a second time
-   before exiting. The session remembers prior context for free.
-4. **Print the event type** for every event (`print(type(event.data).__name__)`)
-   to see the full lifecycle — `SessionStartedData`, `AssistantMessageStartData`,
-   `AssistantMessageDeltaData`, ..., `SessionIdleData`.
+1. Change only the application identity and observe that the answer is not
+   prescribed by telemetry metadata.
+2. Add a second `send_and_wait` inside the session to reuse conversation
+   context. Normal usage/quota accounting still applies.
+3. Set `streaming=False` and print `reply.data.content` instead.
+4. Use a mock to emit `session.error` or withhold idle; verify cleanup.
 
 ## Common pitfalls
 
-- **Missing `on_permission_request`** raises `ValueError` at session creation —
-  the SDK won't run an agent without one.
-- **Forgetting `await done.wait()`** makes the program exit silently with no
-  output.
-- **`print(delta)` without `end=""`** adds a newline per token, ruining the
-  illusion of streaming.
-- On Windows, **`UnicodeEncodeError`** on the console: `set PYTHONIOENCODING=utf-8`.
-
-## Further reading
-
-- Upstream getting-started: <https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md>
-- Event payloads: see `copilot/generated/session_events.py` in the installed SDK
+- `await session.send(...)` returns a message ID, not the final response.
+- A bare `await done.wait()` can hang if no idle event arrives.
+- Printing the final message after printing deltas duplicates the answer.
+- Never catch `asyncio.CancelledError` and turn it into a successful reply.
+- For a Windows legacy console, set `PYTHONIOENCODING=utf-8`.
