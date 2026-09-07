@@ -18,20 +18,27 @@ echo "── Installing Python dependencies ────────────
   || "$PY" -m pip install --break-system-packages -r requirements.txt
 
 echo
-echo "── Verifying the bundled Copilot CLI ─────────────────────────"
-# The Python SDK bundles the Copilot CLI binary; this confirms it is reachable.
-"$PY" -c "from copilot import CopilotClient; print('SDK ready:', CopilotClient.__module__)"
+echo "── Verifying the Python SDK import ───────────────────────────"
+# Importing does not start or download a runtime, or verify authentication.
+"$PY" -c "import importlib.metadata as m; from copilot import CopilotClient; print('SDK ready:', m.version('github-copilot-sdk'))"
 
 cat <<'EOF'
 
 ============================================================
 GitHub Copilot SDK — Examples ready ✅
 ============================================================
-Sign in to Copilot once (a browser link will appear):
+For browser sign-in, install the interactive Copilot CLI separately, then:
 
   copilot login
 
-Then run any example:
+Alternatively provision COPILOT_GITHUB_TOKEN securely in your environment.
+The Python SDK does not put the interactive copilot command on PATH.
+It downloads/caches its release-matched runtime on first use.
+To pre-download without making model calls:
+
+  python -m copilot download-runtime
+
+Then run any example (model access/quota and organization policy apply):
 
   python examples/01_simple_chat.py
   python examples/02_custom_tools.py
@@ -41,8 +48,10 @@ Then run any example:
   python examples/06_session_resume.py
   python examples/07_human_in_the_loop.py
 
-Tip: Codespaces already has the gh CLI authenticated,
-so the remote GitHub MCP server in example 5 works out of the box.
+Example 5 uses remote HTTP MCP: no Node/npx or local MCP server is required.
+It checks GITHUB_TOKEN, GH_TOKEN, then gh auth token. The token must be
+accepted by the hosted MCP server and authorized for the target repository;
+an existing Codespaces login alone does not guarantee that access.
 ============================================================
 
 EOF

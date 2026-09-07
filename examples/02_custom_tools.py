@@ -1,19 +1,8 @@
 """
-Example 02 — Custom tools
+Example 02 — A custom tool with GitHub Copilot SDK 1.0.13.
 
-Tools are how you give the agent superpowers your app already has: database
-lookups, internal APIs, fake-weather stubs, whatever. The agent decides
-*when* to call them; you only have to declare *what* they do.
-
-Concepts covered:
-  * Declaring a tool with `@define_tool`
-  * Describing parameters with a Pydantic `BaseModel` (the SDK uses this
-    to build the JSON-Schema the model sees)
-  * Wiring the tool into a session via the `tools=[...]` kwarg
-  * Getting a one-shot reply with `send_and_wait` instead of streaming
-
-Run:
-    python examples/02_custom_tools.py
+Run: python examples/02_custom_tools.py
+Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py
 """
 
 import asyncio
@@ -25,54 +14,43 @@ from copilot import CopilotClient, define_tool
 from copilot.session import PermissionHandler
 
 
-# Pydantic models drive the JSON-Schema that's sent to the model. Use
-# `Field(description=...)` for every argument — that text is the *only*
-# hint the model gets about how to fill the parameter, so be specific.
+# Parameter names, types, descriptions and constraints form the model's schema.
 class WeatherParams(BaseModel):
-    city: str = Field(description="City name, e.g. 'Seattle'")
+    city: str = Field(min_length=1, description="City name, e.g. 'Seattle'")
 
 
-# `@define_tool` registers an async Python function as a callable tool.
-# The `description` is the natural-language hint the model uses to decide
-# whether the tool is relevant to the user's request — write it like a
-# good docstring.
-#
-# The return value (any JSON-serializable object) is fed back to the model
-# as the tool's result; here we return fake but realistic data.
-@define_tool(description="Get the current weather for a given city")
+# This is deliberately a stub: label BOTH its description and output as fake.
+# @define_tool replaces the function with a Tool carrying schema + handler.
+@define_tool(description="Generate fictional demo weather for a city; NOT live weather")
 async def get_weather(params: WeatherParams) -> dict:
     return {
         "city": params.city,
         "temperature_c": random.randint(-5, 35),
         "condition": random.choice(["sunny", "cloudy", "rainy"]),
+        "source": "fictional demo data, not a live weather service",
     }
 
 
 async def main() -> None:
-    async with CopilotClient() as client:
-        # `tools=[get_weather]` registers our tool for *this session only*.
-        # The agent will see the tool definition in its system prompt and
-        # decide on its own whether to call it.
-        async with await client.create_session(
-            on_permission_request=PermissionHandler.approve_all,
-            model="gpt-5-mini",
-            tools=[get_weather],
-        ) as session:
-
-            # `send_and_wait` is the convenience shortcut for "send a prompt
-            # and give me the final assistant message". It returns a single
-            # event whose `.data.content` holds the plain-text reply, so it's
-            # perfect for non-streaming, request/response style code.
-            #
-            # Under the hood it does what example 01 does manually: register
-            # an event listener, wait for `SessionIdleData`, then return.
-            reply = await session.send_and_wait(
-                "What's the weather in Tokyo and Berlin?"
-            )
-
-            # `reply` is `None` if the timeout (default 60s) fires before the
-            # agent finishes; otherwise it's an `AssistantMessage` event.
-            if reply:
+    async with asyncio.timeout(180):
+        async with CopilotClient() as client:
+            async with await client.create_session(
+                # Only use auto-approval with trusted demo tools.
+                on_permission_request=PermissionHandler.approve_all,
+                model="gpt-5-mini",
+                tools=[get_weather],
+                # This filters the FULL catalogue, not just built-in tools.
+                available_tools=["custom:get_weather"],
+            ) as session:
+                reply = await session.send_and_wait(
+                    "Use get_weather for fictional weather in Tokyo and Berlin. "
+                    "Clearly label the result as demo data, not actual weather.",
+                    timeout=60,
+                )
+                # None means idle without a message. Timeout raises TimeoutError;
+                # session errors also propagate instead of pretending to succeed.
+                if reply is None:
+                    raise RuntimeError("Session became idle without an assistant message.")
                 print(reply.data.content)
 
 

@@ -1,128 +1,113 @@
-# 05 · MCP servers (remote GitHub MCP)
+# 05 · Remote GitHub MCP
 
-📖 **Source:** [`github/copilot-sdk · docs/features/mcp.md`](https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md) &middot; [GitHub MCP server](https://github.com/github/github-mcp-server) &middot; [MCP spec](https://modelcontextprotocol.io)
+📖 **Sources:**
+[SDK v1.0.13 MCP configuration](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md),
+[SDK tool filter names](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py),
+[GitHub MCP v1.12.0 issue tools](https://github.com/github/github-mcp-server/blob/v1.12.0/pkg/github/issues.go),
+[remote server](https://github.com/github/github-mcp-server/blob/v1.12.0/docs/remote-server.md).
 
-> **MCP** (Model Context Protocol) is the standard plug-in format for LLM tools.
-> Hundreds of servers already exist — filesystem, git, GitHub, Slack, Notion,
-> databases. The SDK attaches one with a single `mcp_servers={...}` kwarg.
-
-In this example we wire up the **official remote GitHub MCP server** hosted
-by GitHub itself (`https://api.githubcopilot.com/mcp/`) and ask the agent
-about live issues in the `github/copilot-sdk` repo — the SDK introspecting
-its own roadmap.
-
-## What you'll learn
-
-- The two MCP transports the SDK ships with: `local` (subprocess + stdio)
-  and `http` (remote URL)
-- How to authenticate a remote MCP server with a `Bearer` header
-- How to narrow exposure with an explicit `tools` allowlist
-- Why we use `gh auth token` as a sensible default for getting credentials
-
-## Why the remote GitHub MCP server
-
-| | Local (`npx`/Docker server) | Remote (`api.githubcopilot.com`) |
-|---|---|---|
-| Install | `npx -y @modelcontextprotocol/server-github` or Docker | Zero — it's just an HTTPS URL |
-| Updates | You upgrade manually | GitHub maintains it |
-| Latency | One round-trip to local subprocess | One round-trip to api.githubcopilot.com |
-| Auth | PAT in env var | `Authorization: Bearer …` header |
-| Best for | Air-gapped, offline, custom builds | The default — what you want unless you can't |
+Open [the runnable source](05_mcp_servers.py). It attaches GitHub's hosted
+MCP endpoint and asks for recent issues from `github/copilot-sdk`.
+**No Node.js, `npx`, Docker or local MCP server is required.**
 
 ## The flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant App as Your script
-    participant Session
-    participant CLI as Copilot CLI
-    participant MCP as api.githubcopilot.com/mcp/
-    participant GH as github.com REST API
-    participant Model
-
-    App->>Session: create_session(mcp_servers={"github": ...})
-    Session->>CLI: register the HTTP MCP server
-    CLI->>MCP: list_tools  (auth: Bearer <token>)
-    MCP-->>CLI: [list_issues, get_issue, search_issues, ...]
-
-    App->>Session: send_and_wait("list 3 most recent issues...")
-    Session->>Model: prompt + GitHub tool catalogue
-    Model-->>CLI: tool_call list_issues(owner="github", repo="copilot-sdk")
-    CLI->>MCP: list_issues(...)
-    MCP->>GH: GET /repos/github/copilot-sdk/issues
-    GH-->>MCP: live issue data
-    MCP-->>CLI: tool result
-    CLI-->>Model: tool result
-    Model-->>App: "1. #1419 — ... 2. #1417 — ..."
+    participant App
+    participant Runtime
+    participant MCP as Remote GitHub MCP
+    participant GitHub
+    App->>App: Resolve token at run time, never on import
+    App->>Runtime: create_session(mcp_servers + available_tools)
+    Runtime->>MCP: Connect with bearer header and read-only mode
+    MCP-->>Runtime: Tool catalogue, filtered to issue readers
+    App->>Runtime: send_and_wait(recent issues, timeout=180)
+    Runtime-->>App: tool.execution_start with MCP names
+    Runtime->>MCP: list_issues / search_issues
+    MCP->>GitHub: Query authorized repository data
+    GitHub-->>MCP: Results
+    MCP-->>Runtime: Tool result
+    Runtime-->>App: Assistant answer, then idle
 ```
 
 ## Code walkthrough
 
-### 1. Pick a token source
+### 1. Resolve credentials only when running
+
+`github_token()` checks non-empty values in this order:
+
+1. `GITHUB_TOKEN`
+2. `GH_TOKEN`
+3. `gh auth token --hostname github.com`
+
+Whitespace-only values are ignored. The subprocess is bounded to 10 seconds;
+missing `gh`, lookup failure, timeout and empty output produce clear errors.
+Its stderr and exception output are not printed, so credential-bearing
+diagnostics are not accidentally copied to the console.
+
+Importing the module does **not** look up tokens or launch a subprocess.
+Credential resolution and the MCP configuration are inside `main()`.
+
+**Authentication is separate:** Copilot model access does not automatically
+authorize this MCP connection. Use a credential accepted by the hosted
+server with the minimum required repository permissions; organization SSO,
+token policy and repository access still apply. A `gh` OAuth token or
+Codespaces/Actions token is not guaranteed to work in every environment.
+GitHub Actions tokens must be mapped explicitly into the process environment;
+they are not universally exported or authorized for arbitrary repositories.
+
+### 2. Configure HTTP and read-only issue tools
 
 ```python
-def github_token() -> str:
-    for var in ("GITHUB_TOKEN", "GH_TOKEN"):
-        if os.environ.get(var):
-            return os.environ[var]
-    return subprocess.check_output(["gh", "auth", "token"], text=True).strip()
-```
-
-Order of preference:
-
-1. **`GITHUB_TOKEN`** — CI friendly. GitHub Actions sets this automatically.
-2. **`GH_TOKEN`** — gh CLI convention.
-3. **`gh auth token`** — graceful fallback for local development; uses
-   whatever account you logged in with via `gh auth login`.
-
-> 💡 In a real backend you'd inject a service-account PAT (or an
-> installation token from a GitHub App). For the workshop your
-> `gh auth login` token is plenty.
-
-### 2. Declare the HTTP MCP server
-
-```python
-MCP_SERVERS = {
+GITHUB_TOOLS = ["list_issues", "issue_read", "search_issues"]
+mcp_servers = {
     "github": {
         "type": "http",
         "url": "https://api.githubcopilot.com/mcp/",
-        "headers": {"Authorization": f"Bearer {github_token()}"},
-        "tools": ["list_issues", "get_issue", "search_issues"],
+        "headers": {
+            "Authorization": f"Bearer {token}",
+            "X-MCP-Readonly": "true",
+        },
+        "tools": GITHUB_TOOLS,
     },
 }
 ```
 
-| Key | Meaning |
-|-----|---------|
-| `type` | `"http"` = talk to a remote MCP server. Also valid: `"sse"`. For subprocess-based servers use `"local"` (or `"stdio"`). |
-| `url` | Server endpoint. Path matters — trailing `/mcp/` is required. |
-| `headers` | Sent on every request. Use this for `Authorization`, custom tracing headers, tenant IDs, etc. |
-| `tools` | **Allowlist** — only these tools are exposed to the agent. Use `["*"]` to expose everything the server offers. |
+`issue_read` is the current tool name for issue details; do not use the
+old `get_issue`. The names above are verified against official server source,
+not guessed from REST endpoint names.
 
-> 🔒 The `tools` allowlist is your blast-radius control. The remote
-> GitHub MCP server can do hundreds of things (create PRs, merge,
-> trigger workflows). Listing read-only tools means the agent
-> *physically cannot* mutate anything, even if it tries.
-
-### 3. Use it like any other session
+The `tools` list uses **raw MCP tool names**. The session-wide allowlist
+instead uses **source- and server-qualified names**:
 
 ```python
-async with await client.create_session(
-    on_permission_request=PermissionHandler.approve_all,
-    model="gpt-5-mini",
-    mcp_servers=MCP_SERVERS,
-) as session:
-    reply = await session.send_and_wait(
-        "Use the GitHub MCP server to list the 3 most recently "
-        f"opened issues on {TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. "
-        "For each issue, give me the number, title, and author.",
-        timeout=180,
-    )
+available_tools=[f"mcp:github-{name}" for name in GITHUB_TOOLS],
 ```
 
-The `timeout=180` is generous — first connection to the remote MCP server
-adds ~1–2 s. Subsequent tool calls are quick.
+This also hides unrelated built-ins/custom tools from the merged catalogue.
+The read-only header adds a server-side filter. Neither these filters nor
+`approve_all` replace least-privilege credentials or a security sandbox.
+Tool results are untrusted input; do not grant extra capabilities merely
+because an issue's content asks you to.
+
+### 3. Observe real tool calls
+
+The listener pattern-matches `ToolExecutionStartData` and prints only
+`mcp_server_name` / `mcp_tool_name`, for example:
+
+```text
+[mcp] github/list_issues
+```
+
+It never logs headers or arguments. A plausible recent issue title is **not
+proof** of a live lookup. Inspect the trace and returned issue URLs; a start
+event proves invocation began, not that the remote call succeeded.
+
+`send_and_wait(timeout=180)` handles completion and session errors; the
+whole async operation has a 300-second deadline. Listener cleanup is in
+`finally`. Timeout raises `TimeoutError`; idle without a message raises
+explicitly rather than printing nothing.
 
 ## Run it
 
@@ -130,52 +115,38 @@ adds ~1–2 s. Subsequent tool calls are quick.
 python examples/05_mcp_servers.py
 ```
 
-Expected output (live data — yours will differ):
+Expected shape (live data and selected tools vary):
 
-```
-Here are the 3 most recently opened issues on github/copilot-sdk:
-
-1. #1419 — "Copilot sdk silently fails with ..." (author: ajasingh)
-2. #1417 — "Mark anthony pedrosa" (author: markanthonypedrosa145-sudo)
-3. #1416 — "Mark anthony pedrosa" (author: markanthonypedrosa145-sudo)
+```text
+[mcp] github/list_issues
+1. #<number> — <current title> — @<author> — https://github.com/...
+...
 ```
 
-Because the issues are newer than the model's training cutoff, the only way
-the model can answer is by actually calling the MCP tool. That's your
-proof the MCP server is in the loop.
+A model can report a tool failure in a normal assistant message. Do not
+interpret a successful model turn as a guarantee that GitHub returned data.
+
+## 1.0.13 credential callbacks are a different layer
+
+The SDK's new session `github_token_provider` can acquire/refresh Copilot
+credentials using tagged token/cancelled results. Token results require
+positive `expiresIn` seconds remaining; cancellation results do not carry
+a token or expiry. The callback is mutually exclusive with a static per-session
+`github_token`; acquisition failure rejects create/resume. It does **not**
+automatically refresh the static MCP `Authorization` header used here.
+See [release notes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
 ## Try this next
 
-1. **Point it at another repo** — change `TARGET_REPO_NAME` to
-   `vscode`, `cpython`, `linux`, or your own project.
-2. **Add more tools** — extend the allowlist with `get_pull_request`,
-   `search_code`, `get_file_contents`, etc. Ask the agent to summarise
-   recent PRs.
-3. **Swap to a local MCP server** — install
-   [`@modelcontextprotocol/server-filesystem`](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)
-   and try the local/stdio path against a temp directory.
-4. **Chain two MCP servers** — register `github` + `filesystem` in the
-   same dict. The agent can now read both your code and the upstream
-   issues.
+1. Change both owner and repository to another repository your token may read.
+2. Ask for one issue's details through `issue_read`.
+3. Remove one name from `GITHUB_TOOLS` and observe the reduced catalogue.
+4. Mock absent credentials or a timed-out `gh` lookup and verify a clear,
+   secret-free error without starting the SDK client.
 
 ## Common pitfalls
 
-- **No token** — the script raises a clear `RuntimeError` if neither
-  `GITHUB_TOKEN`/`GH_TOKEN` nor `gh auth token` is available.
-- **PATs without `repo` scope** — read-only org repos still need it.
-  GitHub Actions tokens are usually scoped enough.
-- **Forgetting the trailing slash** on `https://api.githubcopilot.com/mcp/`
-  — the path matters.
-- **First call too slow** — the default 60 s timeout sometimes trips
-  on cold connections. Use `timeout=180`.
-- **`tools: ["*"]` in production** — fine for demos, dangerous for
-  agents. Always narrow the allowlist.
-
-## Further reading
-
-- Remote GitHub MCP server: <https://github.com/github/github-mcp-server>
-- MCP spec: <https://modelcontextprotocol.io/>
-- Community server directory:
-  <https://github.com/modelcontextprotocol/servers>
-- Upstream SDK MCP doc:
-  <https://github.com/github/copilot-sdk/blob/main/docs/features/mcp.md>
+- A local stdio MCP server needs its own executable/runtime; this HTTP demo does not.
+- Avoid wildcard tool exposure just to “fix” a misspelled tool name.
+- A token's existence does not prove the endpoint accepts it or the repo is accessible.
+- Never print `mcp_servers`, tokens, authorization headers or raw permission payloads.

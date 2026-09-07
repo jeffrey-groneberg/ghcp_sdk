@@ -14,6 +14,10 @@
 
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
+  "containerEnv": {
+    "NPM_CONFIG_REGISTRY": "https://packagefeedproxy.microsoft.io/npm/"
+  },
+
   "remoteEnv": {
     "PYTHONIOENCODING": "utf-8",
     "PYTHONUNBUFFERED": "1"
