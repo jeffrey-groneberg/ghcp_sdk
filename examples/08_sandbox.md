@@ -127,7 +127,9 @@ The `ToolExecutionCompleteData.sandboxed` telemetry field may still report
 `True` for a call associated with an enabled sandbox session. Do not use that
 single field as bypass proof; correlate the explicit
 `request_sandbox_bypass=True` permission request with the successful access to
-the otherwise denied marker.
+the otherwise denied marker. The sample verifies `result.content` from the
+matching `grep` completion event. It does not treat an exact assistant phrase
+as execution evidence.
 
 ### 5. Understand the boundary
 
@@ -169,7 +171,8 @@ Target: /tmp/.../vault
 Run this one grep outside the sandbox? [y/N]: y
 [tool] completed success=True sandboxed=<runtime-reported>
 
-[agent] SANDBOX_BYPASS_APPROVED
+[verified] grep returned the denied marker
+[agent] <model-generated confirmation>
 ```
 
 Choosing anything other than `y` keeps the vault blocked. The assistant should

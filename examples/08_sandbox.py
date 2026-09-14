@@ -43,6 +43,8 @@ MARKER = "OUTSIDE_MATCH_LINE sandbox-bypass-approved"
 class ApprovalState:
     bypass_requested: bool = False
     bypass_approved: bool = False
+    grep_tool_call_id: str | None = None
+    marker_found: bool = False
 
 
 def sandbox_runtime_env() -> dict[str, str]:
@@ -105,6 +107,25 @@ def permission_handler(vault: Path, state: ApprovalState):
     return on_permission_request
 
 
+def record_grep_evidence(data: object, state: ApprovalState) -> str | None:
+    """Track the denied marker from the tool result, not model phrasing."""
+    match data:
+        case ToolExecutionStartData(tool_name="grep", tool_call_id=tool_call_id):
+            state.grep_tool_call_id = tool_call_id
+            return "[tool] grep started"
+        case ToolExecutionCompleteData(
+            tool_call_id=tool_call_id,
+            success=success,
+            sandboxed=sandboxed,
+            result=result,
+        ) if tool_call_id == state.grep_tool_call_id:
+            state.marker_found = bool(
+                success and result is not None and MARKER in result.content
+            )
+            return f"[tool] completed success={success} sandboxed={sandboxed}"
+    return None
+
+
 async def main() -> None:
     state = ApprovalState()
     with tempfile.TemporaryDirectory(prefix="copilot-sdk-sandbox-") as temp_dir:
@@ -142,13 +163,9 @@ async def main() -> None:
                         raise RuntimeError("The runtime rejected the sandbox configuration.")
 
                     def on_event(event) -> None:
-                        match event.data:
-                            case ToolExecutionStartData(tool_name="grep"):
-                                print("[tool] grep started")
-                            case ToolExecutionCompleteData(
-                                success=success, sandboxed=sandboxed,
-                            ):
-                                print(f"[tool] completed success={success} sandboxed={sandboxed}")
+                        evidence = record_grep_evidence(event.data, state)
+                        if evidence is not None:
+                            print(evidence)
 
                     unsubscribe = session.on(on_event)
                     try:
@@ -165,13 +182,13 @@ async def main() -> None:
                             raise RuntimeError(
                                 "Session became idle without an assistant message."
                             )
-                        if (
-                            state.bypass_approved
-                            and "SANDBOX_BYPASS_APPROVED" not in reply.data.content
-                        ):
+                        if state.bypass_approved and not state.marker_found:
                             raise RuntimeError(
-                                "The approved sandbox bypass did not complete successfully."
+                                "The approved sandbox bypass completed without returning "
+                                "the denied marker."
                             )
+                        if state.marker_found:
+                            print("\n[verified] grep returned the denied marker")
                         print(f"\n[agent] {reply.data.content}")
                     finally:
                         unsubscribe()

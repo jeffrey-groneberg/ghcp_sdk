@@ -37,6 +37,8 @@ from copilot.session_events import (
     PermissionRequestShell,
     SessionErrorData,
     SessionIdleData,
+    ToolExecutionCompleteData,
+    ToolExecutionCompleteResult,
     ToolExecutionStartData,
 )
 from copilot.tools import ToolInvocation
@@ -738,6 +740,31 @@ class SandboxTests(unittest.IsolatedAsyncioTestCase):
                 await handler(outside, {}),
                 PermissionDecisionReject,
             )
+
+    def test_bypass_evidence_uses_matching_tool_result(self):
+        state = self.module.ApprovalState(bypass_approved=True)
+        started = ToolExecutionStartData(
+            tool_call_id="grep-1",
+            tool_name="grep",
+        )
+        completed = ToolExecutionCompleteData(
+            success=True,
+            tool_call_id="grep-1",
+            result=ToolExecutionCompleteResult(
+                content=f"/tmp/vault/notes.txt:{self.module.MARKER}",
+            ),
+            sandboxed=True,
+        )
+
+        self.assertEqual(
+            self.module.record_grep_evidence(started, state),
+            "[tool] grep started",
+        )
+        self.assertEqual(
+            self.module.record_grep_evidence(completed, state),
+            "[tool] completed success=True sandboxed=True",
+        )
+        self.assertTrue(state.marker_found)
 
     def test_runtime_env_preserves_existing_feature_flags(self):
         with patch.dict(
