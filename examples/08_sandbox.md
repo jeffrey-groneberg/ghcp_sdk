@@ -13,6 +13,11 @@ run outside that sandbox.
 The sandbox API is marked **experimental** in 1.0.13. Treat its types and
 backend behavior as version-sensitive.
 
+On Linux, the runtime needs an available sandbox backend. The repository's
+Debian-based dev container installs `bubblewrap`; without it, the tool call
+fails before a bypass can be requested and reports that Bubblewrap is
+unavailable. Rebuild an existing Codespace after changing the dev container.
+
 ## The flow
 
 ```mermaid
@@ -147,6 +152,13 @@ application-level authorization.
 python examples/08_sandbox.py
 ```
 
+Verify the Linux backend first when running outside this repository's dev
+container:
+
+```bash
+command -v bwrap
+```
+
 Approve the one disposable-data bypass to exercise the full path:
 
 ```text
@@ -175,6 +187,7 @@ report `SANDBOX_BLOCKED`.
 
 - Calling a tool allowlist a sandbox.
 - Enabling bypass without a dedicated approval UI and audit trail.
+- Assuming a Linux host already provides Bubblewrap or another sandbox backend.
 - Passing a partial `env` mapping and accidentally removing runtime settings.
 - Assuming a sandbox contains host-side Python callbacks.
 - Treating experimental generated types as a permanent compatibility contract.
