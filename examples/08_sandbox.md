@@ -131,6 +131,12 @@ the otherwise denied marker. The sample verifies `result.content` from the
 matching `grep` completion event. It does not treat an exact assistant phrase
 as execution evidence.
 
+The model is not the authority on whether the host approved a permission
+request. It may not observe the callback and can describe the approval state
+incorrectly even after a successful tool call. The host alone prints
+`SANDBOX_BYPASS_APPROVED` after correlating its approval state with the matching
+tool result.
+
 ### 5. Understand the boundary
 
 This sandbox constrains runtime-launched tools and processes. It is not a VM,
@@ -171,8 +177,8 @@ Target: /tmp/.../vault
 Run this one grep outside the sandbox? [y/N]: y
 [tool] completed success=True sandboxed=<runtime-reported>
 
-[verified] grep returned the denied marker
-[agent] <model-generated confirmation>
+[host] SANDBOX_BYPASS_APPROVED — explicit approval and denied marker verified
+[agent] <model-generated description of the grep result>
 ```
 
 Choosing anything other than `y` keeps the vault blocked. The assistant should

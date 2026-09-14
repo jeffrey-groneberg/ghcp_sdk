@@ -419,6 +419,9 @@ class PrototypeTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertFalse(config.user_policy.network.allow_local_network)
         self.assertFalse(config.user_policy.network.allow_outbound)
+        prompt = client.session.send_and_wait.await_args.args[0]
+        self.assertIn("the host verifies that independently", prompt)
+        self.assertNotIn("reply exactly SANDBOX_BYPASS_APPROVED", prompt)
 
 
 class ToolTests(unittest.IsolatedAsyncioTestCase):
