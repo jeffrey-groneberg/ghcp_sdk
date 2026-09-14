@@ -9,6 +9,11 @@ Open [the runnable source](03_custom_agents.py). Two named personas share
 one conversation: a researcher answers a repository question, then a
 reviewer examines example 01. The app verifies the active agent through RPC.
 
+The prompts match slide 20: `"What language is this?"`, followed by
+`"Review 01_simple_chat.py"`. The runtime's working directory is explicitly
+`examples/`, so the slide's short file name resolves when you launch the
+script from the repository root.
+
 ## The flow
 
 ```mermaid
@@ -36,6 +41,8 @@ Each entry in `AGENTS` is a dictionary with `name`, `display_name`,
 `description`, `prompt` and `tools`. `display_name` follows the current
 official sample and provides a UI label without changing the selection key.
 Both agents use `["grep", "glob", "view"]`; their instructions differ. The
+researcher prompt is `"Explore code. Never modify."`; the reviewer prompt is
+`"Review for bugs and clarity."`, as on the slide. The
 session also applies:
 
 ```python

@@ -30,6 +30,11 @@ async def main() -> None:
                 on_permission_request=PermissionHandler.approve_all,
                 available_tools=[],  # This text-only conversation needs no tools.
                 streaming=True,
+                system_message={
+                    "mode": "append",
+                    "content": "The SDK means the GitHub Copilot SDK. Explain it directly "
+                    "in three sentences; no repository inspection or tool calls are needed.",
+                },
             ) as session:
                 def on_event(event) -> None:
                     match event.data:
@@ -43,7 +48,7 @@ async def main() -> None:
                     # It handles session.error and raises TimeoutError on expiry;
                     # a hand-written idle Event alone could wait forever.
                     reply = await session.send_and_wait(
-                        "Explain what the GitHub Copilot SDK is in 3 sentences.",
+                        "Explain the SDK in 3 sentences.",
                         timeout=60,
                     )
                     if reply is None:

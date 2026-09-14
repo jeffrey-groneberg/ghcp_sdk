@@ -48,7 +48,7 @@ async def on_pre_tool_use(input_data, invocation):
 # Great spot for logging duration, persisting results, etc.
 # Same signature; returning `None` means "no opinion".
 async def on_post_tool_use(input_data, invocation):
-    print(f"[post] {input_data['toolName']} succeeded")
+    print(f"[post] {input_data['toolName']} done")
     return None
 
 
@@ -80,7 +80,7 @@ async def run_conversation() -> None:
             # Request tool use, then inspect the trace: a prompt is not proof
             # that the model actually invoked a tool.
             reply = await session.send_and_wait(
-                "Use glob or view to list the files in the current directory.",
+                "List files.",
                 timeout=120,
             )
             if reply is None:
