@@ -8,14 +8,16 @@ cd "$(dirname "$0")/.."
 # Use whichever interpreter the base image provides. `python3` is guaranteed
 # on every devcontainer image; fall back to `python` just in case.
 PY="$(command -v python3 || command -v python)"
+PYPI_INDEX_URL="${PIP_INDEX_URL:-https://packagefeedproxy.microsoft.io/pypi/simple}"
 echo "Using interpreter: $PY ($("$PY" --version 2>&1))"
 
 echo "── Installing Python dependencies ────────────────────────────"
-"$PY" -m pip install --upgrade pip || true
+"$PY" -m pip install --index-url "$PYPI_INDEX_URL" --upgrade pip || true
 # Install the deps. If the base image marks its Python as externally managed
 # (PEP 668), retry with --break-system-packages so the build still succeeds.
-"$PY" -m pip install -r requirements.txt \
-  || "$PY" -m pip install --break-system-packages -r requirements.txt
+"$PY" -m pip install --index-url "$PYPI_INDEX_URL" -r requirements.txt \
+  || "$PY" -m pip install --index-url "$PYPI_INDEX_URL" \
+       --break-system-packages -r requirements.txt
 
 echo
 echo "── Verifying the Python SDK import ───────────────────────────"
@@ -47,11 +49,11 @@ Then run any example (model access/quota and organization policy apply):
   python examples/05_mcp_servers.py
   python examples/06_session_resume.py
   python examples/07_human_in_the_loop.py
+  python examples/08_sandbox.py
 
-Example 5 uses remote HTTP MCP: no Node/npx or local MCP server is required.
-It checks GITHUB_TOKEN, GH_TOKEN, then gh auth token. The token must be
-accepted by the hosted MCP server and authorized for the target repository;
-an existing Codespaces login alone does not guarantee that access.
+Example 5 uses the remote GitHub MCP server and resolves its separate bearer
+credential from GITHUB_TOKEN, GH_TOKEN, or `gh auth token`. Example 8 enables
+the experimental runtime sandbox and asks before one disposable-data bypass.
 ============================================================
 
 EOF

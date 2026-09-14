@@ -15,7 +15,8 @@
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   "containerEnv": {
-    "NPM_CONFIG_REGISTRY": "https://packagefeedproxy.microsoft.io/npm/"
+    "NPM_CONFIG_REGISTRY": "https://packagefeedproxy.microsoft.io/npm/",
+    "PIP_INDEX_URL": "https://packagefeedproxy.microsoft.io/pypi/simple"
   },
 
   "remoteEnv": {
