@@ -1,73 +1,73 @@
-# 08 · Sandbox and controlled bypass
+# 08 · A denied vault and one approved exception
 
-📖 **Sources (SDK v1.0.13):**
-[official sandbox-bypass E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts),
-[generated Python sandbox types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
-[1.0.13 release notes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
+**GitHub Copilot SDK - an introduction**
 
-Open [the runnable source](08_sandbox.py). This is a Python port of the
-official Node.js E2E pattern: create disposable data, deny one directory in
-the runtime sandbox, then require a human decision before one `grep` call may
-run outside that sandbox.
+[Runnable source](08_sandbox.py) · [Student guide](README.md)
 
-The sandbox API is marked **experimental** in 1.0.13. Treat its types and
-backend behavior as version-sensitive.
+**Sources, SDK v1.0.13:** [official sandbox-bypass E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts),
+[sandbox configuration](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
+[permission/event types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
+[pre-tool hook types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py).
 
-On Linux, the runtime needs an available sandbox backend. The repository's
-Debian-based dev container installs `bubblewrap`; without it, the tool call
-fails before a bypass can be requested and reports that Bubblewrap is
-unavailable. Rebuild an existing Codespace after changing the dev container.
+## Goal and boundary
 
-## The flow
+Demonstrate denied versus explicitly approved access to a **private
+repository-review note** about `examples/01_simple_chat.py`. The note is
+fresh disposable teaching data, **not an actual secret**.
+
+`main()` creates `examples/copilot-sdk-review-<generated>/vault/review-note.txt`
+and uses that generated workspace as the runtime working directory.
+The vault is denied by the sandbox and removed when the run exits.
+No system temporary directory, real credentials, or private user files
+are used.
+
+The sandbox API is experimental. The official tagged E2E limits its
+execution to a supported macOS backend. Other environments need their own
+supported backend; for example, Linux deployments may need Bubblewrap.
+An installed executable alone does not prove backend availability or
+effective enforcement. Missing backend support is an **incomplete/failing
+demo**, never a reason to grant special container privileges or disable
+security controls.
 
 ```mermaid
 sequenceDiagram
-    participant App
+    participant Host
     participant Runtime
     participant Sandbox
     participant Human
-    App->>App: Create temporary workspace/vault marker
-    App->>Runtime: create_session(only grep)
-    App->>Runtime: options.update(SandboxConfig)
-    Runtime->>Sandbox: Deny vault; deny network; allow bypass requests
-    App->>Runtime: Ask grep to search denied vault
-    Runtime->>Sandbox: Attempt read
-    Sandbox-->>Runtime: Blocked by policy
-    Runtime->>App: PermissionRequestRead(requestSandboxBypass=true)
-    App->>Human: Show reason and exact path
-    Human-->>App: Approve once or reject
-    App-->>Runtime: ApproveOnce / Reject
-    Runtime->>Sandbox: Run this call outside sandbox only if approved
-    Runtime-->>App: Tool result and final answer
+    Host->>Host: Write disposable note with an unpredictable suffix
+    Host->>Runtime: Inspect grep metadata; enable sandbox; deny vault
+    Host->>Runtime: Request one exact content-mode grep (no suffix in prompt)
+    Runtime->>Host: Pre-hook validates exact arguments
+    Runtime->>Sandbox: Scoped read
+    Sandbox-->>Runtime: Denied path
+    Runtime->>Host: Bypass request with actual tool_call_id
+    Host->>Human: Approve this one grep outside sandbox? [y/N]
+    alt y
+        Host-->>Runtime: ApproveOnce for that request
+        Runtime-->>Host: Matching successful result containing full private note
+        Host->>Host: Verify approval + ID + actual note content
+    else denied or input unavailable
+        Host-->>Runtime: Reject / UserNotAvailable
+        Runtime-->>Host: Matching failed tool completion
+        Host->>Host: Record denial without claiming access or containment
+    end
 ```
 
-## Code walkthrough
+The diagram is an intended supported-backend flow, not a claim that every
+OS or runtime emitted it during validation.
 
-### 1. Enable the release's sandbox feature without dropping the environment
+## Configure the boundary
 
-The official E2E enables the `SANDBOX` feature flag. The Python sample copies
-the current process environment, preserves existing feature flags, and adds
-`SANDBOX`:
+`sandbox_runtime_env()` copies the inherited environment, preserves other
+feature flags, and adds `SANDBOX`. It does not replace `PATH` or remove
+security settings.
 
-```python
-env = os.environ.copy()
-...
-env["COPILOT_CLI_ENABLED_FEATURE_FLAGS"] = ",".join(sorted(flags))
-CopilotClient(env=env)
-```
-
-Passing only one environment variable would replace the runtime's complete
-environment, including `PATH` and authentication-related variables. Preserve
-the inherited environment unless deliberate isolation requires otherwise.
-
-### 2. Apply the mutable sandbox configuration
-
-The high-level Python `create_session` signature does not expose a sandbox
-argument in 1.0.13. Configure it through the generated experimental RPC after
-session creation:
+The high-level Python session constructor does not take a sandbox argument
+in 1.0.13; the sample uses the generated options RPC:
 
 ```python
-updated = await session.rpc.options.update(
+await session.rpc.options.update(
     SessionUpdateOptionsParams(
         sandbox_config=SandboxConfig(
             enabled=True,
@@ -75,7 +75,7 @@ updated = await session.rpc.options.update(
             add_current_working_directory=True,
             user_policy=SandboxConfigUserPolicy(
                 filesystem=SandboxConfigUserPolicyFilesystem(
-                    denied_paths=[str(vault)],
+                    denied_paths=[str(state.vault)],
                 ),
                 network=SandboxConfigUserPolicyNetwork(
                     allow_local_network=False,
@@ -87,121 +87,147 @@ updated = await session.rpc.options.update(
 )
 ```
 
-The current working directory remains usable, the nested demo vault is denied,
-and outbound plus loopback network access is disabled. The sample stops if the
-runtime rejects the patch.
+The runnable code checks `updated.success`; a rejected configuration raises.
+`allow_bypass=True` permits a request for an exception, **not automatic
+approval**. The callback offers exactly one human bypass decision.
+Only built-in `grep` is exposed. There is no shell or Python custom tool
+available to the model.
 
-`allow_bypass=True` does **not** auto-bypass anything. It merely permits the
-runtime to ask the host whether one blocked operation may run outside the
-sandbox. Omitting the field is fail-closed.
+## Require matching content, not generic success
 
-### 3. Keep the non-sandbox permission scope narrow
+A metadata-only inspection of the pinned local runtime confirmed:
 
-The session exposes only:
+| Grep input | Meaning used here |
+|---|---|
+| `pattern` | Exact anchored prefix, `^WORKSHOP_PRIVATE_REVIEW_NOTE ` |
+| `paths` | Exact absolute disposable-vault directory |
+| `glob` | Only `review-note.txt` |
+| `output_mode` | **`content`**, not the default `files_with_matches` |
+| `-n` | `True`, include matching line numbers |
+| `head_limit` | `1`, bound output |
 
-```python
-available_tools=ToolSet().add_builtin("grep")
+`require_content_grep` checks the live schema before sending a model prompt.
+`scoped_grep_hook` permits only one request with exactly those arguments in
+the generated workspace; variations are explicitly denied.
+
+`make_review_note()` appends `secrets.token_hex(16)` to the note. The complete
+line is held in `ApprovalState.note_content`, but **neither the suffix nor
+the full note is supplied in the model prompt**:
+
+```text
+WORKSHOP_PRIVATE_REVIEW_NOTE file=examples/01_simple_chat.py; focus=error handling; check final-message handling and listener cleanup; nonce=<unpredictable 32 hex characters>
 ```
 
-The permission handler accepts only `PermissionRequestRead` paths inside the
-disposable vault. Ordinary read approval and sandbox enforcement remain
-separate checks. An out-of-scope path or permission kind is rejected.
+Echoing the requested prefix, returning a filename, reporting no matches,
+or merely setting `success=True` cannot prove access to that line. There
+is no “success without marker” fallback.
 
-### 4. Recognize and isolate the bypass decision
+Previous speculation that missing Linux content meant redaction was
+**not established**. Grep's filenames-only default and other possible
+results make such an inference invalid. This version requests content and
+fails if the actual content evidence is missing; it does not infer
+undocumented platform behavior.
 
-Sandbox-capable permission requests can include:
+## Scope and correlate the human decision
 
-- `request_sandbox_bypass=True`;
-- `request_sandbox_bypass_reason`;
-- the exact requested path.
+The permission handler accepts only `PermissionRequestRead` for the exact
+vault or its note, with a nonempty **`request.tool_call_id`**.
+An ordinary scoped read approval is logged with `bypass=False`; normal
+sandbox restrictions still apply. A managed ordinary-read approval that
+would need another human gate fails closed.
 
-The sample displays that information, asks once, and returns
-`PermissionDecisionApproveOnce()` only for `y`. A second bypass request is
-rejected. Timeout/EOF returns `PermissionDecisionUserNotAvailable()`.
+For `request_sandbox_bypass=True`, the host shows the reason, path, and ID.
+Only `y` returns `PermissionDecisionApproveOnce`; denial and missing input
+are separately recorded. Repeated bypass requests are rejected.
 
-Once approved, that individual call runs **outside the sandbox**. The sample
-uses only a temporary marker file so the consequence is observable without
-exposing real user data.
+The approval ID comes from the real permission request, not the latest
+observed start event. SDK 1.0.13's pre-tool hook input has **no call-ID
+field**, so the hook is not used as an approval/correlation record.
 
-The `ToolExecutionCompleteData.sandboxed` telemetry field may still report
-`True` for a call associated with an enabled sandbox session. Do not use that
-single field as bypass proof; correlate the explicit
-`request_sandbox_bypass=True` permission request with the successful access to
-the otherwise denied vault. The sample correlates the host decision with the
-matching `grep` tool-call ID and a successful completion. When the backend
-includes the match in `result.content`, the sample records that as additional
-evidence; the stable Linux runtime may omit it from the event payload.
+`bypass_verified(state)` requires all of:
 
-This is why `sandboxed=True` and `success=True` are not interpreted alone. The
-host also requires its recorded `request_sandbox_bypass=True` approval for the
-scoped vault read.
+1. the exact scoped hook request and explicit bypass approval;
+2. that approval's ID on the expected grep start;
+3. a successful completion with the **same ID**, no error, and a result;
+4. the **entire private note, including the unpredictable suffix**, in
+   that result's `content`.
 
-The model is not the authority on whether the host approved a permission
-request. It may not observe the callback and can describe the approval state
-incorrectly even after a successful tool call. The host alone prints
-`SANDBOX_BYPASS_APPROVED` after correlating its approval state with the matching
-tool result.
+`ToolExecutionCompleteData.sandboxed` is logged as runtime telemetry only.
+Neither `True` nor `False` proves whether a bypass executed outside the
+backend. Approval plus matching successful content is required regardless
+of that field.
 
-### 5. Understand the boundary
+Missing request, backend, start, completion, result, or full note is
+incomplete/failure. Unapproved content is also failure, not a successful
+security demonstration. A host denial record does not prove that the
+underlying OS prevented every possible access.
 
-This sandbox constrains runtime-launched tools and processes. It is not a VM,
-container, tenant boundary, or authorization system. In particular:
-
-- Python custom-tool handlers run in the host Python process unless the
-  application isolates them separately.
-- A bypass intentionally removes the sandbox for one approved operation.
-- Tool allowlists and permission callbacks are still required.
-- Credential injection (`SandboxConfigAuth`) is opt-in and omitted here.
-- Backend availability and enforcement details vary by OS; the official E2E
-  currently runs only where its macOS sandbox backend is available.
-
-For multi-tenant services, combine sandboxing with isolated workspaces,
-per-tenant storage/credentials, process or container isolation, and
-application-level authorization.
-
-## Run it
+## Run both decisions
 
 ```bash
 python examples/08_sandbox.py
+# Answer n for the disposable-data bypass.
+python examples/08_sandbox.py
+# On a supported backend, answer y in a separate run.
 ```
 
-Verify the Linux backend first when running outside this repository's dev
-container:
-
-```bash
-command -v bwrap
-```
-
-Approve the one disposable-data bypass to exercise the full path:
+**Illustrative denial trace — not an observed sandbox run:**
 
 ```text
-[tool] grep started
-
+[sandbox] grep content-output metadata confirmed
+[tool] grep started id=<id> scoped=True
 [sandbox bypass] <runtime reason>
-Target: /tmp/.../vault
-Run this one grep outside the sandbox? [y/N]: y
-[tool] completed success=True sandboxed=<runtime-reported>
-
-[host] SANDBOX_BYPASS_APPROVED — explicit approval and matching grep success verified
-[agent] <model-generated description of the grep result>
+Target: <repository>/examples/copilot-sdk-review-<generated>/vault
+Tool call ID: <id>
+Run this one grep outside the sandbox? [y/N]: n
+[host] SANDBOX_BYPASS_DENIED id=<id> reason=user rejected
+[tool] completed id=<id> success=False sandboxed=<telemetry>
+[host] SANDBOX_DENIAL_RECORDED id=<id>; no access claimed
 ```
 
-Choosing anything other than `y` keeps the vault blocked. The assistant should
-report `SANDBOX_BLOCKED`.
+**Illustrative approved trace — not an observed sandbox run:**
 
-## Try this next
+```text
+[host] SANDBOX_BYPASS_APPROVE_ONCE id=<id>
+[tool] completed id=<id> success=True sandboxed=<telemetry>
+[host] SANDBOX_BYPASS_VERIFIED id=<id>; matching result contains the private note
+```
 
-1. Keep `allow_bypass` omitted and verify the denied path stays inaccessible.
-2. Add a separate read-only directory while leaving the vault denied.
-3. Test backend availability on each deployment OS before relying on it.
-4. Run a custom Python tool and observe that host-side handlers need their own
-   isolation strategy.
+The sample does not print the model's commentary about sandbox access. That
+commentary can disagree with the host's recorded callback and result; it is
+not security evidence.
 
-## Common pitfalls
+Exact additional host trace forms:
 
-- Calling a tool allowlist a sandbox.
-- Enabling bypass without a dedicated approval UI and audit trail.
-- Assuming a Linux host already provides Bubblewrap or another sandbox backend.
-- Passing a partial `env` mapping and accidentally removing runtime settings.
-- Assuming a sandbox contains host-side Python callbacks.
-- Treating experimental generated types as a permanent compatibility contract.
+```text
+[host] SANDBOX_SCOPED_READ_APPROVE_ONCE id=<id>; bypass=False
+[host] SANDBOX_BYPASS_DENIED id=<id-or-missing> reason=outside the scoped read policy
+[host] SANDBOX_BYPASS_DENIED id=<id> reason=managed read approval unavailable
+[host] SANDBOX_BYPASS_DENIED id=<id> reason=only one bypass decision is allowed
+[host] SANDBOX_BYPASS_DENIED id=<id> reason=input unavailable or timed out
+[host] SANDBOX_INCOMPLETE reason=<exception message>
+[host] SANDBOX_CANCELLED; no access verified
+```
+
+For an approved search without the private note, the exact failure reason is:
+
+```text
+[host] SANDBOX_INCOMPLETE reason=Approved grep lacks a matching successful result containing the private note.
+```
+
+The entire run is bounded, callbacks propagate cancellation, and the listener
+and disposable vault are cleaned up on success, denial, or failure.
+
+## What offline tests do and do not prove
+
+The suite uses real permission/event/configuration types, invokes the actual
+host callbacks, and supplies mocked runtime results. Negative controls cover
+filenames-only output, no matches, echoed query, missing nonce/result,
+mismatched approval/completion IDs, failed execution, unapproved access,
+wrong scope, missing backend, and repeated requests.
+
+These tests prove host verification logic, **not real sandbox enforcement**.
+Live approval/denial runs remain necessary on each intended environment.
+Runtime sandboxing also does not isolate the host Python process, supply
+tenant authorization, or replace container/VM boundaries. Production hosts
+need their own isolation, credential, audit, and identity design.

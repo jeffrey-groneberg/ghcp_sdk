@@ -1,8 +1,15 @@
-# GitHub Copilot SDK — Python workshop
+# GitHub Copilot SDK — an introduction
 
-Eight small, self-contained, commented prototypes and walkthroughs for
-**`github-copilot-sdk==1.0.13`**, the latest stable PyPI release verified on
-**2026-09-14**. Both dependency manifests pin this SDK version.
+Build a read-only repository assistant through eight independently runnable
+Python checkpoints. The common task is to review this workshop repository,
+especially `examples/01_simple_chat.py`, for error handling and cleanup.
+The examples use **`github-copilot-sdk==1.0.13`**, the stable release verified on
+**2026-09-14**. Both dependency manifests pin it.
+
+Start with a streamed plan from supplied context, add a typed repository tool,
+select a reviewer, observe tool execution, fetch issue context, resume a review,
+and compare rejected versus approved operations. These are focused checkpoints
+of the same use case, not a cumulative production application.
 
 **Baseline:** Python **3.11+** (3.12 recommended), Pydantic **2+**, and the
 SDK release's Copilot CLI/runtime **1.0.83**. Like the official Python samples,
@@ -14,11 +21,35 @@ Sources: [PyPI 1.0.13](https://pypi.org/project/github-copilot-sdk/1.0.13/),
 [tagged runtime pin](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/package.json).
 Walkthrough links target **v1.0.13**, not unreleased `main`. Where upstream
 prose is stale, the tagged Python implementation is the authority.
-The implementation style is cross-checked against the official
+The implementation style follows the official
 [`python/samples`](https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples)
-and current Context7 documentation.
+and version-pinned types and tests.
 
-## What's new since the original 1.0.0 workshop?
+## What the SDK adds
+
+A direct model API returns text or proposed tool calls. Your application must
+then dispatch tools, return their results, and repeat model calls. With the
+Copilot SDK, the **runtime** manages that loop and conversation state; the SDK
+transports requests and exposes events, tool registration, and host callbacks.
+Your application still authorizes access and supplies credentials.
+
+For one repository-inspection request:
+
+1. The application sends a prompt through `session.send_and_wait`.
+2. The runtime sends context and tool schemas to the model.
+3. The model proposes `inspect_python_file` with a file argument.
+4. The runtime asks the host for permission. Rejection skips execution.
+5. On approval, the custom host handler validates the allowed file and returns
+   AST metadata.
+6. The runtime passes that result back to the model for another iteration.
+7. A final assistant message and idle event complete the wait.
+
+Built-in tools execute in the runtime; custom Python handlers execute in the
+host process. One user request can cause several model calls. In SDK event
+terminology, `assistant.turn_start` describes an individual model iteration.
+
+<details>
+<summary>Release details since the original SDK 1.0.0 workshop (optional)</summary>
 
 | Stable addition | What it means here |
 |---|---|
@@ -32,11 +63,13 @@ and current Context7 documentation.
 | [1.0.13: sandbox bypass](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts) | Example 08 ports the official E2E pattern to Python: enable `SandboxConfig`, deny a disposable path, and require a fresh human decision before one tool call may run outside the sandbox. The API is experimental. |
 | [1.0.9](https://github.com/github/copilot-sdk/releases/tag/v1.0.9) / [1.0.11](https://github.com/github/copilot-sdk/releases/tag/v1.0.11) | Earlier stable fixes include JSON-mode Pydantic tool results, source-qualified tool filtering documentation, `on_agent_stop`, clearer permission types, `Tool.is_terminal`, and history clear/rewind APIs. No experimental factory features are needed by these demos. |
 
+</details>
+
 ## Open in Codespaces
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jeffrey-groneberg/ghcp_sdk?quickstart=1)
 
-The devcontainer provides Python 3.12 and GitHub CLI and installs the pinned
+The devcontainer provides Python 3.12, GitHub CLI, Bubblewrap, and the pinned
 Python dependencies. The SDK downloads its matching runtime on first use;
 it does **not** install the interactive `copilot` command on your PATH.
 Follow the authentication setup below, then run:
@@ -117,14 +150,14 @@ than assuming that a newly announced model is available to your account.
 
 | # | Walkthrough | Python | Capability |
 |---|---|---|---|
-| 1 | [Streaming chat](examples/01_simple_chat.md) | [Source](examples/01_simple_chat.py) | Client identity, streaming events, bounded waiting and lifecycle |
-| 2 | [Custom tools](examples/02_custom_tools.md) | [Source](examples/02_custom_tools.py) | `@define_tool`, Pydantic schema, explicitly fictional weather |
-| 3 | [Custom agents](examples/03_custom_agents.md) | [Source](examples/03_custom_agents.py) | Researcher → reviewer, typed RPC selection and verification |
-| 4 | [Hooks](examples/04_hooks.md) | [Source](examples/04_hooks.py) | Pre-tool, successful-result and failed-result callbacks without logging sensitive arguments |
-| 5 | [Remote GitHub MCP](examples/05_mcp_servers.md) | [Source](examples/05_mcp_servers.py) | Separate MCP authentication, HTTP configuration and read-only issue tools |
-| 6 | [Session persistence](examples/06_session_resume.md) | [Source](examples/06_session_resume.py) | Create, detach, resume and stable/discoverable session IDs |
-| 7 | [Human in the loop](examples/07_human_in_the_loop.md) | [Source](examples/07_human_in_the_loop.py) | Capability-checked elicitation with legacy fallback, exact-command approval and managed approval awareness |
-| 8 | [Sandbox bypass](examples/08_sandbox.md) | [Source](examples/08_sandbox.py) | Experimental filesystem/network sandbox with one human-approved bypass |
+| 1 | [Streaming chat](examples/01_simple_chat.md) | [Source](examples/01_simple_chat.py) | Stream a review plan from supplied context; no file tools yet |
+| 2 | [Custom tools](examples/02_custom_tools.md) | [Source](examples/02_custom_tools.py) | Pydantic input and validated AST metadata for an allowed Python file |
+| 3 | [Custom agents](examples/03_custom_agents.md) | [Source](examples/03_custom_agents.py) | Research the repository, then select and verify its reviewer |
+| 4 | [Hooks](examples/04_hooks.md) | [Source](examples/04_hooks.py) | Observe repository reads through pre-call, success, and failure hooks |
+| 5 | [Remote GitHub MCP](examples/05_mcp_servers.md) | [Source](examples/05_mcp_servers.py) | Read this repository's current issues; separate authentication and result evidence |
+| 6 | [Session persistence](examples/06_session_resume.md) | [Source](examples/06_session_resume.py) | Persist a review file and focus, then recall them in a new process |
+| 7 | [Human in the loop](examples/07_human_in_the_loop.md) | [Source](examples/07_human_in_the_loop.py) | Validate the review focus, then approve or reject the fixed test command |
+| 8 | [Sandbox bypass](examples/08_sandbox.md) | [Source](examples/08_sandbox.py) | Deny a disposable private review note; separately approve one read |
 
 ### What Example 08 is testing
 
@@ -133,14 +166,15 @@ testing whether a runtime-launched tool can be **contained, blocked, escalated,
 approved once, and independently verified**.
 
 The script creates a temporary workspace containing a nested `vault` with a
-disposable marker. It then:
+disposable private review note. Its unpredictable marker is not given to the
+model in the prompt. It then:
 
 1. exposes only the built-in `grep` tool;
 2. keeps the workspace available while explicitly denying the nested vault;
 3. denies outbound and local network access;
 4. allows the runtime to request a sandbox bypass, but does not grant one
    automatically;
-5. asks `grep` to search the denied vault.
+5. asks `grep` to search the denied vault and return matching content.
 
 The first access attempt is therefore expected to hit the sandbox policy. The
 runtime sends the host a `PermissionRequestRead` with
@@ -150,11 +184,15 @@ tool call to run outside the sandbox. A rejection, timeout, EOF, unexpected
 permission type, out-of-scope path, or second bypass request fails closed.
 
 The final verdict comes from the application, not from the model. The host
-correlates its recorded approval with the successful completion of the same
-`grep` tool-call ID. Some backends include the marker in the result payload;
-the stable Linux runtime can omit it. Likewise, the completion event may still
-say `sandboxed=True` because the session is sandbox-enabled. Neither the
-assistant's wording nor that telemetry flag alone proves a bypass.
+requires recorded approval and a matching successful tool result containing
+the private note. `success=True` is insufficient: a search may complete but
+return filenames or no matching lines. Missing content is not assumed to be
+platform-specific redaction and is not accepted as proof.
+
+The completion event may still report `sandboxed=True` during a bypass flow.
+That field alone does not establish whether the note was read or permission
+was granted. A missing backend, missing note content, or unmatched tool result
+must remain an explicit failure rather than a successful demonstration.
 
 This separation matters because each control answers a different security
 question:
@@ -165,7 +203,7 @@ question:
 | Permission callback | Does the application authorize this exact request? |
 | `SandboxConfig` | What can the runtime process reach even after a tool is authorized? |
 | Human-approved bypass | May this one blocked operation cross the containment boundary? |
-| Correlated tool events | Did the approved operation actually complete? |
+| Correlated tool events and note content | Did the approved read actually return the private note? |
 
 This is defense in depth against prompt injection, incorrect model decisions,
 and overly broad tool arguments. A tool allowlist is not a sandbox, and a
@@ -219,12 +257,49 @@ using mocks. They do not prove live model, MCP or authentication behavior.
   deck (not reveal.js). Open in a browser or serve the `docs/` folder.
 - [`GitHub-Copilot-SDK.pptx`](GitHub-Copilot-SDK.pptx): the matching PowerPoint deck.
 
-Both use the same 27-slide, four-chapter curriculum and stable SDK/runtime baseline.
+Both contain **18 introduction slides and 4 optional appendix slides**. The
+introduction retains four chapters: SDK in detail, SDK vs. CLI, capabilities,
+and samples. Runtime deployment, multi-user hosting, authentication variants,
+and BYOK are deferred until after the exercises and discussion.
+
+The HTML hides the appendix by default. Use **Show optional appendix** on the
+references slide, add `?appendix=1` to the URL, or follow an appendix fragment
+such as `#appendix-byok`. In PowerPoint the appendix slides are marked hidden
+for normal slide shows and remain accessible in the editor.
+
+The narrative is maintained once in [`docs/deck.json`](docs/deck.json).
+The builder extracts teaching snippets directly from the executable Python
+files. Missing or ambiguous snippet boundaries fail the build, rather than
+silently retaining an outdated code example. Both formats use those same
+excerpts. Approval traces are explicitly labelled illustrative paths, not
+fabricated recordings or guarantees of model wording.
 
 ```bash
 python -m http.server -d docs 8000
 # http://localhost:8000
 ```
+
+To change the deck, edit `docs/deck.json`; edit `docs/index.html` only for its
+styles and navigation, outside the generated-slide markers. Regenerate both
+formats in a separate tooling environment:
+
+```bash
+python3 -m venv .venv-slides
+source .venv-slides/bin/activate
+python -m pip install -r scripts/requirements-slides.txt
+python scripts/build_slides.py
+```
+
+The offline checks require only the Python standard library:
+
+```bash
+python scripts/build_slides.py --check
+python -m unittest discover -s scripts/tests -v
+```
+
+The Pages workflow runs these checks before publishing. It rejects a stale
+deck, mismatched code excerpt, missing final-message check, unchecked agent
+selection, placeholder MCP header, or incorrectly exposed appendix.
 
 ## References
 

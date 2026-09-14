@@ -1,136 +1,94 @@
-# 01 · Streaming chat
+# 01 · Stream a repository-review plan
 
-📖 **Sources (SDK v1.0.13):**
+**GitHub Copilot SDK - an introduction**
+
+[Runnable source](01_simple_chat.py) · [Student guide](README.md)
+
+**Sources, SDK v1.0.13:** [Python session](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
 [client identity](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/client-info.md),
-[streaming events](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md),
-[Python session implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py).
+[streaming events](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md).
 
-Open [the runnable source](01_simple_chat.py). This example streams text,
-identifies the workshop application, and waits for completion without an
-unbounded hand-written idle event.
+## Goal and boundary
 
-## The flow
+Ask for a review plan for `examples/01_simple_chat.py` in
+`jeffrey-groneberg/ghcp_sdk`, focusing on **error handling and cleanup**.
+This first checkpoint supplies a short repository description as text.
+`available_tools=[]` means the model cannot inspect the file: this is a
+**plan based on supplied context, not a completed source review**.
 
 ```mermaid
 sequenceDiagram
-    participant App
-    participant SDK
-    participant Runtime as Copilot runtime
-    App->>SDK: enter CopilotClient(client_info=...)
-    SDK->>Runtime: server.connect + application identity
-    App->>SDK: create_session(streaming=True, available_tools=[])
-    App->>SDK: session.on(listener)
-    App->>SDK: send_and_wait(prompt, timeout=60)
-    loop Response chunks
-        Runtime-->>SDK: assistant.message_delta
-        SDK-->>App: listener prints delta_content
+    participant Host
+    participant Runtime
+    Host->>Runtime: create_session(streaming=True, available_tools=[])
+    Host->>Host: Register event listener
+    Host->>Runtime: Supplied description + review-plan prompt
+    loop Text chunks
+        Runtime-->>Host: assistant.message_delta
     end
-    Runtime-->>SDK: assistant.message then session.idle
-    SDK-->>App: final message
-    App->>SDK: unsubscribe; exit session
-    SDK->>Runtime: session.detach
-    App->>SDK: exit owned client
+    Runtime-->>Host: assistant.message, then session.idle
+    Host->>Host: Require final message; unsubscribe in finally
+    Host->>Runtime: Detach session; stop owned client
 ```
 
-## Code walkthrough
+## Important code
 
-### 1. Identify the application
+`REPOSITORY_DESCRIPTION` explicitly names the workshop, target file, and
+client/session/subscription lifecycle. The prompt says not to claim file
+access or actual bugs. No model is pinned; the runtime chooses its default.
 
-```python
-async with CopilotClient(
-    client_info={
-        "application_name": "ghcp-sdk-examples",
-        "application_version": "0.1.0",
-        "integration_name": "python-workshop",
-        "integration_version": "1.0.13",
-    },
-) as client:
-    ...
-```
+The optional `client_info` identifies **this application**, not a model or
+credential. The four application/integration fields are forwarded during the
+runtime connection. They do not change authorization.
 
-New in **1.0.13**, all four identity fields are optional. They describe the
-host application/integration, not the model. They are forwarded on the
-`server.connect` handshake for runtime telemetry attribution. This does not
-change authentication or what the runtime records. An unset identity keeps
-default attribution.
-
-### 2. Create a text-only session
-
-`create_session` takes `streaming=True`, `available_tools=[]`, and the
-permission handler used by the official Python sample. The empty allowlist
-removes tools from this conversation. The runtime selects its current default
-model; call `await client.list_models()` before deliberately pinning one.
-`approve_all` is only a trusted-demo convenience, not an authorization system
-or OS sandbox.
-
-The client manages a runtime subprocess over stdio by default. The published
-SDK downloads/caches its matching runtime as needed; it does not install the
-interactive `copilot` command. Session creation performs the connection work;
-entering the returned session context manager does not create another session.
-
-### 3. Listen while using the completion helper
+Register before sending, then combine streaming with bounded completion:
 
 ```python
-def on_event(event) -> None:
-    match event.data:
-        case AssistantMessageDeltaData(delta_content=delta):
-            print(delta or "", end="", flush=True)
-
 unsubscribe = session.on(on_event)
 try:
-    reply = await session.send_and_wait(
-        "Explain what the GitHub Copilot SDK is in 3 sentences.",
-        timeout=60,
-    )
+    reply = await session.send_and_wait(REVIEW_PROMPT, timeout=60)
     if reply is None:
         raise RuntimeError("Session became idle without an assistant message.")
+    if not saw_delta:
+        print(reply.data.content, end="", flush=True)
 finally:
     unsubscribe()
     print()
 ```
 
-- Register **before** sending so early deltas are observed. Deltas are
-  chunks, not a promise of one token per event.
-- `send_and_wait` continues delivering events to the listener while it
-  watches final messages, idle and session errors.
-- It raises `TimeoutError` after the configured wait; `None` means idle
-  without an assistant message. Session errors propagate too.
-- `finally` unregisters the listener on success, failure or cancellation.
-- `asyncio.timeout(180)` bounds the surrounding operation as well.
+`REVIEW_PROMPT` contains the supplied description and the explicit instruction
+not to claim file access. `AssistantMessageDeltaData.delta_content` is a
+chunk, not necessarily one token. The final message is required even when
+chunks were printed. If no nonempty deltas arrive, the final content is
+printed; otherwise printing it again would duplicate the answer.
 
-### 4. Understand cleanup
+- `send_and_wait` raises on timeout/session error. `None` means idle without
+  an assistant message; it is not timeout or success.
+- The outer `asyncio.timeout(180)` also bounds setup and the surrounding run.
+- `finally` handles partial output, failures, and cancellation.
+- Session exit calls `disconnect()` → `session.detach` in 1.0.13. Persisted
+  state remains. Client exit stops its owned runtime process.
+- A wait timeout is not proof that remote work was aborted. A long-lived
+  host must deliberately manage `session.abort()` and lifecycle cleanup.
 
-Exiting the session calls `disconnect()` → **`session.detach`** in 1.0.13:
-local handlers are released while persisted session data is retained.
-Exiting the owned client stops its runtime process. A timeout by itself
-does not abort ongoing remote work; a long-lived client should explicitly
-manage `session.abort()` and cancellation.
-
-## Run it
+## Run and inspect
 
 ```bash
 python examples/01_simple_chat.py
 ```
 
-Expect a gradually printed explanation; wording, timing and model availability
-vary. Failed authentication, transport or model requests should fail visibly,
-not produce an apparent successful empty response.
+**Illustrative expected answer, not an observed model run:**
 
-## Try this next
+```text
+Based only on the supplied description:
+1. Check how timeouts and session errors are surfaced.
+2. Require a final assistant message rather than accepting idle alone.
+3. Check that subscriptions and client/session resources are released.
+```
 
-1. Change only the application identity and observe that the answer is not
-   prescribed by telemetry metadata.
-2. Add a second `send_and_wait` inside the session to reuse conversation
-   context. Normal usage/quota accounting still applies.
-3. Set `streaming=False` and print `reply.data.content` instead.
-4. Inspect `await client.list_models()`, then pin an account-enabled model only
-   when reproducibility matters more than following the runtime default.
-5. Use a mock to emit `session.error` or withhold idle; verify cleanup.
+Offline regressions test real SDK wait semantics, required final replies,
+streaming, listener cleanup, and propagated cancellation. They do not
+establish model quality or live authentication.
 
-## Common pitfalls
-
-- `await session.send(...)` returns a message ID, not the final response.
-- A bare `await done.wait()` can hang if no idle event arrives.
-- Printing the final message after printing deltas duplicates the answer.
-- Never catch `asyncio.CancelledError` and turn it into a successful reply.
-- For a Windows legacy console, set `PYTHONIOENCODING=utf-8`.
+**Exercise:** withhold a final message in a mock after emitting a delta.
+The example must fail rather than treat partial text as a finished review.

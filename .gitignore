@@ -10,6 +10,7 @@ build/
 
 # Virtual environments
 .venv/
+.venv-slides/
 venv/
 env/
 ENV/

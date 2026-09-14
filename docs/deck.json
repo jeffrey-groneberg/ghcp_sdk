@@ -1,0 +1,420 @@
+{
+  "title": "GitHub Copilot SDK - an introduction",
+  "sdk_version": "1.0.13",
+  "runtime_version": "1.0.83",
+  "repository": "https://github.com/jeffrey-groneberg/ghcp_sdk",
+  "slides": [
+    {
+      "id": "title",
+      "section": "Introduction",
+      "layout": "title",
+      "title": "GitHub Copilot SDK"
+    },
+    {
+      "id": "agenda",
+      "section": "Introduction",
+      "layout": "cards",
+      "title": "Agenda",
+      "cards": [
+        {"title": "1. SDK in detail", "text": "What the runtime does; one complete agent turn; tool permissions."},
+        {"title": "2. SDK vs. CLI", "text": "When an API integration is useful instead of the CLI interface."},
+        {"title": "3. Capabilities", "text": "One repository assistant, developed through eight independent checkpoints."},
+        {"title": "4. Samples", "text": "Run the code, inspect its results, and compare rejected and approved actions."}
+      ],
+      "note": "Deployment variants, multi-user isolation, credential rotation, and BYOK are in the optional appendix."
+    },
+    {
+      "id": "repository-assistant",
+      "section": "1. SDK in detail",
+      "layout": "columns",
+      "title": "Review one repository, without changing its source",
+      "lead": "Our task: inspect examples/01_simple_chat.py for error handling and cleanup, then add GitHub issue context.",
+      "columns": [
+        {
+          "title": "With a direct model API",
+          "items": [
+            "Your code sends a request and receives text or proposed tool calls.",
+            "Your code must dispatch tools, return their results, and repeat model calls.",
+            "You implement conversation state and the surrounding controls."
+          ]
+        },
+        {
+          "title": "With the Copilot SDK",
+          "items": [
+            "The Copilot runtime manages the model/tool loop and session state.",
+            "The SDK exposes typed events, tool registration, and host callbacks.",
+            "Your application still supplies credentials and authorizes access."
+          ]
+        }
+      ],
+      "note": "The first sample only receives a supplied repository description. It cannot inspect files until a tool is exposed.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md"
+    },
+    {
+      "id": "agent-turn",
+      "section": "1. SDK in detail",
+      "layout": "table",
+      "title": "One user request can trigger several model calls",
+      "lead": "Example: ask the assistant to inspect a Python file through a custom host tool.",
+      "headers": ["Step", "Owner", "Operation"],
+      "rows": [
+        ["1", "Application → SDK", "send_and_wait(prompt, timeout=60) sends the user request."],
+        ["2", "Runtime → model", "Send conversation context and the available tool schemas."],
+        ["3", "Model → runtime", "Propose inspect_python_file with the file argument."],
+        ["4", "Runtime → host", "Request permission; the host returns an approval or rejection."],
+        ["5", "Host tool", "On approval: validate the argument, read the allowed file, return AST metadata."],
+        ["6", "Runtime → model", "Append the tool result to the conversation and call the model again."],
+        ["7", "Runtime → SDK", "Emit the final assistant message and idle event; the wait completes."]
+      ],
+      "note": "A rejection skips execution. Built-in tools run in the runtime; custom Python handlers run in the host. SDK assistant.turn events describe individual model iterations.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md"
+    },
+    {
+      "id": "tool-controls",
+      "section": "1. SDK in detail",
+      "layout": "cards",
+      "title": "Tool access has three separate controls",
+      "cards": [
+        {"title": "Expose a capability", "text": "ToolSet and available_tools select which tool schemas the model can use. Hiding a tool is not OS isolation."},
+        {"title": "Authorize a request", "text": "on_permission_request evaluates a proposed operation. Human input is not automatically authorization."},
+        {"title": "Limit execution", "text": "SandboxConfig restricts runtime-launched tools where a backend is available. Custom host handlers need separate containment."}
+      ],
+      "note": "The workshop uses read-only tools and disposable data. A sandbox bypass intentionally removes the sandbox for one approved operation.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py"
+    },
+    {
+      "id": "cli-vs-sdk",
+      "section": "2. SDK vs. CLI",
+      "layout": "table",
+      "title": "Choose the interface, not a different agent engine",
+      "headers": ["Need", "Copilot CLI", "Copilot SDK"],
+      "rows": [
+        ["Interface", "Terminal UI; also supports non-interactive prompts.", "Language API embedded in your application."],
+        ["Tool interaction", "CLI configuration and its built-in interaction flow.", "Typed host callbacks, custom functions, and application UI."],
+        ["Lifecycle", "Launch and operate the CLI process.", "Create sessions and own or connect to a runtime process."],
+        ["Useful for", "Terminal work and command-line automation.", "Applications needing structured events and approval interfaces."]
+      ],
+      "note": "Both use the Copilot runtime. The SDK is useful when parsing CLI output is not an adequate integration contract.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/README.md"
+    },
+    {
+      "id": "checkpoint-map",
+      "section": "3. Capabilities",
+      "layout": "table",
+      "title": "Eight checkpoints for the same repository assistant",
+      "headers": ["Sample", "Add", "Repository task"],
+      "rows": [
+        ["01", "Streaming session", "Plan a review from supplied context; no file access yet."],
+        ["02", "Typed custom tool", "Read AST metadata from an allowed Python file."],
+        ["03", "Custom agents", "Research the file, then select and verify its reviewer."],
+        ["04", "Hooks", "Record pre-call, success, and failure events for repository reads."],
+        ["05", "GitHub MCP", "Read current issues for this repository with separate credentials."],
+        ["06", "Persistence", "Recall the review file and focus in a new process."],
+        ["07", "Human approval", "Choose a review focus, then approve or reject the test command."],
+        ["08", "Sandbox", "Deny a private review note; allow one separately approved read."]
+      ],
+      "note": "Each file runs independently. They are learning checkpoints, not a complete multi-user service.",
+      "source": "https://github.com/jeffrey-groneberg/ghcp_sdk/tree/main/examples"
+    },
+    {
+      "id": "setup",
+      "section": "4. Samples",
+      "layout": "code",
+      "title": "Prepare one environment and run the first checkpoint",
+      "items": [
+        "Python 3.11+; the Codespace supplies Python 3.12 and the pinned packages.",
+        "These scripts use GitHub-hosted Copilot models and require Copilot access.",
+        "Use an existing Copilot CLI login or securely provision COPILOT_GITHUB_TOKEN.",
+        "The SDK downloads runtime 1.0.83. It does not install the interactive copilot command."
+      ],
+      "code": {
+        "label": "Run from the repository root",
+        "language": "bash",
+        "text": "python -m pip install -r requirements.txt\npython -m copilot download-runtime\npython examples/01_simple_chat.py\n\n# Offline checks; no model requests\npython -m unittest discover -s examples/tests -v"
+      },
+      "note": "Use the repo's Codespaces link for the prepared environment. BYOK is optional appendix material, not the default authentication for these scripts.",
+      "source": "https://github.com/jeffrey-groneberg/ghcp_sdk#local-setup-and-authentication"
+    },
+    {
+      "id": "sample-01",
+      "section": "4. Samples",
+      "sample": "01",
+      "layout": "code",
+      "title": "Stream the review plan and require a final message",
+      "items": [
+        "available_tools=[] makes this turn text-only.",
+        "Subscribe before sending; assistant.message_delta contains chunks, not guaranteed tokens.",
+        "A timeout or session error raises. An idle session without a final message returns None.",
+        "Always remove the event listener in finally."
+      ],
+      "code": {
+        "label": "examples/01_simple_chat.py · inside a streaming session",
+        "source": "examples/01_simple_chat.py",
+        "start": "unsubscribe = session.on(on_event)",
+        "end": "unsubscribe()"
+      },
+      "note": "Run: python examples/01_simple_chat.py. This output is a plan based on supplied context, not a claim that files were inspected."
+    },
+    {
+      "id": "sample-02",
+      "section": "4. Samples",
+      "sample": "02",
+      "layout": "code",
+      "title": "Add a typed repository-inspection tool",
+      "items": [
+        "A Pydantic parameter type defines the tool's input schema.",
+        "The handler validates an explicit file allowlist and returns AST metadata.",
+        "ToolSet exposes this custom tool without granting built-in filesystem tools.",
+        "A recorded handler invocation proves the read; the model's summary does not."
+      ],
+      "code": {
+        "label": "examples/02_custom_tools.py · tool declaration",
+        "source": "examples/02_custom_tools.py",
+        "symbols": ["FileParams", "inspect_python_file"]
+      },
+      "note": "Run: python examples/02_custom_tools.py. The complete source contains the handler and its permission policy."
+    },
+    {
+      "id": "sample-03",
+      "section": "4. Samples",
+      "sample": "03",
+      "layout": "code",
+      "title": "Select the reviewer and check the selected agent",
+      "items": [
+        "Researcher and reviewer are configurations in one session, not parallel agents.",
+        "Both are restricted to read tools for the same repository.",
+        "Conversation context remains available when selecting the reviewer.",
+        "Check agent.name before sending the next prompt. The selection RPC is experimental."
+      ],
+      "code": {
+        "label": "examples/03_custom_agents.py · selection and verification",
+        "source": "examples/03_custom_agents.py",
+        "start": "await session.rpc.agent.select(",
+        "end": "raise RuntimeError(\"The reviewer persona was not selected.\")"
+      },
+      "note": "Run: python examples/03_custom_agents.py. The initial researcher selection is checked in the same way."
+    },
+    {
+      "id": "sample-04",
+      "section": "4. Samples",
+      "sample": "04",
+      "layout": "code",
+      "title": "Observe repository reads with hooks",
+      "items": [
+        "on_pre_tool_use runs before a tool call.",
+        "on_post_tool_use handles successful execution.",
+        "on_post_tool_use_failure handles failed execution.",
+        "These handlers log tool names. They do not enforce a policy or create a sandbox."
+      ],
+      "code": {
+        "label": "examples/04_hooks.py · pre-call and success hooks",
+        "source": "examples/04_hooks.py",
+        "symbols": ["on_pre_tool_use", "on_post_tool_use"]
+      },
+      "note": "Run: python examples/04_hooks.py. Inspect the host trace alongside the repository answer."
+    },
+    {
+      "id": "sample-05",
+      "section": "4. Samples",
+      "sample": "05",
+      "layout": "code",
+      "title": "Add current GitHub issues through MCP",
+      "items": [
+        "The remote GitHub MCP connection uses its own bearer credential.",
+        "Resolve the token at runtime; never print it or place it in source.",
+        "Use the read-only server header and an issue-tool allowlist.",
+        "Correlate a matching MCP start and successful completion. Zero open issues is a valid result."
+      ],
+      "code": {
+        "label": "examples/05_mcp_servers.py · remote server configuration",
+        "source": "examples/05_mcp_servers.py",
+        "symbol": "build_mcp_servers"
+      },
+      "note": "Run: python examples/05_mcp_servers.py. Copilot model login is not a replacement for MCP credentials."
+    },
+    {
+      "id": "sample-06",
+      "section": "4. Samples",
+      "sample": "06",
+      "layout": "code",
+      "title": "Resume the review in a second process",
+      "items": [
+        "The first process stores the review file and focus in conversation context.",
+        "The second process uses the same session ID and runtime state storage.",
+        "The resume prompt must not repeat the facts being recalled.",
+        "Re-register host callbacks and tools. Session exit detaches; it does not delete saved state."
+      ],
+      "code": {
+        "label": "Two separate Python processes",
+        "language": "bash",
+        "text": "SID=\"repository-review-$(date +%s)\"\npython examples/06_session_resume.py \\\n  --session-id \"$SID\"\n\npython examples/06_session_resume.py \\\n  --resume --session-id \"$SID\""
+      },
+      "note": "A session ID identifies state; it is not authorization to access another user's conversation."
+    },
+    {
+      "id": "sample-07",
+      "section": "4. Samples",
+      "sample": "07",
+      "layout": "traces",
+      "title": "Human input and permission are different requests",
+      "lead": "Choose a review focus, then separately authorize the fixed test command. No freeform input is inserted into shell code.",
+      "traces": [
+        {
+          "title": "Rejected command",
+          "text": "focus: errors\napprove once? n\nCOMMAND_DENIED id=<id>\nCOMMAND_DENIAL_RECORDED id=<id>\nno execution claimed"
+        },
+        {
+          "title": "Approved command",
+          "text": "focus: cleanup\napprove once? y\nCOMMAND_APPROVE_ONCE id=<id>\nCOMMAND_RESULT_VERIFIED id=<id>\nunittest reported OK"
+        }
+      ],
+      "note": "Illustrative host-trace excerpts; IDs abbreviated. Command: python -m unittest discover -s examples/tests -v. Run twice with n and y. Structured input has a validated legacy fallback."
+    },
+    {
+      "id": "sample-08",
+      "section": "4. Samples",
+      "sample": "08",
+      "layout": "traces",
+      "title": "A private review note requires a sandbox exception",
+      "lead": "The sample denies a disposable vault and network access. allow_bypass=True permits a request, not automatic approval.",
+      "traces": [
+        {
+          "title": "Rejected bypass",
+          "text": "grep: private review note\napprove once? n\nSANDBOX_BYPASS_DENIED id=<id>\nSANDBOX_DENIAL_RECORDED id=<id>\nno access claimed"
+        },
+        {
+          "title": "Approved bypass",
+          "text": "grep: content output\napprove once? y\nSANDBOX_BYPASS_APPROVE_ONCE id=<id>\nSANDBOX_BYPASS_VERIFIED id=<id>\nresult contains private note"
+        }
+      ],
+      "note": "Illustrative host-trace excerpts; IDs abbreviated. Run twice with n and y. success=True or sandboxed=True alone is not read proof. Missing backend or note content fails explicitly. Experimental API."
+    },
+    {
+      "id": "exercise",
+      "section": "4. Samples",
+      "layout": "columns",
+      "title": "Exercise: inspect another allowed file",
+      "columns": [
+        {
+          "title": "Change one input",
+          "items": [
+            "In sample 02, choose another file from the declared allowlist.",
+            "Check the handler's AST metadata against that file.",
+            "Ask the reviewer in sample 03 about the same file.",
+            "Run sample 07 once with approval and once with rejection."
+          ]
+        },
+        {
+          "title": "Completion criteria",
+          "items": [
+            "A real tool result supports the repository answer.",
+            "A missing final message or failed required tool is reported.",
+            "Rejected operations are not reported as successful.",
+            "The sample does not modify repository source."
+          ]
+        }
+      ],
+      "note": "This completes the introduction. The independent checkpoints show API behavior; they do not implement tenant isolation or a production approval service."
+    },
+    {
+      "id": "references",
+      "section": "Discussion",
+      "layout": "references",
+      "title": "Code and versioned references",
+      "items": [
+        "Workshop code: jeffrey-groneberg/ghcp_sdk",
+        "Stable baseline: SDK 1.0.13 and runtime 1.0.83.",
+        "Official Python samples: chat.py and manual_tool_resume.py.",
+        "Compare documented contracts with generated types and actual runtime results."
+      ],
+      "links": [
+        {"title": "Repository and walkthroughs", "url": "https://github.com/jeffrey-groneberg/ghcp_sdk"},
+        {"title": "SDK v1.0.13", "url": "https://github.com/github/copilot-sdk/tree/v1.0.13"},
+        {"title": "Official Python samples", "url": "https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples"},
+        {"title": "Sandbox E2E reference", "url": "https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts"}
+      ],
+      "appendix_entry": true
+    },
+    {
+      "id": "appendix-runtime",
+      "section": "Appendix · Runtime deployment",
+      "optional": true,
+      "layout": "columns",
+      "title": "Managed child or existing runtime",
+      "columns": [
+        {
+          "title": "SDK-owned process",
+          "items": [
+            "Default: provision and start the release-matched runtime over stdio.",
+            "Use RuntimeConnection.for_stdio(path=...) for an explicit executable.",
+            "Client exit stops the child it owns."
+          ]
+        },
+        {
+          "title": "Existing process",
+          "items": [
+            "Use RuntimeConnection.for_uri(...) to connect to a running runtime.",
+            "The host protects the endpoint and owns process lifecycle.",
+            "State storage and request routing must survive reconnects."
+          ]
+        }
+      ],
+      "note": "These are process-ownership choices. Neither choice provides application user authentication or tenant isolation.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/backend-services.md"
+    },
+    {
+      "id": "appendix-multi-user",
+      "section": "Appendix · Multi-user services",
+      "optional": true,
+      "layout": "table",
+      "title": "Application boundaries for multi-user hosting",
+      "headers": ["Responsibility", "Host implementation"],
+      "rows": [
+        ["Identity and ownership", "Authenticate the principal; authorize session create, resume, steering, and deletion."],
+        ["State and workspaces", "Separate repositories, temporary files, runtime state, and host-tool processes."],
+        ["Concurrency and cancellation", "Route each session to its state; bound turns, queues, duration, and resource use."],
+        ["Credentials and egress", "Use scoped credentials; configure each MCP connection and network boundary."],
+        ["Audit", "Record decisions and tool outcomes without storing credentials or private payloads."]
+      ],
+      "note": "Shared-service deployments should review mode=\"empty\" and explicit storage configuration rather than inheriting local workspace state.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/multi-tenancy.md"
+    },
+    {
+      "id": "appendix-auth",
+      "section": "Appendix · Authentication",
+      "optional": true,
+      "layout": "table",
+      "title": "Credential source is not session authorization",
+      "headers": ["Credential path", "Use and limitations"],
+      "rows": [
+        ["Copilot CLI login", "Local signed-in user's eligible Copilot identity."],
+        ["Explicit per-session token", "The host supplies an eligible user's or application's credential."],
+        ["Environment token", "COPILOT_GITHUB_TOKEN, GH_TOKEN, or GITHUB_TOKEN; eligibility and policy still apply."],
+        ["github_token_provider", "Acquire and refresh short-lived Copilot credentials; do not combine with a static session token."],
+        ["Generic MCP connection", "Separate headers or an implemented OAuth callback; not inherited automatically from model login."]
+      ],
+      "note": "A token's presence does not prove Copilot entitlement. Credential ownership does not replace authorization for a particular saved session.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/authenticate.md"
+    },
+    {
+      "id": "appendix-byok",
+      "section": "Appendix · BYOK",
+      "optional": true,
+      "layout": "code",
+      "title": "Configure inference with your own provider",
+      "items": [
+        "ProviderConfig supplies endpoint, wire protocol, and authentication.",
+        "The model is a create_session argument, not a ProviderConfig field.",
+        "api_key, bearer_token, or bearer_token_provider depend on provider support.",
+        "Provider billing does not determine MCP credentials, tool egress, or all runtime traffic."
+      ],
+      "code": {
+        "label": "Configuration example · requires an eligible endpoint",
+        "language": "python",
+        "text": "provider = ProviderConfig(\n    type=\"openai\",\n    base_url=os.environ[\"MODEL_BASE_URL\"],\n    api_key=os.environ[\"MODEL_API_KEY\"],\n    wire_api=\"responses\",\n)\nsession = await client.create_session(\n    provider=provider,\n    model=os.environ[\"MODEL_ID\"],\n    available_tools=[],\n)"
+      },
+      "note": "This is optional configuration, not the default of the eight samples. Select a compatible API and tool-capable model for your endpoint.",
+      "source": "https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md"
+    }
+  ]
+}

@@ -1,74 +1,55 @@
-# 03 · Custom agents
+# 03 · Researcher, then reviewer
 
-📖 **Sources (SDK v1.0.13):**
-[custom agents](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md),
-[typed RPC](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
-[Python client](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py).
+**GitHub Copilot SDK - an introduction**
 
-Open [the runnable source](03_custom_agents.py). Two named personas share
-one conversation: a researcher answers a repository question, then a
-reviewer examines example 01. The app verifies the active agent through RPC.
+[Runnable source](03_custom_agents.py) · [Student guide](README.md)
 
-## The flow
+**Sources, SDK v1.0.13:** [custom agents](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md),
+[generated RPC types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py).
+
+## Goal and boundary
+
+Two named personas review the same workshop file,
+`examples/01_simple_chat.py`, in one session. The **researcher** reads the
+source and maps resource lifetimes; the **reviewer** checks error handling
+and cleanup, using the preserved conversation and further reads as needed.
+No earlier checkpoint must have been run.
 
 ```mermaid
 sequenceDiagram
-    participant App
-    participant Session
-    App->>Session: create_session(custom_agents=AGENTS, agent=researcher)
-    App->>Session: rpc.agent.list()
-    App->>Session: rpc.agent.get_current()
-    Session-->>App: researcher
-    App->>Session: send_and_wait(repository question, timeout=120)
-    Session-->>App: researcher answer
-    App->>Session: rpc.agent.select(AgentSelectRequest(name=reviewer))
-    App->>Session: rpc.agent.get_current()
-    Session-->>App: reviewer
-    App->>Session: send_and_wait(review prompt, timeout=120)
-    Session-->>App: reviewer answer, same conversation
+    participant Host
+    participant Runtime
+    Host->>Runtime: Create researcher session in repository root
+    Host->>Runtime: agent.list(); agent.get_current()
+    Host->>Host: Assert researcher is selected
+    Host->>Runtime: Read target; explain resource lifetimes
+    Runtime-->>Host: Final researcher message
+    Host->>Runtime: agent.select(reviewer); agent.get_current()
+    Host->>Host: Assert reviewer is selected
+    Host->>Runtime: Review the same target for errors and cleanup
+    Runtime-->>Host: Final reviewer message
 ```
 
-## Code walkthrough
+## Important code
 
-### 1. Declare personas
-
-Each entry in `AGENTS` is a dictionary with `name`, `display_name`,
-`description`, `prompt` and `tools`. `display_name` follows the current
-official sample and provides a UI label without changing the selection key.
-Both agents use `["grep", "glob", "view"]`; their instructions differ. The
-session also applies:
+Both entries in `AGENTS` have a name, display label, description, system
+prompt, and `["grep", "glob", "view"]` tools. The session applies the same
+read-tool filter and explicitly uses this checkout:
 
 ```python
-available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
+working_directory=str(REPO_ROOT),
 custom_agents=AGENTS,
 agent="researcher",
+available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
 ```
 
-Session filters apply globally; per-agent scopes operate within that
-catalogue. Registering custom agents does not automatically select one:
-`agent="researcher"` makes the initial choice explicit.
+`REPO_ROOT = Path(__file__).resolve().parents[1]`; launching from a different
+shell directory therefore does not redirect the review to an unrelated
+project. This is a working-directory choice, **not a filesystem boundary**.
 
-These are tool-exposure controls, **not an OS sandbox**. Read tools can
-expose sensitive files; use a trusted, non-sensitive checkout when granting
-`approve_all`. Instructions such as “Never modify files” are not security
-boundaries by themselves. Do not assume every MCP tool bypasses agent scope.
-
-### 2. Verify the initial state
-
-```python
-listing = await session.rpc.agent.list()
-current = await session.rpc.agent.get_current()
-if current.agent is None or current.agent.name != "researcher":
-    raise RuntimeError("The researcher persona was not selected.")
-```
-
-The selected agent can be absent, so check before dereferencing `.name`.
-The list can also contain runtime-provided agents; the example does not
-assume it contains exactly two entries.
-
-### 3. Ask, then switch
-
-After the researcher's bounded turn completes:
+Registering personas is not proof of selection. Check the initial
+`current.agent.name == "researcher"`, then use the typed switch and assert
+the returned state:
 
 ```python
 await session.rpc.agent.select(AgentSelectRequest(name="reviewer"))
@@ -77,49 +58,40 @@ if current.agent is None or current.agent.name != "reviewer":
     raise RuntimeError("The reviewer persona was not selected.")
 ```
 
-The typed `AgentSelectRequest` comes from `copilot.rpc`. Selection changes
-the active persona without starting a new session. Existing conversation
-context remains subject to the runtime's normal context/compaction behavior.
-Verify via RPC rather than judging a persona solely from its writing style.
+The sample makes these checks **before** the corresponding prompt, rather
+than trusting a response that sounds like a reviewer. The agent listing may
+contain runtime-provided personas too; do not assume exactly two entries.
 
-### 4. Handle failure and cleanup
+Session filters narrow the catalogue; per-agent filters narrow it further.
+They are **tool exposure controls, not an OS sandbox**. Even read tools can
+expose sensitive data. `approve_all` is a convenience for this trusted,
+non-sensitive workshop checkout, not a production authorization system.
 
-Each `send_and_wait` uses 120 seconds; the outer `asyncio.timeout(360)`
-bounds setup, RPC inspection and both turns together. Missing messages,
-selection mismatches, session errors and timeouts fail visibly. Session
-exit detaches; client exit stops the owned runtime.
+Each turn requires a final message within 120 seconds; the entire operation
+has a 360-second deadline. Failed selection, missing messages, runtime
+errors, timeout, and cancellation remain visible. Normal contexts detach
+the session and stop the owned client.
 
-## Run it
+## Run and inspect
 
 ```bash
 python examples/03_custom_agents.py
 ```
 
-Illustrative output:
+**Illustrative output, not an observed model run:**
 
 ```text
 Registered agents: researcher, reviewer, ...
 Active persona: researcher
-Researcher: The runnable prototypes use Python ...
+Researcher: <source-cited map of client, session and subscription lifetimes>
 --- swapped --- Active persona: reviewer
-Reviewer: The first example bounds completion and unregisters its listener ...
+Reviewer: <source-cited findings, or an explicit statement that no bug was evidenced>
 ```
 
-Exact wording/tool calls vary. The `Active persona` checks, not the example
-prose above, demonstrate a successful switch.
+The RPC assertions establish selection, not the factual quality of the
+review. The prompt asks the reviewer to separate concrete defects from
+optional improvements. Offline tests inject absent/wrong agents and verify
+that the next prompt is never sent.
 
-## Try this next
-
-1. Add a third read-only persona that explains code to a beginner.
-2. Give the reviewer only `["view"]` and compare its tool choices.
-3. Select an invalid name in a mocked test and verify that no second prompt
-   is sent after selection fails.
-4. Inspect `await client.list_models()` before pinning another account-enabled model.
-
-## Common pitfalls
-
-- A persona is not a separate client or separate conversation.
-- A per-agent allowlist cannot restore tools removed session-wide.
-- `current.agent` need not always be populated.
-- Avoid assuming a style change proves the typed selection RPC succeeded.
-- Keep shell/write tools out of this read-only exercise.
+**Exercise:** mock an incorrect reviewer selection. An error must occur even
+if the assistant would otherwise have produced plausible review prose.
