@@ -30,6 +30,13 @@ flowchart LR
 | [07 Human input](07_human_in_the_loop.md) | Structured-first input with legacy fallback, exact-command approval | [Input/permission types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py) |
 | [08 Sandbox](08_sandbox.md) | Experimental isolation and one approved bypass | [Official sandbox E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts) |
 
+Example 08 deliberately separates four controls that are often confused:
+tool exposure, application authorization, OS-level containment, and a
+human-approved exception. It denies a disposable vault, lets the runtime ask
+for one bypass, and has the host—not the model—verify the matching successful
+tool call. Read [the detailed rationale in the main README](../README.md#what-example-08-is-testing)
+before treating the sample as a production security boundary.
+
 ## Shared conventions
 
 - Model: follow the official Python samples and let the runtime choose its
