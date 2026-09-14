@@ -165,7 +165,7 @@ using mocks. They do not prove live model, MCP or authentication behavior.
   deck (not reveal.js). Open in a browser or serve the `docs/` folder.
 - [`GitHub-Copilot-SDK.pptx`](GitHub-Copilot-SDK.pptx): the matching PowerPoint deck.
 
-Both use the same 24-slide curriculum and stable SDK/runtime baseline.
+Both use the same 27-slide, four-chapter curriculum and stable SDK/runtime baseline.
 
 ```bash
 python -m http.server -d docs 8000
