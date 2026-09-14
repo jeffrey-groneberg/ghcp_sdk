@@ -126,6 +126,60 @@ than assuming that a newly announced model is available to your account.
 | 7 | [Human in the loop](examples/07_human_in_the_loop.md) | [Source](examples/07_human_in_the_loop.py) | Capability-checked elicitation with legacy fallback, exact-command approval and managed approval awareness |
 | 8 | [Sandbox bypass](examples/08_sandbox.md) | [Source](examples/08_sandbox.py) | Experimental filesystem/network sandbox with one human-approved bypass |
 
+### What Example 08 is testing
+
+The sandbox example is not trying to prove that an AI can read a file. It is
+testing whether a runtime-launched tool can be **contained, blocked, escalated,
+approved once, and independently verified**.
+
+The script creates a temporary workspace containing a nested `vault` with a
+disposable marker. It then:
+
+1. exposes only the built-in `grep` tool;
+2. keeps the workspace available while explicitly denying the nested vault;
+3. denies outbound and local network access;
+4. allows the runtime to request a sandbox bypass, but does not grant one
+   automatically;
+5. asks `grep` to search the denied vault.
+
+The first access attempt is therefore expected to hit the sandbox policy. The
+runtime sends the host a `PermissionRequestRead` with
+`request_sandbox_bypass=True`. The host displays the exact path and asks the
+human for a fresh decision. Only `y` returns `ApproveOnce`, allowing that one
+tool call to run outside the sandbox. A rejection, timeout, EOF, unexpected
+permission type, out-of-scope path, or second bypass request fails closed.
+
+The final verdict comes from the application, not from the model. The host
+correlates its recorded approval with the successful completion of the same
+`grep` tool-call ID. Some backends include the marker in the result payload;
+the stable Linux runtime can omit it. Likewise, the completion event may still
+say `sandboxed=True` because the session is sandbox-enabled. Neither the
+assistant's wording nor that telemetry flag alone proves a bypass.
+
+This separation matters because each control answers a different security
+question:
+
+| Control | Question it answers |
+|---|---|
+| `ToolSet().add_builtin("grep")` | Which capability can the agent attempt to use? |
+| Permission callback | Does the application authorize this exact request? |
+| `SandboxConfig` | What can the runtime process reach even after a tool is authorized? |
+| Human-approved bypass | May this one blocked operation cross the containment boundary? |
+| Correlated tool events | Did the approved operation actually complete? |
+
+This is defense in depth against prompt injection, incorrect model decisions,
+and overly broad tool arguments. A tool allowlist is not a sandbox, and a
+sandbox is not application authorization.
+
+The API remains experimental in SDK 1.0.13. The Linux Codespace uses
+Bubblewrap; other platforms can use different backends or provide none.
+Runtime sandboxing also does not automatically contain Python custom-tool
+handlers running in the host process. Production multi-user systems still need
+isolated workspaces, per-user credentials and authorization, process or
+container boundaries, audit logs, and a deliberately designed approval UI.
+See the [complete sandbox walkthrough](examples/08_sandbox.md) for the event
+flow, code, limitations, and expected output.
+
 ```bash
 python examples/01_simple_chat.py
 python examples/02_custom_tools.py
