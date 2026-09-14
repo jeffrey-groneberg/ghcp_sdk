@@ -127,9 +127,14 @@ The `ToolExecutionCompleteData.sandboxed` telemetry field may still report
 `True` for a call associated with an enabled sandbox session. Do not use that
 single field as bypass proof; correlate the explicit
 `request_sandbox_bypass=True` permission request with the successful access to
-the otherwise denied marker. The sample verifies `result.content` from the
-matching `grep` completion event. It does not treat an exact assistant phrase
-as execution evidence.
+the otherwise denied vault. The sample correlates the host decision with the
+matching `grep` tool-call ID and a successful completion. When the backend
+includes the match in `result.content`, the sample records that as additional
+evidence; the stable Linux runtime may omit it from the event payload.
+
+This is why `sandboxed=True` and `success=True` are not interpreted alone. The
+host also requires its recorded `request_sandbox_bypass=True` approval for the
+scoped vault read.
 
 The model is not the authority on whether the host approved a permission
 request. It may not observe the callback and can describe the approval state
@@ -177,7 +182,7 @@ Target: /tmp/.../vault
 Run this one grep outside the sandbox? [y/N]: y
 [tool] completed success=True sandboxed=<runtime-reported>
 
-[host] SANDBOX_BYPASS_APPROVED — explicit approval and denied marker verified
+[host] SANDBOX_BYPASS_APPROVED — explicit approval and matching grep success verified
 [agent] <model-generated description of the grep result>
 ```
 
