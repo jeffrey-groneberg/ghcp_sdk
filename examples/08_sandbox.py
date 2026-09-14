@@ -172,15 +172,20 @@ async def main() -> None:
                         reply = await session.send_and_wait(
                             f"Use grep to search for the exact marker {MARKER!r} in "
                             f"{vault}. The directory is deliberately denied by the "
-                            "sandbox. If the host approves one sandbox bypass and the "
-                            "search succeeds, reply exactly SANDBOX_BYPASS_APPROVED. "
-                            "If approval is denied or the search fails, reply with "
-                            "SANDBOX_BLOCKED and a short reason. Use no other tool or path.",
+                            "sandbox. After the tool finishes, report whether the exact "
+                            "marker was found. Do not claim whether the host approved a "
+                            "sandbox bypass; the host verifies that independently. Use no "
+                            "other tool or path.",
                             timeout=180,
                         )
                         if reply is None:
                             raise RuntimeError(
                                 "Session became idle without an assistant message."
+                            )
+                        if state.marker_found and not state.bypass_approved:
+                            raise RuntimeError(
+                                "The denied marker was returned without a recorded host "
+                                "sandbox-bypass approval."
                             )
                         if state.bypass_approved and not state.marker_found:
                             raise RuntimeError(
@@ -188,7 +193,10 @@ async def main() -> None:
                                 "the denied marker."
                             )
                         if state.marker_found:
-                            print("\n[verified] grep returned the denied marker")
+                            print(
+                                "\n[host] SANDBOX_BYPASS_APPROVED — explicit approval "
+                                "and denied marker verified"
+                            )
                         print(f"\n[agent] {reply.data.content}")
                     finally:
                         unsubscribe()
