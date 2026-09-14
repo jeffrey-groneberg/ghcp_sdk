@@ -8,6 +8,61 @@ shows a flow diagram, and offers exercises. Run scripts from the repository
 root. The two interactive examples share only `_console_input.py`, a small
 cancellable terminal-input adapter.
 
+## Run the examples shown in the slides
+
+The restored **HTML deck is the reference for these demos**. The executable
+files use the same prompts, sample data, and SDK operations. Imports,
+`asyncio.run`, configuration, timeout handling, and cleanup complete the
+abbreviated slide snippets; they are not different application scenarios.
+The chat files also supply the slide's topic explicitly as system context:
+`"the SDK"` refers to the GitHub Copilot SDK, not an unspecified local project.
+
+| HTML slide | Runnable file | Demo |
+|---|---|---|
+| 5 | [text_only_chat.py](text_only_chat.py) | Explain the SDK in three sentences, without tools or streaming |
+| 6, 18 | [01_simple_chat.py](01_simple_chat.py) | Stream the same SDK explanation |
+| 15 | [azure_foundry_byok.py](azure_foundry_byok.py) | Send `"Hi"` to a configured Microsoft Foundry model |
+| 19 | [02_custom_tools.py](02_custom_tools.py) | Fictional weather for Tokyo and Berlin; random temperature, `"sunny"` condition |
+| 20 | [03_custom_agents.py](03_custom_agents.py) | Researcher → reviewer; review `01_simple_chat.py` |
+| 21 | [04_hooks.py](04_hooks.py) | List files and print pre-tool, success, and failure hook traces |
+| 22 | [05_mcp_servers.py](05_mcp_servers.py) | Read recent open issues on `github/copilot-sdk` through GitHub MCP |
+| 23 | [06_session_resume.py](06_session_resume.py) | Remember Jeffrey's name, then recall it in another process |
+| 24 | [07_human_in_the_loop.py](07_human_in_the_loop.py) | Collect a name and approve the fixed greeting command |
+| 25 | [08_sandbox.py](08_sandbox.py) | Deny the disposable vault and request one human-approved bypass |
+
+Run any file from the repository root, for example:
+
+```bash
+python examples/text_only_chat.py
+python examples/02_custom_tools.py
+python examples/06_session_resume.py --session-id slide-demo
+python examples/06_session_resume.py --resume --session-id slide-demo
+```
+
+The decision pseudocode on slide 13 is not a Python program. All actual SDK
+snippets have a runnable counterpart above; the two unnumbered files supplement
+the eight main examples without renumbering them.
+
+### Foundry configuration for slide 15
+
+Replace the slide's illustrative endpoint with your own resource. The runnable
+file requires `FOUNDRY_MODEL_URL`, `FOUNDRY_API_KEY`, and `FOUNDRY_MODEL`; no key
+or model access is supplied by this repository.
+
+```bash
+export FOUNDRY_MODEL_URL="https://<your-resource>.openai.azure.com/openai/v1/"
+export FOUNDRY_MODEL="<your-deployment-name>"
+# Supply FOUNDRY_API_KEY securely, for example as a Codespaces secret.
+python examples/azure_foundry_byok.py
+```
+
+This follows the slide's `ProviderConfig(type="openai", wire_api="responses")`
+and API-key authentication. The endpoint must support that wire API. Missing
+configuration fails before starting the client; the key is never printed.
+The provider bills this model call separately from GitHub Copilot.
+
+## Main example sequence
+
 ```mermaid
 flowchart LR
     A[01 Streaming] --> B[02 Custom tools]

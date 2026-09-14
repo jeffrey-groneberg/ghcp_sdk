@@ -32,7 +32,7 @@ possible run, not a guaranteed call schedule.
 
 ```python
 class WeatherParams(BaseModel):
-    city: str = Field(min_length=1, description="City name, e.g. 'Seattle'")
+    city: str = Field(min_length=1, description="City, e.g. 'Seattle'")
 ```
 
 The schema includes field names, types, constraints and descriptions.
@@ -42,13 +42,13 @@ validates arguments before calling the decorated function.
 ### 2. Label the stub honestly
 
 ```python
-@define_tool(description="Generate fictional demo weather for a city; NOT live weather")
+@define_tool(description="Generate fictional demo weather")
 async def get_weather(params: WeatherParams) -> dict:
     return {
         "city": params.city,
         "temperature_c": random.randint(-5, 35),
-        "condition": random.choice(["sunny", "cloudy", "rainy"]),
-        "source": "fictional demo data, not a live weather service",
+        "condition": "sunny",
+        "source": "fictional demo",
     }
 ```
 
@@ -61,6 +61,9 @@ Return values are serialized for the model. Pydantic models are supported
 directly (JSON-mode serialization was fixed in **1.0.9**); **1.0.13** also
 handles native values such as dates, enums, UUIDs and decimals. A plain dict
 keeps this workshop easy to read.
+
+As on slide 19, the temperature is random but the condition is always
+`"sunny"`. Both the description and result identify the output as fictional.
 
 ### 3. Register and scope the tool
 
@@ -82,7 +85,8 @@ An allowlist does not sandbox what your Python handler itself can do.
 
 ### 4. Wait for a final answer
 
-The prompt explicitly asks for fictional weather and `send_and_wait` uses
+The prompt is `"Fictional weather in Tokyo and Berlin."`, matching slide 19,
+and `send_and_wait` uses
 `timeout=60`. The runtime selects its current default model, matching the
 official Python samples. Timeout raises `TimeoutError`; `None` means idle
 without an assistant message, so the example raises instead of silently
@@ -107,7 +111,7 @@ Illustrative output (random values and wording vary):
 ```text
 Fictional demo weather, not a live forecast:
 - Tokyo: sunny, 22°C
-- Berlin: cloudy, 9°C
+- Berlin: sunny, 9°C
 ```
 
 ## Try this next

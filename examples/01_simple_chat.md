@@ -60,6 +60,11 @@ default attribution.
 permission handler used by the official Python sample. The empty allowlist
 removes tools from this conversation. The runtime selects its current default
 model; call `await client.list_models()` before deliberately pinning one.
+
+The slide's prompt is `"Explain the SDK in 3 sentences."`. Since a model
+cannot see the presentation title, the executable file appends system context
+identifying the GitHub Copilot SDK and requesting an explanation without
+repository inspection.
 `approve_all` is only a trusted-demo convenience, not an authorization system
 or OS sandbox.
 
@@ -79,7 +84,7 @@ def on_event(event) -> None:
 unsubscribe = session.on(on_event)
 try:
     reply = await session.send_and_wait(
-        "Explain what the GitHub Copilot SDK is in 3 sentences.",
+        "Explain the SDK in 3 sentences.",
         timeout=60,
     )
     if reply is None:

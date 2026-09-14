@@ -84,11 +84,7 @@ async def main() -> None:
                 unsubscribe = session.on(on_event)
                 try:
                     reply = await session.send_and_wait(
-                        "You must use the GitHub MCP server before answering. "
-                        "List the 3 most recently opened issues on "
-                        f"{TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. For each issue, "
-                        "give its number, title, author and URL. If the tool fails, "
-                        "report that failure; do not answer from memory or invent data.",
+                        f"List 3 recent open issues on {TARGET_REPO_OWNER}/{TARGET_REPO_NAME}.",
                         timeout=180,
                     )
                     if reply is None:

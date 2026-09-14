@@ -5,8 +5,9 @@
 [session ID and detach](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
 [release lifecycle changes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
-Open [the runnable source](06_session_resume.py). Run once to supply two
-facts, then resume in a new process without repeating those facts in the
+Open [the runnable source](06_session_resume.py). Run once with
+`"My name is Jeffrey. Remember it."`, then resume in a new process with
+`"What is my name?"`, matching slide 23. Do not repeat the name in the
 new prompt. Tools are disabled in both phases so the agent cannot read the
 answers from this source file.
 
@@ -19,7 +20,7 @@ sequenceDiagram
     participant Disk as CLI session storage
     participant Second as New process
     First->>Runtime: create_session(session_id=demo-session-resume)
-    First->>Runtime: send_and_wait(remember two facts)
+    First->>Runtime: send_and_wait(remember my name)
     Runtime->>Disk: Persist conversation
     Runtime-->>First: Acknowledgement
     First->>Runtime: disconnect -> session.detach
@@ -59,7 +60,7 @@ session_ctx = await client.create_session(
 ```
 
 The runtime selects its current default model, matching the official Python
-samples. The first prompt supplies the name and language. After a bounded turn,
+samples. The first prompt supplies the name only. After a bounded turn,
 exiting `async with session_ctx` calls `disconnect()`. In **1.0.13** this
 uses `session.detach`, leaving persisted conversation/planning state intact.
 The owned client then shuts down. `client.delete_session(id)` is the
@@ -109,7 +110,7 @@ Illustrative second output:
 
 ```text
 Session ID: workshop-alice
-Your name is Jeffrey, and your preferred programming language is Python.
+Your name is Jeffrey.
 ```
 
 This demonstrates a model recall task, not a cryptographic proof or a

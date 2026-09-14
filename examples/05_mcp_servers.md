@@ -94,7 +94,8 @@ The event listener records `ToolExecutionStartData` only when
 
 After `send_and_wait`, the example raises if no matching event was observed.
 A model response such as “I will list the issues” is not treated as success.
-The prompt also requires failures to be reported instead of inventing data.
+The prompt matches slide 22:
+`"List 3 recent open issues on github/copilot-sdk."`
 
 ### 4. Keep secrets and failures visible in the right places
 

@@ -16,18 +16,18 @@ from copilot.session import PermissionHandler
 
 # Parameter names, types, descriptions and constraints form the model's schema.
 class WeatherParams(BaseModel):
-    city: str = Field(min_length=1, description="City name, e.g. 'Seattle'")
+    city: str = Field(min_length=1, description="City, e.g. 'Seattle'")
 
 
 # This is deliberately a stub: label BOTH its description and output as fake.
 # @define_tool replaces the function with a Tool carrying schema + handler.
-@define_tool(description="Generate fictional demo weather for a city; NOT live weather")
+@define_tool(description="Generate fictional demo weather")
 async def get_weather(params: WeatherParams) -> dict:
     return {
         "city": params.city,
         "temperature_c": random.randint(-5, 35),
-        "condition": random.choice(["sunny", "cloudy", "rainy"]),
-        "source": "fictional demo data, not a live weather service",
+        "condition": "sunny",
+        "source": "fictional demo",
     }
 
 
@@ -42,8 +42,7 @@ async def main() -> None:
                 available_tools=ToolSet().add_custom("get_weather"),
             ) as session:
                 reply = await session.send_and_wait(
-                    "Use get_weather for fictional weather in Tokyo and Berlin. "
-                    "Clearly label the result as demo data, not actual weather.",
+                    "Fictional weather in Tokyo and Berlin.",
                     timeout=60,
                 )
                 # None means idle without a message. Timeout raises TimeoutError;

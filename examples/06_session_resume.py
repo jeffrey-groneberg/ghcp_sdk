@@ -31,10 +31,7 @@ async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
                     on_permission_request=PermissionHandler.approve_all,
                     available_tools=[],
                 )
-                prompt = (
-                    "Using our earlier conversation, what did I tell you my name "
-                    "is and which programming language I prefer?"
-                )
+                prompt = "What is my name?"
             else:
                 # Omitting session_id also works: save session.session_id, or
                 # discover it later through await client.list_sessions().
@@ -43,11 +40,7 @@ async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
                     session_id=session_id,
                     available_tools=[],  # Recall must not read this source file.
                 )
-                prompt = (
-                    "Please remember two facts for our conversation: my name "
-                    "is Jeffrey, and my favourite programming language is Python. "
-                    "Just acknowledge that you have noted them."
-                )
+                prompt = "My name is Jeffrey. Remember it."
 
             async with session_ctx as session:
                 print(f"Session ID: {session.session_id}")

@@ -4,6 +4,10 @@ Eight small, self-contained, commented prototypes and walkthroughs for
 **`github-copilot-sdk==1.0.13`**, the latest stable PyPI release verified on
 **2026-09-14**. Both dependency manifests pin this SDK version.
 
+The runnable files follow the restored HTML slide demos. The introductory
+text-only snippet and optional Foundry BYOK snippet also have executable files;
+see the [slide-to-example map](examples/README.md#run-the-examples-shown-in-the-slides).
+
 **Baseline:** Python **3.11+** (3.12 recommended), Pydantic **2+**, and the
 SDK release's Copilot CLI/runtime **1.0.83**. Like the official Python samples,
 these examples use the runtime-selected default model; availability and billing
@@ -94,6 +98,12 @@ Examples 07 and 08 require an interactive terminal; human prompts expire after
 
 ### Optional BYOK authentication
 
+The API-key example shown on **slide 15** is runnable as
+[`examples/azure_foundry_byok.py`](examples/azure_foundry_byok.py).
+Set `FOUNDRY_MODEL_URL`, `FOUNDRY_API_KEY`, and `FOUNDRY_MODEL` for your own
+resource; the endpoint on the slide is illustrative. See
+[the configuration commands](examples/README.md#foundry-configuration-for-slide-15).
+
 The pinned SDK also supports provider `api_key`, `bearer_token`, and
 **`bearer_token_provider`** authentication. The callback can acquire fresh
 Microsoft Entra tokens on demand, including managed identity for supported
@@ -114,6 +124,11 @@ Python types over stale upstream “key-only” summaries.
 Read each walkthrough, then run its `.py` file **from the repository root**.
 Choose a different available model via `await client.list_models()` rather
 than assuming that a newly announced model is available to your account.
+
+For the minimal, non-streaming example on **slide 5**, run
+`python examples/text_only_chat.py`. Examples 01–08 below are the corresponding
+main sample slides; the [mapping](examples/README.md#run-the-examples-shown-in-the-slides)
+lists their slide numbers.
 
 | # | Walkthrough | Python | Capability |
 |---|---|---|---|

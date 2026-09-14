@@ -6,7 +6,9 @@ command is executed.
 """
 
 import asyncio
+import ast
 import contextlib
+from html.parser import HTMLParser
 import importlib.util
 import inspect
 import io
@@ -64,6 +66,49 @@ def load_example(path: Path):
 
 
 EXAMPLES = [load_example(path) for path in EXAMPLE_FILES]
+TEXT_ONLY = load_example(EXAMPLES_DIR / "text_only_chat.py")
+FOUNDRY = load_example(EXAMPLES_DIR / "azure_foundry_byok.py")
+FOUNDRY_ENV = {
+    "FOUNDRY_MODEL_URL": "https://test-resource.openai.azure.com/openai/v1/",
+    "FOUNDRY_API_KEY": "test-secret",
+    "FOUNDRY_MODEL": "test-deployment",
+}
+
+
+class SlideCode(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.slide = 0
+        self.in_code = False
+        self.snippets = {}
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "section":
+            self.slide += 1
+        if tag == "pre":
+            self.in_code = True
+            self.snippets.setdefault(self.slide, "")
+
+    def handle_endtag(self, tag):
+        if tag == "pre":
+            self.in_code = False
+
+    def handle_data(self, data):
+        if self.in_code:
+            self.snippets[self.slide] += data
+
+
+def slide_code(number):
+    parser = SlideCode()
+    parser.feed((ROOT / "docs/index.html").read_text(encoding="utf-8"))
+    return ast.parse(parser.snippets[number])
+
+
+def slide_strings(number):
+    return {
+        node.value for node in ast.walk(slide_code(number))
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
 
 
 def event(data):
@@ -264,6 +309,7 @@ class PrototypeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(client.session.unsubscribed, 1)
         self.assertEqual(tool_names(client.session_options["available_tools"]), [])
         self.assertNotIn("model", client.session_options)
+        self.assertIn("GitHub Copilot SDK", client.session_options["system_message"]["content"])
         self.assertEqual(
             client.constructor_options["client_info"]["application_name"],
             "ghcp-sdk-examples",
@@ -305,7 +351,7 @@ class PrototypeTests(unittest.IsolatedAsyncioTestCase):
                 )
                 self.assertIsNone(result)
         self.assertIn("[pre]  view", output.getvalue())
-        self.assertIn("[post] view succeeded", output.getvalue())
+        self.assertIn("[post] view done", output.getvalue())
         self.assertIn("[failed] view", output.getvalue())
         self.assertNotIn("test-secret", output.getvalue())
         client = FakeClient()
@@ -423,21 +469,124 @@ class PrototypeTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("the host verifies that independently", prompt)
         self.assertNotIn("reply exactly SANDBOX_BYPASS_APPROVED", prompt)
 
+    async def test_runtime_prompts_match_the_restored_html_slides(self):
+        for module, number in (
+            (TEXT_ONLY, 5), (EXAMPLES[0], 18), (EXAMPLES[1], 19),
+            (EXAMPLES[2], 20), (EXAMPLES[3], 21), (EXAMPLES[4], 22),
+        ):
+            with self.subTest(slide=number):
+                client = FakeClient()
+                await self.run_example(module, client)
+                for call in client.session.send_and_wait.await_args_list:
+                    self.assertIn(call.args[0], slide_strings(number))
+        client = FakeClient()
+        await self.run_example(EXAMPLES[5], client)
+        self.assertIn(client.session.send_and_wait.await_args.args[0], slide_strings(23))
+        client = FakeClient()
+        await self.run_example(EXAMPLES[5], client, True)
+        self.assertIn(client.session.send_and_wait.await_args.args[0], slide_strings(23))
+
+    async def test_agent_definitions_and_relative_file_match_slide_20(self):
+        assignment = next(
+            node for node in slide_code(20).body
+            if isinstance(node, ast.Assign)
+            and any(isinstance(target, ast.Name) and target.id == "AGENTS" for target in node.targets)
+        )
+        shown_agents = ast.literal_eval(assignment.value)
+        for shown, actual in zip(shown_agents, EXAMPLES[2].AGENTS, strict=True):
+            for key in ("name", "display_name", "tools", "prompt"):
+                self.assertEqual(actual[key], shown[key])
+        client = FakeClient()
+        await self.run_example(EXAMPLES[2], client)
+        folder = Path(client.session_options["working_directory"])
+        self.assertEqual(folder, EXAMPLES_DIR)
+        self.assertTrue((folder / "01_simple_chat.py").is_file())
+
+    async def test_additional_slide_examples_use_real_sdk_configuration(self):
+        for module, number in ((TEXT_ONLY, 5), (FOUNDRY, 15)):
+            with self.subTest(slide=number), patch.dict(FOUNDRY.os.environ, FOUNDRY_ENV, clear=True):
+                client = FakeClient()
+                output = await self.run_example(module, client)
+                self.assertIn(client.session.send_and_wait.await_args.args[0], slide_strings(number))
+                self.assertEqual(client.session_options["available_tools"], [])
+                self.assertTrue(client.exited and client.session.exited)
+                self.assertIn("Mocked assistant response", output)
+                self.assertNotIn("test-secret", output)
+                if module is TEXT_ONLY:
+                    self.assertNotIn("streaming", client.session_options)
+                    self.assertNotIn("model", client.session_options)
+                    self.assertIn("GitHub Copilot SDK", client.session_options["system_message"]["content"])
+                else:
+                    self.assertEqual(client.session_options["provider"], {
+                        "type": "openai",
+                        "base_url": FOUNDRY_ENV["FOUNDRY_MODEL_URL"],
+                        "api_key": FOUNDRY_ENV["FOUNDRY_API_KEY"],
+                        "wire_api": "responses",
+                    })
+                    self.assertEqual(client.session_options["model"], FOUNDRY_ENV["FOUNDRY_MODEL"])
+
+    async def test_additional_slide_examples_propagate_failures_and_cleanup(self):
+        for module in (TEXT_ONLY, FOUNDRY):
+            for failure in (None, TimeoutError("deadline"), RuntimeError("session error"),
+                            asyncio.CancelledError()):
+                with (
+                    self.subTest(example=module.__name__, failure=type(failure).__name__),
+                    patch.dict(FOUNDRY.os.environ, FOUNDRY_ENV, clear=True),
+                ):
+                    client = FakeClient()
+                    client.session.send_and_wait.return_value = None
+                    client.session.send_and_wait.side_effect = failure
+                    with self.assertRaises(type(failure) if failure is not None else RuntimeError):
+                        await self.run_example(module, client)
+                    self.assertTrue(client.exited and client.session.exited)
+
+    async def test_foundry_missing_configuration_fails_before_client_start(self):
+        for name in FOUNDRY_ENV:
+            for value in (None, "", "   "):
+                env = dict(FOUNDRY_ENV)
+                if value is None:
+                    del env[name]
+                else:
+                    env[name] = value
+                with (
+                    self.subTest(name=name, value=value),
+                    patch.dict(FOUNDRY.os.environ, env, clear=True),
+                    patch.object(FOUNDRY, "CopilotClient") as client,
+                    self.assertRaisesRegex(ValueError, name),
+                ):
+                    await FOUNDRY.main()
+                client.assert_not_called()
+
+    def test_foundry_rejects_wrong_endpoint_without_exposing_credentials(self):
+        for url in (
+            "http://test-resource.openai.azure.com/openai/v1/",
+            "https://test-resource.openai.azure.com/",
+            "https://user:test-secret@test-resource.openai.azure.com/openai/v1/",
+            "https://test-resource.openai.azure.com/openai/v1/?key=test-secret",
+            "https://test-resource.openai.azure.com/openai/v1/#test-secret",
+        ):
+            with patch.dict(FOUNDRY.os.environ, {**FOUNDRY_ENV, "FOUNDRY_MODEL_URL": url}, clear=True):
+                with self.assertRaises(ValueError) as failure:
+                    FOUNDRY.load_configuration()
+                self.assertIn("FOUNDRY_MODEL_URL", str(failure.exception))
+                self.assertNotIn("test-secret", str(failure.exception))
+
 
 class ToolTests(unittest.IsolatedAsyncioTestCase):
     async def test_weather_schema_and_fictional_results(self):
         tool = EXAMPLES[1].get_weather
         self.assertEqual(tool.parameters["required"], ["city"])
         self.assertEqual(tool.parameters["properties"]["city"]["minLength"], 1)
-        with (
-            patch.object(EXAMPLES[1].random, "randint", return_value=21),
-            patch.object(EXAMPLES[1].random, "choice", return_value="sunny"),
-        ):
+        with patch.object(EXAMPLES[1].random, "randint", return_value=21):
             result = await tool.handler(ToolInvocation(arguments={"city": "Tokyo"}))
         self.assertEqual(result.result_type, "success")
         data = json.loads(result.text_result_for_llm)
         self.assertEqual((data["city"], data["temperature_c"]), ("Tokyo", 21))
-        self.assertIn("fictional", data["source"])
+        self.assertEqual(data["source"], "fictional demo")
+        self.assertEqual(data["condition"], "sunny")
+        self.assertIn(data["source"], slide_strings(19))
+        self.assertIn(data["condition"], slide_strings(19))
+        self.assertIn(tool.description, slide_strings(19))
 
     async def test_weather_schema_rejects_empty_city(self):
         result = await EXAMPLES[1].get_weather.handler(

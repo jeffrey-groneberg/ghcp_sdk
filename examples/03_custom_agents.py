@@ -23,6 +23,7 @@ Run:
 """
 
 import asyncio
+from pathlib import Path
 
 from copilot import CopilotClient, ToolSet
 from copilot.rpc import AgentSelectRequest
@@ -41,14 +42,14 @@ AGENTS = [
         "display_name": "Research Agent",
         "description": "Read-only code researcher.",
         "tools": ["grep", "glob", "view"],
-        "prompt": "You explore code and answer questions. Never modify files.",
+        "prompt": "Explore code. Never modify.",
     },
     {
         "name": "reviewer",
         "display_name": "Review Agent",
         "description": "Code reviewer focused on bugs and security.",
         "tools": ["grep", "glob", "view"],
-        "prompt": "You review code for bugs, security issues, and clarity.",
+        "prompt": "Review for bugs and clarity.",
     },
 ]
 
@@ -65,6 +66,7 @@ async def run_conversation() -> None:
         # turn — without this kwarg the default agent would be used.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
+            working_directory=str(Path(__file__).resolve().parent),
             custom_agents=AGENTS,
             agent="researcher",
             # Apply the read-tool scope session-wide as well as per persona.
@@ -91,7 +93,7 @@ async def run_conversation() -> None:
             # this agent has to do a few grep + view tool calls before it can
             # answer, so 60s (the default) is sometimes too short.
             reply = await session.send_and_wait(
-                "What programming language is this project written in?",
+                "What language is this?",
                 timeout=120,
             )
             if reply is None:
@@ -110,7 +112,7 @@ async def run_conversation() -> None:
             print(f"--- swapped --- Active persona: {current.agent.name}\n")
 
             reply = await session.send_and_wait(
-                "Review examples/01_simple_chat.py for error handling issues.",
+                "Review 01_simple_chat.py",
                 timeout=120,
             )
             if reply is None:

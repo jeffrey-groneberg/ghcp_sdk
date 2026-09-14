@@ -39,7 +39,7 @@ async def on_pre_tool_use(input_data, invocation):
     return None
 
 async def on_post_tool_use(input_data, invocation):
-    print(f"[post] {input_data['toolName']} succeeded")
+    print(f"[post] {input_data['toolName']} done")
     return None
 
 async def on_post_tool_use_failure(input_data, invocation):
@@ -131,7 +131,7 @@ Illustrative output:
 
 ```text
 [pre]  view
-[post] view succeeded
+[post] view done
 The repository contains README.md, examples/, docs/, ...
 ```
 
