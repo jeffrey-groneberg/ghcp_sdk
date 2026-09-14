@@ -15,14 +15,12 @@ import subprocess
 
 from copilot import CopilotClient, ToolSet
 from copilot.session import PermissionHandler
-from copilot.session_events import ToolExecutionCompleteData, ToolExecutionStartData
-
-from _tool_trace import ToolTrace
+from copilot.session_events import ToolExecutionStartData
 
 
-TARGET_REPO_OWNER = "jeffrey-groneberg"
-TARGET_REPO_NAME = "ghcp_sdk"
-GITHUB_TOOLS = ["list_issues"]
+TARGET_REPO_OWNER = "github"
+TARGET_REPO_NAME = "copilot-sdk"
+GITHUB_TOOLS = ["list_issues", "issue_read", "search_issues"]
 
 
 def github_token() -> str:
@@ -48,88 +46,57 @@ def github_token() -> str:
     return token
 
 
-def build_mcp_servers(token: str) -> dict:
-    return {
+async def main() -> None:
+    token = github_token()
+    available_tools = ToolSet()
+    for name in GITHUB_TOOLS:
+        available_tools.add_mcp(f"github-{name}")
+    mcp_servers = {
         "github": {
             "type": "http",
             "url": "https://api.githubcopilot.com/mcp/",
             "headers": {
-                "Authorization": "Bearer " + token,
+                "Authorization": f"Bearer {token}",
                 "X-MCP-Readonly": "true",
             },
             "tools": GITHUB_TOOLS,
         },
     }
 
-
-def is_issue_query(start: ToolExecutionStartData) -> bool:
-    return (
-        start.mcp_server_name == "github"
-        and start.mcp_tool_name == "list_issues"
-        and isinstance(start.arguments, dict)
-        and start.arguments.get("owner") == TARGET_REPO_OWNER
-        and start.arguments.get("repo") == TARGET_REPO_NAME
-    )
-
-
-async def main() -> None:
-    token = github_token()
-    available_tools = ToolSet().add_mcp("github-list_issues")
     async with asyncio.timeout(300):
         async with CopilotClient() as client:
             async with await client.create_session(
                 on_permission_request=PermissionHandler.approve_all,
-                mcp_servers=build_mcp_servers(token),
+                mcp_servers=mcp_servers,
                 available_tools=available_tools,
             ) as session:
-                trace = ToolTrace()
+                saw_mcp_call = False
 
                 def on_event(event) -> None:
-                    trace.record(event.data)
+                    nonlocal saw_mcp_call
                     match event.data:
-                        case ToolExecutionStartData(tool_call_id=call_id) as start:
-                            if is_issue_query(start):
-                                print(f"[mcp] github/list_issues started id={call_id}")
-                        case ToolExecutionCompleteData(tool_call_id=call_id, success=success):
-                            start = trace.started.get(call_id)
-                            if start is not None and is_issue_query(start):
-                                # Never print headers, arguments, payloads or remote errors.
-                                print(
-                                    f"[mcp] github/list_issues completed id={call_id} "
-                                    f"success={success}"
-                                )
+                        case ToolExecutionStartData(
+                            mcp_server_name="github", mcp_tool_name=name,
+                        ):
+                            saw_mcp_call = True
+                            print(f"[mcp] github/{name}")
 
                 unsubscribe = session.on(on_event)
                 try:
                     reply = await session.send_and_wait(
-                        "Use the GitHub MCP list_issues tool exactly once, with "
-                        f"owner={TARGET_REPO_OWNER!r} and repo={TARGET_REPO_NAME!r}. "
-                        "We are reviewing this workshop's examples/01_simple_chat.py "
-                        "for error handling and cleanup; issues are context, not "
-                        "proof of a code defect. "
+                        "You must use the GitHub MCP server before answering. "
                         "List the 3 most recently opened issues on "
                         f"{TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. For each issue, "
                         "give its number, title, author and URL. If the tool fails, "
-                        "report that failure; do not answer from memory or invent data. "
-                        "An empty issue list is a valid result.",
+                        "report that failure; do not answer from memory or invent data.",
                         timeout=180,
                     )
                     if reply is None:
                         raise RuntimeError("Session became idle without an assistant message.")
-                    queries = [
-                        call_id for call_id, start in trace.started.items()
-                        if is_issue_query(start)
-                    ]
-                    if not queries or any(
-                        trace.successful_content(call_id) is None for call_id in queries
-                    ):
+                    if not saw_mcp_call:
                         raise RuntimeError(
-                            "No complete successful GitHub issue query for the target "
-                            "repository; an uninvoked, failed or unmatched call is not success."
+                            "The assistant answered without invoking the GitHub MCP server."
                         )
-                    print(
-                        f"[host] MCP_ISSUES_VERIFIED repo={TARGET_REPO_OWNER}/{TARGET_REPO_NAME}"
-                    )
                     print(reply.data.content)
                 finally:
                     unsubscribe()

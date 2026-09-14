@@ -1,197 +1,179 @@
-# 07 · Choose a focus, then approve or deny tests
+# 07 · Human in the loop
 
-**GitHub Copilot SDK - an introduction**
+📖 **Sources (SDK v1.0.13):**
+[Python elicitation and permission types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
+[generated permission variants](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
+[official elicitation E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/python/e2e/test_ui_elicitation_e2e.py).
 
-[Runnable source](07_human_in_the_loop.py) · [Student guide](README.md)
+Open [the runnable source](07_human_in_the_loop.py). It demonstrates two
+separate human decisions:
 
-**Sources, SDK v1.0.13:** [elicitation and hooks](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
-[permission request fields](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
-[permission decisions](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
-[elicitation E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/python/e2e/test_ui_elicitation_e2e.py).
+1. prefer a narrowly validated structured form, with an explicit legacy
+   fallback when the runtime does not expose the structured `ask_user` tool;
+2. approve or reject one exact harmless shell command.
 
-## Goal and boundary
+The terminal adapter is intentionally small. A production application should
+replace it with its own UI, identity, audit, and authorization layer.
 
-For the review of `examples/01_simple_chat.py`, collect **`errors` or
-`cleanup`**, then ask the human whether to run **one fixed command**:
-
-```text
-python -m unittest discover -s examples/tests -v
-```
-
-The command runs in this repository root. The focus changes the review
-choice, **never the command**. No source-reading tool is exposed in this
-checkpoint, so the assistant must not claim to have reviewed file contents.
-
-This is a read-only review scenario with one narrowly authorized
-test-execution step, not an OS sandbox. Python can write bytecode caches,
-and the offline tests create/remove disposable fixtures under `examples/`.
-Use only a trusted checkout and environment.
-
-## Two different human interactions
+## The flow
 
 ```mermaid
 sequenceDiagram
-    participant Host
+    participant App
     participant Runtime
     participant Human
-    Host->>Runtime: Create structured-first session; inspect tool metadata
-    alt Structured ask_user available
-        Runtime->>Host: Elicitation form with required string focus
-    else Capability unavailable
-        Host->>Runtime: Detach unused session; create explicit legacy session
-        Runtime->>Host: Freeform question contract
+    App->>Runtime: create_session(ask_user_variant=elicitation)
+    App->>Runtime: Inspect current tool metadata
+    alt structured ask_user available
+        Runtime->>App: elicitation.requested + JSON Schema
+        App->>App: Validate exact expected schema
+    else structured tool unavailable
+        App->>Runtime: Detach; create legacy ask_user session
+        Runtime->>App: UserInputRequest
+        App->>App: Validate freeform-only name contract
     end
-    Host->>Human: Review focus [errors/cleanup]
-    Human-->>Host: Validated focus
-    Host-->>Runtime: Structured focus or validated freeform answer
-    Runtime->>Host: Pre-tool hook for exact command in repository root
-    Host-->>Runtime: Ask permission; no shell reuse or command variation
-    Runtime->>Host: PermissionRequestShell with tool_call_id
-    Host->>Human: Approve this one exact command? [y/N]
-    alt y
-        Host-->>Runtime: PermissionDecisionApproveOnce
-        Runtime-->>Host: Matching test-command result
-        Host->>Host: Check ID, success, and actual unittest summary
-    else n, empty, or input unavailable
-        Host-->>Runtime: Reject or UserNotAvailable
-        Host->>Host: Record denial; do not claim execution
-    end
+    App->>Human: Ask for name, 120-second deadline
+    Human-->>App: Name
+    App-->>Runtime: action=accept, content.name
+    Runtime->>App: PermissionRequestShell
+    App->>App: Match exact allowlisted command
+    App->>Human: Approve once? [y/N]
+    Human-->>App: y or denial
+    App-->>Runtime: ApproveOnce / Reject / UserNotAvailable
+    Runtime-->>App: Final answer, then idle
 ```
 
-## Validate the input contract
+## Code walkthrough
 
-`FOCUS_SCHEMA` requests an object with one required string property:
+### 1. Prefer structured elicitation when the UI can validate forms
 
 ```python
-{
-    "type": "object",
-    "properties": {"focus": {"type": "string", "enum": ["errors", "cleanup"]}},
-    "required": ["focus"],
-    "additionalProperties": False,
-}
+ask_user_variant="elicitation",
+on_elicitation_request=on_elicitation_request,
 ```
 
-`is_focus_form` rejects URL mode, unexpected fields/types/constraints, and
-unrecognized enum values. `validate_focus` trims and normalizes case, then
-accepts only `errors` or `cleanup`. It never accepts arbitrary “review
-instructions” or shell fragments.
+The default `"legacy"` variant still uses `on_user_input_request` with
+`question`, `choices`, and `allowFreeform`. This sample first requests the
+newer structured shape because the host can validate the JSON Schema before
+collecting data.
 
-`ReviewHost.on_elicitation_request` returns, for example:
+The callback accepts only:
+
+- form mode, never a URL redirect;
+- one object property named `name`;
+- a required, string-typed value;
+- a local length limit of 1–80 characters.
+
+Unexpected schemas return `{"action": "decline"}`. Timeout/EOF returns
+`{"action": "cancel"}`. A valid response uses:
 
 ```python
-{"action": "accept", "content": {"focus": "errors"}}
+{"action": "accept", "content": {"name": "Ada"}}
 ```
 
-Unexpected schemas decline. Three invalid answers, EOF, timeout, or
-unavailable input cancel the form. A second focus request cannot start
-another interactive collection.
+This is deliberately narrower than a generic form renderer. Human-in-the-loop
+does not mean accepting any data request the model invents.
 
-`has_structured_ask_user` initializes tools and checks current metadata for
-an `ask_user` schema containing both `message` and `requestedSchema`.
-The SDK accepting `ask_user_variant="elicitation"` is not capability proof.
-If the tool is absent or legacy-shaped, the unused session is detached and
-a new session explicitly uses:
+The SDK option alone is not proof that the bundled runtime exposed the tool.
+The sample calls `session.rpc.tools.initialize_and_validate()` and inspects
+`get_current_metadata()`. It requires an `ask_user` schema with both `message`
+and `requestedSchema`; an absent tool or legacy `question` schema triggers the
+fallback. The unused session is detached, then a legacy session accepts only
+one non-empty freeform name and no choices. Live validation with runtime
+1.0.83 exercised this fallback.
+
+### 2. Validate policy before asking the human
+
+The permission callback pattern-matches `PermissionRequestShell`, rejects
+every other permission kind, rejects sandbox-bypass requests, and validates
+`full_command_text` against one platform-specific policy:
 
 ```python
-ask_user_variant="legacy",
-on_user_input_request=host.on_user_input_request,
+EXPECTED_COMMAND = "printf '%s\\n' 'Hello from the Copilot SDK.'"
 ```
 
-The fallback accepts a freeform-only question with no choices and runs the
-**same focus validator**. Timeout/EOF fails visibly; it is not an answer or
-an approval. A metadata-only inspection on the pinned local runtime found
-no structured `ask_user` in the requested catalogue. This is not a claim
-that either interactive path was live-tested during the offline update.
+On POSIX, `shlex.split` must produce exactly `printf`, the fixed format string,
+and the fixed literal; alternate quoting is allowed but extra operators or
+arguments are not. Only after that machine check does it ask the human.
+An explicit `y` returns `PermissionDecisionApproveOnce()`. Every other answer
+returns `PermissionDecisionReject(...)`.
 
-## Authorize one literal action
+This ordering matters: a human dialog is not a replacement for application
+policy. Keep the decision scope as small as possible and prefer approve-once
+over session-wide or permanent grants.
 
-`EXPECTED_COMMAND` is a constant. `is_expected_command` rejects shell
-metacharacters and requires **exact string equality**; even extra whitespace,
-quoting, additional flags, or `python3` instead of `python` are rejected.
-`shlex.split` alone would not establish shell safety.
+### 3. Treat managed approval as a real human gate
 
-The pre-tool hook additionally requires:
+Permission variants can set `managed_approval_required=True`. The sample
+surfaces that fact and still requires the explicit terminal answer; it never
+auto-approves a managed request. If input is unavailable, it returns
+`PermissionDecisionUserNotAvailable()` rather than pretending the action was
+rejected by a present user.
 
-- `workingDirectory == str(REPO_ROOT)`;
-- only the platform's `bash`/`powershell` tool after a validated focus;
-- no `shellId`, working-directory override, detach, or async mode;
-- synchronous execution, with the requested `initial_wait=120`.
+Longer-lived approval variants exist, but this sample intentionally does not
+offer them.
 
-It returns `None` for this narrow request so the runtime continues through its
-normal typed shell permission check. Returning `permissionDecision="ask"` would
-create a separate hook permission request, not `PermissionRequestShell`.
-The permission callback independently validates the runtime's `full_command_text`, rejects
-write redirection, URLs, sandbox bypass, missing call IDs, and repeat
-decisions. It reads the actual **`PermissionRequestShell.tool_call_id`**;
-pre-tool hooks do not have that field in SDK 1.0.13.
+### 4. Keep terminal waits serialized, bounded, and cancellable
 
-Only `y` returns `PermissionDecisionApproveOnce()`. Anything else returns
-`PermissionDecisionReject`; EOF/timeout returns
-`PermissionDecisionUserNotAvailable`. Managed-approval requests still
-require the explicit human decision. No session-wide grant is offered.
+Both interactive examples use `_console_input.read_answer`. A daemon thread
+performs blocking `input()`, while the event loop polls a thread-safe queue
+under an async lock. Every prompt has a 120-second workshop deadline.
 
-## Host evidence, not model wording
+After EOF, timeout, or cancellation, the helper refuses to start another stdin
+reader in the same process. This avoids overlapping readers and avoids
+`asyncio.run()` waiting forever for a cancelled `to_thread(input, ...)`.
+`asyncio.CancelledError` is re-raised.
 
-`ReviewHost` holds the validated focus, decision and request ID, plus
-matching typed start/completion events. `report_outcome()` requires:
+### 5. Scope the tool catalogue
 
-1. the expected shell tool and arguments;
-2. the same ID on the host decision, start, and completion;
-3. explicit approve-once, successful completion, and actual result content;
-4. the result's unittest summary reporting at least one test and `OK`.
+```python
+available_tools=ToolSet().add_builtin(["ask_user", SHELL_TOOL])
+```
 
-The actual command output is printed under `[command result]`. A generic
-tool-success flag, missing result, “tests passed” model prose, a zero-test
-run, or an unmatched ID cannot print `COMMAND_RESULT_VERIFIED`.
-If the command was denied, only a denial is reported, not proof of execution
-or non-execution. Assistant text is separately labeled `[agent commentary]`.
+No file, MCP, web, or unrelated shell-adjacent tools are exposed. Tool
+allowlists, permission callbacks, and prompts are separate controls; none is
+an OS sandbox. Example 08 adds the runtime sandbox layer.
 
-## Run both decisions
+## Run it
 
 ```bash
 python examples/07_human_in_the_loop.py
-# Choose errors, then n.
-python examples/07_human_in_the_loop.py
-# Choose cleanup, then y.
 ```
 
-**Illustrative denial trace — not an observed run:**
+Illustrative session:
 
 ```text
-[hitl] focus accepted: errors
-[tool] bash started id=<id>
-[permission] proposed command (id=<id>): python -m unittest discover -s examples/tests -v
-[permission] working directory: <repository root>
-Approve this one exact command? [y/N]: n
-[host] COMMAND_DENIED id=<id> reason=user rejected
-[tool] completed id=<id> success=False
-[host] COMMAND_DENIAL_RECORDED id=<id>; no execution claimed
+[hitl] Structured ask_user is unavailable in this runtime; falling back to the legacy question contract.
+[tool] ask_user started
+[agent asks] What is your name?
+Your name: Ada
+
+[tool] bash started
+[permission] proposed command:
+printf '%s\n' 'Hello from the Copilot SDK.'
+Approve this one exact command? [y/N]: y
+
+[agent] Hello, Ada! The command printed: Hello from the Copilot SDK.
 ```
 
-**Illustrative approved trace — not an observed run:**
+The runtime may use the structured path instead. In both paths, the model must
+request the expected name contract and allowed command. A variation is denied
+rather than silently widened.
 
-```text
-[hitl] focus accepted: cleanup
-[host] COMMAND_APPROVE_ONCE id=<id>
-[tool] completed id=<id> success=True
-[command result]
-<actual unittest output, including Ran N tests and OK>
-[host] COMMAND_RESULT_VERIFIED id=<id>; unittest reported OK
-```
+## Try this next
 
-Exact additional host trace forms:
+1. Add a second allowlisted form with an enum and validate the selected value.
+2. Replace terminal input with a UI-backed future that can genuinely expire.
+3. Record decision type and correlation IDs without storing submitted content.
+4. Test with a runtime that exposes structured `ask_user`, then verify both
+   branches return the same application-level result.
 
-```text
-[host] COMMAND_DENIED id=<id-or-missing> reason=outside the one-command policy
-[host] COMMAND_DENIED id=<id> reason=input unavailable or timed out
-[host] COMMAND_INCOMPLETE reason=<exception message>
-[host] COMMAND_CANCELLED; no result verified
-```
+## Common pitfalls
 
-Cancellation is re-raised, not converted into a denied/successful result.
-`_console_input.read_answer` serializes stdin, bounds each read to 120
-seconds, and refuses another reader after interruption. A 300-second turn
-deadline and 360-second outer deadline bound the overall interaction.
-
-**Exercise:** mock a correct command result under a different ID. Approval
-and success somewhere in the same conversation must not pass verification.
+- Information requests and action permissions are different contracts.
+- Do not assume an accepted SDK option means the runtime exposed that tool;
+  inspect capabilities or metadata and design an explicit fallback.
+- Do not render arbitrary URL elicitation without a trusted navigation policy.
+- Do not ask the human until the application has validated the request.
+- Do not convert timeout, cancellation, or missing input into approval.
+- Approval does not imply sandbox bypass; bypass is a separate decision.

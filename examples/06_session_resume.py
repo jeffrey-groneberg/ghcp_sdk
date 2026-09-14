@@ -17,9 +17,7 @@ from copilot.session import PermissionHandler
 
 # Use a unique ID for each real conversation. This default is a workshop aid,
 # not an authorization boundary or a multi-user session naming strategy.
-SESSION_ID = "workshop-repository-review"
-REVIEW_FILE = "examples/01_simple_chat.py"
-REVIEW_FOCUS = "error handling"
+SESSION_ID = "demo-session-resume"
 
 
 async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
@@ -34,9 +32,8 @@ async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
                     available_tools=[],
                 )
                 prompt = (
-                    "Using our earlier conversation, state the selected review "
-                    "file and review focus, using the original values. If you "
-                    "cannot recall them, say so. Do not read any files."
+                    "Using our earlier conversation, what did I tell you my name "
+                    "is and which programming language I prefer?"
                 )
             else:
                 # Omitting session_id also works: save session.session_id, or
@@ -47,10 +44,9 @@ async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
                     available_tools=[],  # Recall must not read this source file.
                 )
                 prompt = (
-                    "Remember these two review choices for this workshop repository: "
-                    f"the selected file is {REVIEW_FILE!r} and the review focus is "
-                    f"{REVIEW_FOCUS!r}. Just acknowledge the choices; do not review "
-                    "or read the source yet."
+                    "Please remember two facts for our conversation: my name "
+                    "is Jeffrey, and my favourite programming language is Python. "
+                    "Just acknowledge that you have noted them."
                 )
 
             async with session_ctx as session:

@@ -1,5 +1,5 @@
 """
-Example 01 — Stream a repository-review plan from supplied text, not file reads.
+Example 01 — Streaming chat with GitHub Copilot SDK 1.0.13.
 
 Run: python examples/01_simple_chat.py
 Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py
@@ -10,24 +10,6 @@ import asyncio
 from copilot import CopilotClient
 from copilot.session import PermissionHandler
 from copilot.session_events import AssistantMessageDeltaData
-
-
-REVIEW_FILE = "examples/01_simple_chat.py"
-REPOSITORY_DESCRIPTION = (
-    "This is jeffrey-groneberg/ghcp_sdk, the workshop repository for "
-    "'GitHub Copilot SDK - an introduction'. It has eight independently "
-    "runnable Python examples using github-copilot-sdk 1.0.13 / runtime 1.0.83. "
-    "The selected review file is examples/01_simple_chat.py. Its host creates "
-    "a client and session, subscribes to streamed text, waits for a final "
-    "message with a deadline, and cleans up its subscription and contexts."
-)
-REVIEW_PROMPT = (
-    f"Supplied repository description:\n{REPOSITORY_DESCRIPTION}\n\n"
-    f"Propose a short review plan for {REVIEW_FILE}, focused on "
-    "error handling and cleanup. Use only the description above. "
-    "You have no file-reading tools: do not claim to have read "
-    "the source or found actual bugs. Give three checks to make."
-)
 
 
 async def main() -> None:
@@ -49,23 +31,23 @@ async def main() -> None:
                 available_tools=[],  # This text-only conversation needs no tools.
                 streaming=True,
             ) as session:
-                saw_delta = False
-
                 def on_event(event) -> None:
-                    nonlocal saw_delta
                     match event.data:
                         case AssistantMessageDeltaData(delta_content=delta):
-                            saw_delta = saw_delta or bool(delta)
                             print(delta or "", end="", flush=True)
 
                 # Register BEFORE sending so early chunks aren't missed.
                 unsubscribe = session.on(on_event)
                 try:
-                    reply = await session.send_and_wait(REVIEW_PROMPT, timeout=60)
+                    # Streaming events still arrive while this helper waits.
+                    # It handles session.error and raises TimeoutError on expiry;
+                    # a hand-written idle Event alone could wait forever.
+                    reply = await session.send_and_wait(
+                        "Explain what the GitHub Copilot SDK is in 3 sentences.",
+                        timeout=60,
+                    )
                     if reply is None:
                         raise RuntimeError("Session became idle without an assistant message.")
-                    if not saw_delta:
-                        print(reply.data.content, end="", flush=True)
                 finally:
                     unsubscribe()
                     print()  # Keep the terminal tidy even after partial output.
