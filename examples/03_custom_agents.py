@@ -23,15 +23,10 @@ Run:
 """
 
 import asyncio
-from pathlib import Path
 
 from copilot import CopilotClient, ToolSet
 from copilot.rpc import AgentSelectRequest
 from copilot.session import PermissionHandler
-
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-REVIEW_FILE = "examples/01_simple_chat.py"
 
 
 # Each agent is a plain dict. The most important keys are:
@@ -46,17 +41,14 @@ AGENTS = [
         "display_name": "Research Agent",
         "description": "Read-only code researcher.",
         "tools": ["grep", "glob", "view"],
-        "prompt": "Read workshop code and explain its resource lifetimes. Never modify files.",
+        "prompt": "You explore code and answer questions. Never modify files.",
     },
     {
         "name": "reviewer",
         "display_name": "Review Agent",
-        "description": "Read-only reviewer focused on error handling and cleanup.",
+        "description": "Code reviewer focused on bugs and security.",
         "tools": ["grep", "glob", "view"],
-        "prompt": (
-            "Review error handling and cleanup. Cite source lines, distinguish "
-            "evidenced bugs from suggestions, and never modify files."
-        ),
+        "prompt": "You review code for bugs, security issues, and clarity.",
     },
 ]
 
@@ -75,7 +67,6 @@ async def run_conversation() -> None:
             on_permission_request=PermissionHandler.approve_all,
             custom_agents=AGENTS,
             agent="researcher",
-            working_directory=str(REPO_ROOT),
             # Apply the read-tool scope session-wide as well as per persona.
             # approve_all is acceptable only in a trusted, non-sensitive checkout.
             available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
@@ -100,9 +91,7 @@ async def run_conversation() -> None:
             # this agent has to do a few grep + view tool calls before it can
             # answer, so 60s (the default) is sometimes too short.
             reply = await session.send_and_wait(
-                f"Read {REVIEW_FILE} in this workshop repository with view. "
-                "Map the client, session and event-subscription lifetimes. "
-                "Cite the relevant lines; do not modify anything.",
+                "What programming language is this project written in?",
                 timeout=120,
             )
             if reply is None:
@@ -121,10 +110,7 @@ async def run_conversation() -> None:
             print(f"--- swapped --- Active persona: {current.agent.name}\n")
 
             reply = await session.send_and_wait(
-                f"Review the same file, {REVIEW_FILE}, for error handling and "
-                "cleanup, using the researcher's context and source reads. "
-                "Cite lines. If no concrete bug is evidenced, say so; separate "
-                "optional improvements from defects. Do not modify anything.",
+                "Review examples/01_simple_chat.py for error handling issues.",
                 timeout=120,
             )
             if reply is None:

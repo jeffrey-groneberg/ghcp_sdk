@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GitHub Copilot SDK - an introduction</title>
+  <title>GitHub Copilot SDK · Teaching deck</title>
 
   <!--
     Typography: Mona Sans is GitHub's own official typeface (open source,
@@ -793,97 +793,6 @@
       .slide-footer .src { min-width: 0; overflow-wrap: anywhere; flex: 1; }
       .keyboard-hint, .nav-dots, .octocat-accent { display: none; }
     }
-
-    [hidden] { display: none !important; }
-    .intro-slide .slide-content {
-      gap: clamp(0.75rem, 1.8vh, 1.25rem);
-      padding-right: calc(var(--slide-padding) + 2rem);
-      padding-bottom: 3.8rem;
-    }
-    .intro-slide h2 { max-width: 34ch; }
-    .intro-lead { max-width: 88ch; color: var(--gh-fg); }
-    .intro-note { font-size: var(--small-size); max-width: 110ch; }
-    .intro-cards, .intro-columns, .intro-traces {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(1rem, 2vw, 2rem);
-    }
-    .intro-cards:has(> :last-child:nth-child(3)) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .intro-cards .card { max-height: none; }
-    .intro-cards .card p { font-size: var(--body-size); }
-    .intro-columns h3 { margin-bottom: 1rem; color: var(--gh-blue); }
-    .content-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: clamp(0.6rem, 1.5vh, 1.2rem);
-    }
-    .content-list li {
-      font-size: var(--body-size);
-      line-height: 1.5;
-      color: var(--gh-fg);
-    }
-    .intro-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: var(--body-size);
-      line-height: 1.4;
-    }
-    .intro-table th, .intro-table td {
-      padding: clamp(0.35rem, 0.8vh, 0.7rem) 0.75rem;
-      border-bottom: 1px solid var(--gh-border);
-      vertical-align: top;
-    }
-    .intro-table th { color: var(--gh-blue); }
-    .intro-table tr:nth-child(even) { background: var(--gh-canvas-subtle); }
-    .intro-table th:first-child { width: 18%; }
-    #agent-turn .intro-table th:first-child,
-    #checkpoint-map .intro-table th:first-child { width: 7%; }
-    #agent-turn .intro-table th:nth-child(2),
-    #checkpoint-map .intro-table th:nth-child(2) { width: 25%; }
-    .intro-code {
-      display: grid;
-      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
-      gap: clamp(1rem, 2.5vw, 2rem);
-      align-items: start;
-    }
-    .intro-code .code-window { max-height: none; }
-    .intro-code pre, .trace pre {
-      white-space: pre;
-      overflow-wrap: normal;
-      font-size: clamp(0.8rem, 1.05vw, 1rem);
-      line-height: 1.45;
-    }
-    .intro-code .titlebar { font-family: var(--font-mono); font-size: var(--small-size); }
-    .trace {
-      padding: clamp(1rem, 2.2vw, 2rem);
-      background: var(--gh-canvas-inset);
-      border: 1px solid var(--gh-border);
-      border-radius: 12px;
-      min-width: 0;
-    }
-    .trace h3 { margin-bottom: 1.4rem; }
-    .trace:first-child h3 { color: var(--gh-orange); }
-    .trace:last-child h3 { color: var(--gh-green); }
-    .trace pre { overflow-x: auto; }
-    .trace code { font-size: inherit; }
-    .appendix-toggle { align-self: flex-start; margin-top: 1rem; }
-    .nav-dots button[data-optional] { border-style: dashed; }
-    @media (max-width: 760px) {
-      .intro-slide .slide-content { padding: var(--slide-padding); }
-      .intro-code, .intro-columns, .intro-traces,
-      .intro-cards, .intro-cards:has(> :last-child:nth-child(3)) {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .intro-table { font-size: 0.8rem; }
-      .intro-table th, .intro-table td { padding: 0.45rem 0.3rem; }
-      .intro-note { font-size: 0.8rem; }
-      .intro-slide .tab-strip { gap: 0.5rem; }
-      .intro-slide .tab-strip .meta { display: none; }
-    }
   </style>
 </head>
 <body>
@@ -899,261 +808,1198 @@
   <!-- ===============================================================
        SLIDE 1 — Title
        =============================================================== -->
-  <!-- BEGIN GENERATED SLIDES -->
-<section id="title" class="slide intro-slide title-slide" aria-label="GitHub Copilot SDK">
+  <section class="slide title-slide">
+    <img class="octocat-accent oc-bottom-left" src="assets/octocats/original.png" alt="" aria-hidden="true">
+    <div class="slide-content">
+      <div class="title-grid">
+        <div class="title-text">
+      <span class="title-eyebrow reveal"><span class="mark"></span> github / copilot-sdk</span>
+      <h1 class="title-h1 reveal">
+        Build agentic apps with<br/>
+        <span class="accent">GitHub Copilot SDK</span>
+      </h1>
+        </div>
+        <aside class="title-qr reveal" aria-label="Scan to open repo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" aria-label="QR code: https://github.com/jeffrey-groneberg/ghcp_sdk"><rect width="41" height="41" fill="#ffffff"/><path d="M4 4h7v1h-7zM13 4h1v1h-1zM15 4h2v1h-2zM20 4h1v1h-1zM22 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h4v1h-4zM18 6h1v1h-1zM24 6h3v1h-3zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h2v1h-2zM19 7h1v1h-1zM22 7h1v1h-1zM25 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h5v1h-5zM24 8h2v1h-2zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM17 9h2v1h-2zM21 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h1v1h-1zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h5v1h-5zM20 12h2v1h-2zM23 12h1v1h-1zM30 12h5v1h-5zM6 13h4v1h-4zM11 13h2v1h-2zM14 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM7 14h4v1h-4zM13 14h1v1h-1zM16 14h6v1h-6zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM16 15h2v1h-2zM20 15h4v1h-4zM28 15h1v1h-1zM32 15h3v1h-3zM36 15h1v1h-1zM4 16h2v1h-2zM8 16h1v1h-1zM10 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM23 16h7v1h-7zM31 16h3v1h-3zM6 17h1v1h-1zM8 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM19 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM5 18h1v1h-1zM7 18h1v1h-1zM9 18h4v1h-4zM15 18h1v1h-1zM18 18h4v1h-4zM24 18h1v1h-1zM26 18h1v1h-1zM29 18h2v1h-2zM32 18h4v1h-4zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h4v1h-4zM33 19h2v1h-2zM4 20h1v1h-1zM7 20h5v1h-5zM15 20h3v1h-3zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h3v1h-3zM36 20h1v1h-1zM4 21h1v1h-1zM6 21h3v1h-3zM11 21h2v1h-2zM14 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h8v1h-8zM15 22h3v1h-3zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h2v1h-2zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM9 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h4v1h-4zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h3v1h-3zM18 24h1v1h-1zM22 24h2v1h-2zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h3v1h-3zM11 25h1v1h-1zM14 25h7v1h-7zM24 25h4v1h-4zM29 25h2v1h-2zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM15 26h1v1h-1zM17 26h2v1h-2zM21 26h3v1h-3zM29 26h1v1h-1zM32 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM12 27h1v1h-1zM15 27h3v1h-3zM20 27h1v1h-1zM22 27h6v1h-6zM29 27h2v1h-2zM32 27h4v1h-4zM4 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h3v1h-3zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h7v1h-7zM35 28h2v1h-2zM12 29h1v1h-1zM16 29h2v1h-2zM21 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h4v1h-4zM24 30h1v1h-1zM26 30h3v1h-3zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h2v1h-2zM21 31h2v1h-2zM24 31h1v1h-1zM27 31h2v1h-2zM32 31h3v1h-3zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h3v1h-3zM20 32h1v1h-1zM23 32h4v1h-4zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM16 33h1v1h-1zM18 33h2v1h-2zM22 33h1v1h-1zM27 33h3v1h-3zM32 33h3v1h-3zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM16 34h5v1h-5zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM33 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM14 35h1v1h-1zM18 35h2v1h-2zM25 35h4v1h-4zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h6v1h-6zM19 36h3v1h-3zM26 36h3v1h-3zM31 36h1v1h-1zM35 36h1v1h-1z" fill="#0d1117"/></svg>
+          <span class="qr-caption">scan to clone<br><strong>github.com/jeffrey-groneberg/ghcp_sdk</strong></span>
+        </aside>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">deck · github copilot sdk</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/releases/tag/v1.0.13" target="_blank" rel="noopener">releases · python 1.0.13</a>
+      <span>01 / 27</span>
+    </div>
+  </section>
 
-<div class="slide-content">
-<div class="title-grid"><h1 class="title-h1">GitHub Copilot<br><span class="accent">SDK</span></h1><aside class="title-qr" aria-label="Workshop repository"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" aria-label="QR code: https://github.com/jeffrey-groneberg/ghcp_sdk"><rect width="41" height="41" fill="#ffffff"/><path d="M4 4h7v1h-7zM13 4h1v1h-1zM15 4h2v1h-2zM20 4h1v1h-1zM22 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h4v1h-4zM18 6h1v1h-1zM24 6h3v1h-3zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h2v1h-2zM19 7h1v1h-1zM22 7h1v1h-1zM25 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h5v1h-5zM24 8h2v1h-2zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM17 9h2v1h-2zM21 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h1v1h-1zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h5v1h-5zM20 12h2v1h-2zM23 12h1v1h-1zM30 12h5v1h-5zM6 13h4v1h-4zM11 13h2v1h-2zM14 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM7 14h4v1h-4zM13 14h1v1h-1zM16 14h6v1h-6zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM16 15h2v1h-2zM20 15h4v1h-4zM28 15h1v1h-1zM32 15h3v1h-3zM36 15h1v1h-1zM4 16h2v1h-2zM8 16h1v1h-1zM10 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM23 16h7v1h-7zM31 16h3v1h-3zM6 17h1v1h-1zM8 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM19 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM5 18h1v1h-1zM7 18h1v1h-1zM9 18h4v1h-4zM15 18h1v1h-1zM18 18h4v1h-4zM24 18h1v1h-1zM26 18h1v1h-1zM29 18h2v1h-2zM32 18h4v1h-4zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h4v1h-4zM33 19h2v1h-2zM4 20h1v1h-1zM7 20h5v1h-5zM15 20h3v1h-3zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h3v1h-3zM36 20h1v1h-1zM4 21h1v1h-1zM6 21h3v1h-3zM11 21h2v1h-2zM14 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h8v1h-8zM15 22h3v1h-3zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h2v1h-2zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM9 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h4v1h-4zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h3v1h-3zM18 24h1v1h-1zM22 24h2v1h-2zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h3v1h-3zM11 25h1v1h-1zM14 25h7v1h-7zM24 25h4v1h-4zM29 25h2v1h-2zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM15 26h1v1h-1zM17 26h2v1h-2zM21 26h3v1h-3zM29 26h1v1h-1zM32 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM12 27h1v1h-1zM15 27h3v1h-3zM20 27h1v1h-1zM22 27h6v1h-6zM29 27h2v1h-2zM32 27h4v1h-4zM4 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h3v1h-3zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h7v1h-7zM35 28h2v1h-2zM12 29h1v1h-1zM16 29h2v1h-2zM21 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h4v1h-4zM24 30h1v1h-1zM26 30h3v1h-3zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h2v1h-2zM21 31h2v1h-2zM24 31h1v1h-1zM27 31h2v1h-2zM32 31h3v1h-3zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h3v1h-3zM20 32h1v1h-1zM23 32h4v1h-4zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM16 33h1v1h-1zM18 33h2v1h-2zM22 33h1v1h-1zM27 33h3v1h-3zM32 33h3v1h-3zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM16 34h5v1h-5zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM33 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM14 35h1v1h-1zM18 35h2v1h-2zM25 35h4v1h-4zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h6v1h-6zM19 36h3v1h-3zM26 36h3v1h-3zM31 36h1v1h-1zM35 36h1v1h-1z" fill="#0d1117"/></svg><a class="qr-caption" href="https://github.com/jeffrey-groneberg/ghcp_sdk">github.com/jeffrey-groneberg/ghcp_sdk</a></aside></div>
-</div>
-<div class="slide-footer"><span class="crumb">Introduction</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk" target="_blank" rel="noopener">Source</a><span>01 / 18</span></div>
-</section>
+<section class="slide">
+    <img class="octocat-accent" src="assets/octocats/labtocat.png" alt="" aria-hidden="true">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / examples /</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">AGENDA</span> Four clear chapters</span>
+      <h2 class="reveal">Understand first. Compare second. Explore third. Build last.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01</span><h3>SDK in Detail</h3>
+          <p>Runtime, client/session lifecycle, events, tools, permissions, and containment.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">02</span><h3>SDK vs. CLI</h3>
+          <p>Same runtime engine, different product surface, ownership, and integration model.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">03</span><h3>Capabilities</h3>
+          <p>Embedded products, automation, multi-user services, custom providers, and controls.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">04</span><h3>Samples</h3>
+          <p>Get to green, choose a learning path, then use each of the eight runnable examples.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">agenda &middot; sdk / cli / possibilities / samples</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples" target="_blank" rel="noopener">python/samples</a>
+      <span>02 / 27</span>
+    </div>
+  </section>
 
-<section id="agenda" class="slide intro-slide" aria-label="Agenda">
-<div class="tab-strip"><span class="path">Introduction</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Agenda</h2><div class="intro-cards"><div class="card"><h3>1. SDK in detail</h3><p>What the runtime does; one complete agent turn; tool permissions.</p></div><div class="card"><h3>2. SDK vs. CLI</h3><p>When an API integration is useful instead of the CLI interface.</p></div><div class="card"><h3>3. Capabilities</h3><p>One repository assistant, developed through eight independent checkpoints.</p></div><div class="card"><h3>4. Samples</h3><p>Run the code, inspect its results, and compare rejected and approved actions.</p></div></div><p class="intro-note">Deployment variants, multi-user isolation, credential rotation, and BYOK are in the optional appendix.</p>
-</div>
-<div class="slide-footer"><span class="crumb">Introduction</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk" target="_blank" rel="noopener">Source</a><span>02 / 18</span></div>
-</section>
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / README.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">The agent loop, packaged. The control plane is yours.</h2>
+      <p class="lede reveal">
+        Copilot CLI is great in a terminal. The <strong>SDK</strong> is what
+        you reach for when you want to embed the same agent loop — tools,
+        permissions, MCP, hooks, and persistence into <em>your own</em> app.
+      </p>
+      <ul class="checks reveal" style="margin-top: var(--content-gap); max-width: 70ch;">
+        <li>Same runtime engine and JSON-RPC protocol used by Copilot CLI</li>
+        <li>Runtime/account policy decides available models; inspect <code>list_models()</code></li>
+        <li>Built-in tools vary by runtime, platform, and session configuration</li>
+        <li>Resume persisted sessions by ID when the same state storage is available</li>
+        <li>Your app still owns identity, authorization, workspace isolation, routing, and UI</li>
+      </ul>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">why · agent loop, packaged</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
+      <span>03 / 27</span>
+    </div>
+  </section>
 
-<section id="repository-assistant" class="slide intro-slide" aria-label="Review one repository, without changing its source">
-<div class="tab-strip"><span class="path">1. SDK in detail</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Review one repository, without changing its source</h2><p class="intro-lead">Our task: inspect examples/01_simple_chat.py for error handling and cleanup, then add GitHub issue context.</p><div class="intro-columns"><div><h3>With a direct model API</h3><ul class="content-list"><li>Your code sends a request and receives text or proposed tool calls.</li><li>Your code must dispatch tools, return their results, and repeat model calls.</li><li>You implement conversation state and the surrounding controls.</li></ul></div><div><h3>With the Copilot SDK</h3><ul class="content-list"><li>The Copilot runtime manages the model/tool loop and session state.</li><li>The SDK exposes typed events, tool registration, and host callbacks.</li><li>Your application still supplies credentials and authorizes access.</li></ul></div></div><p class="intro-note">The first sample only receives a supplied repository description. It cannot inspect files until a tool is exposed.</p>
-</div>
-<div class="slide-footer"><span class="crumb">1. SDK in detail</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">Source</a><span>03 / 18</span></div>
-</section>
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / getting-started.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">Your app → SDK → CLI → model.</h2>
+      <div class="arch reveal" style="margin-top: var(--content-gap);">
+        <div class="node app"><h4>Your application</h4><p>Six SDKs; workshop uses Python</p></div>
+        <div class="arrow">→</div>
+        <div class="node sdk"><h4>Language SDK</h4><p>Idiomatic client + typed events</p></div>
+        <div class="arrow">→</div>
+        <div class="node cli"><h4>Copilot runtime</h4><p>Agent loop + tools<br>stable pin · 1.0.83</p></div>
+        <div class="arrow">→</div>
+        <div class="node model"><h4>Model</h4><p>Runtime-selected default<br>Discover with list_models()</p></div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 70ch;">
+        The runtime owns the agent loop and runtime-launched tools. Your host
+        runs Python callbacks and custom tool handlers, supplies credentials,
+        and decides which isolation and persistence boundaries apply.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">architecture · client → cli → model</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">docs/features/agent-loop.md</a>
+      <span>04 / 27</span>
+    </div>
+  </section>
 
-<section id="agent-turn" class="slide intro-slide" aria-label="One user request can trigger several model calls">
-<div class="tab-strip"><span class="path">1. SDK in detail</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>One user request can trigger several model calls</h2><p class="intro-lead">Example: ask the assistant to inspect a Python file through a custom host tool.</p><table class="intro-table"><thead><tr><th scope="col">Step</th><th scope="col">Owner</th><th scope="col">Operation</th></tr></thead><tbody><tr><td>1</td><td>Application → SDK</td><td>send_and_wait(prompt, timeout=60) sends the user request.</td></tr><tr><td>2</td><td>Runtime → model</td><td>Send conversation context and the available tool schemas.</td></tr><tr><td>3</td><td>Model → runtime</td><td>Propose inspect_python_file with the file argument.</td></tr><tr><td>4</td><td>Runtime → host</td><td>Request permission; the host returns an approval or rejection.</td></tr><tr><td>5</td><td>Host tool</td><td>On approval: validate the argument, read the allowed file, return AST metadata.</td></tr><tr><td>6</td><td>Runtime → model</td><td>Append the tool result to the conversation and call the model again.</td></tr><tr><td>7</td><td>Runtime → SDK</td><td>Emit the final assistant message and idle event; the wait completes.</td></tr></tbody></table><p class="intro-note">A rejection skips execution. Built-in tools run in the runtime; custom Python handlers run in the host. SDK assistant.turn events describe individual model iterations.</p>
-</div>
-<div class="slide-footer"><span class="crumb">1. SDK in detail</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/agent-loop.md" target="_blank" rel="noopener">Source</a><span>04 / 18</span></div>
-</section>
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 01_simple_chat.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">The whole first app fits on one slide.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <ul class="checks">
+          <li><strong>CopilotClient</strong> owns the managed runtime lifecycle.</li>
+          <li><strong>create_session</strong> opens a persisted conversation.</li>
+          <li><strong>available_tools=[]</strong> makes this first turn text-only.</li>
+          <li><strong>send_and_wait</strong> raises on timeout/session error; <code>None</code> means idle without a final message.</li>
+        </ul>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">01_simple_chat.py</span>
+          </div>
+<pre><code><span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> CopilotClient
 
-<section id="tool-controls" class="slide intro-slide" aria-label="Tool access has three separate controls">
-<div class="tab-strip"><span class="path">1. SDK in detail</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Tool access has three separate controls</h2><div class="intro-cards"><div class="card"><h3>Expose a capability</h3><p>ToolSet and available_tools select which tool schemas the model can use. Hiding a tool is not OS isolation.</p></div><div class="card"><h3>Authorize a request</h3><p>on_permission_request evaluates a proposed operation. Human input is not automatically authorization.</p></div><div class="card"><h3>Limit execution</h3><p>SandboxConfig restricts runtime-launched tools where a backend is available. Custom host handlers need separate containment.</p></div></div><p class="intro-note">The workshop uses read-only tools and disposable data. A sandbox bypass intentionally removes the sandbox for one approved operation.</p>
-</div>
-<div class="slide-footer"><span class="crumb">1. SDK in detail</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py" target="_blank" rel="noopener">Source</a><span>05 / 18</span></div>
-</section>
+<span class="tk-kw">async with</span> CopilotClient() <span class="tk-kw">as</span> client:
+    <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+        available_tools=[],
+    ) <span class="tk-kw">as</span> session:
+        reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+            <span class="tk-st">"Explain the SDK in 3 sentences."</span>, timeout=60,
+        )
+        <span class="tk-kw">if</span> reply <span class="tk-kw">is None</span>:
+            <span class="tk-kw">raise</span> RuntimeError(<span class="tk-st">"No final message"</span>)
+        <span class="tk-fn">print</span>(reply.data.content)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">first success &middot; bounded &middot; text-only</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#quick-start" target="_blank" rel="noopener">python/ — Quickstart</a>
+      <span>05 / 27</span>
+    </div>
+  </section>
 
-<section id="cli-vs-sdk" class="slide intro-slide" aria-label="Choose the interface, not a different agent engine">
-<div class="tab-strip"><span class="path">2. SDK vs. CLI</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Choose the interface, not a different agent engine</h2><table class="intro-table"><thead><tr><th scope="col">Need</th><th scope="col">Copilot CLI</th><th scope="col">Copilot SDK</th></tr></thead><tbody><tr><td>Interface</td><td>Terminal UI; also supports non-interactive prompts.</td><td>Language API embedded in your application.</td></tr><tr><td>Tool interaction</td><td>CLI configuration and its built-in interaction flow.</td><td>Typed host callbacks, custom functions, and application UI.</td></tr><tr><td>Lifecycle</td><td>Launch and operate the CLI process.</td><td>Create sessions and own or connect to a runtime process.</td></tr><tr><td>Useful for</td><td>Terminal work and command-line automation.</td><td>Applications needing structured events and approval interfaces.</td></tr></tbody></table><p class="intro-note">Both use the Copilot runtime. The SDK is useful when parsing CLI output is not an adequate integration contract.</p>
-</div>
-<div class="slide-footer"><span class="crumb">2. SDK vs. CLI</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/README.md" target="_blank" rel="noopener">Source</a><span>06 / 18</span></div>
-</section>
-
-<section id="checkpoint-map" class="slide intro-slide" aria-label="Eight checkpoints for the same repository assistant">
-<div class="tab-strip"><span class="path">3. Capabilities</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Eight checkpoints for the same repository assistant</h2><table class="intro-table"><thead><tr><th scope="col">Sample</th><th scope="col">Add</th><th scope="col">Repository task</th></tr></thead><tbody><tr><td>01</td><td>Streaming session</td><td>Plan a review from supplied context; no file access yet.</td></tr><tr><td>02</td><td>Typed custom tool</td><td>Read AST metadata from an allowed Python file.</td></tr><tr><td>03</td><td>Custom agents</td><td>Research the file, then select and verify its reviewer.</td></tr><tr><td>04</td><td>Hooks</td><td>Record pre-call, success, and failure events for repository reads.</td></tr><tr><td>05</td><td>GitHub MCP</td><td>Read current issues for this repository with separate credentials.</td></tr><tr><td>06</td><td>Persistence</td><td>Recall the review file and focus in a new process.</td></tr><tr><td>07</td><td>Human approval</td><td>Choose a review focus, then approve or reject the test command.</td></tr><tr><td>08</td><td>Sandbox</td><td>Deny a private review note; allow one separately approved read.</td></tr></tbody></table><p class="intro-note">Each file runs independently. They are learning checkpoints, not a complete multi-user service.</p>
-</div>
-<div class="slide-footer"><span class="crumb">3. Capabilities</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/tree/main/examples" target="_blank" rel="noopener">Source</a><span>07 / 18</span></div>
-</section>
-
-<section id="setup" class="slide intro-slide" aria-label="Prepare one environment and run the first checkpoint">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Prepare one environment and run the first checkpoint</h2><div class="intro-code"><ul class="content-list"><li>Python 3.11+; the Codespace supplies Python 3.12 and the pinned packages.</li><li>These scripts use GitHub-hosted Copilot models and require Copilot access.</li><li>Use an existing Copilot CLI login or securely provision COPILOT_GITHUB_TOKEN.</li><li>The SDK downloads runtime 1.0.83. It does not install the interactive copilot command.</li></ul><div class="code-window"><div class="titlebar">Run from the repository root</div><pre><code>python -m pip install -r requirements.txt
-python -m copilot download-runtime
-python examples/01_simple_chat.py
-
-# Offline checks; no model requests
-python -m unittest discover -s examples/tests -v</code></pre></div></div><p class="intro-note">Use the repo&#x27;s Codespaces link for the prepared environment. BYOK is optional appendix material, not the default authentication for these scripts.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk#local-setup-and-authentication" target="_blank" rel="noopener">Source</a><span>08 / 18</span></div>
-</section>
-
-<section id="sample-01" class="slide intro-slide" aria-label="Stream the review plan and require a final message">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Stream the review plan and require a final message</h2><div class="intro-code"><ul class="content-list"><li>available_tools=[] makes this turn text-only.</li><li>Subscribe before sending; assistant.message_delta contains chunks, not guaranteed tokens.</li><li>A timeout or session error raises. An idle session without a final message returns None.</li><li>Always remove the event listener in finally.</li></ul><div class="code-window"><div class="titlebar"><a href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/01_simple_chat.py">examples/01_simple_chat.py · inside a streaming session</a></div><pre data-source="examples/01_simple_chat.py"><code>unsubscribe = session.on(on_event)
-try:
-    reply = await session.send_and_wait(REVIEW_PROMPT, timeout=60)
-    if reply is None:
-        raise RuntimeError(&quot;Session became idle without an assistant message.&quot;)
-    if not saw_delta:
-        print(reply.data.content, end=&quot;&quot;, flush=True)
-finally:
-    unsubscribe()</code></pre></div></div><p class="intro-note">Run: python examples/01_simple_chat.py. This output is a plan based on supplied context, not a claim that files were inspected.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/01_simple_chat.py" target="_blank" rel="noopener">Source</a><span>09 / 18</span></div>
-</section>
-
-<section id="sample-02" class="slide intro-slide" aria-label="Add a typed repository-inspection tool">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Add a typed repository-inspection tool</h2><div class="intro-code"><ul class="content-list"><li>A Pydantic parameter type defines the tool&#x27;s input schema.</li><li>The handler validates an explicit file allowlist and returns AST metadata.</li><li>ToolSet exposes this custom tool without granting built-in filesystem tools.</li><li>A recorded handler invocation proves the read; the model&#x27;s summary does not.</li></ul><div class="code-window"><div class="titlebar"><a href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/02_custom_tools.py">examples/02_custom_tools.py · tool declaration</a></div><pre data-source="examples/02_custom_tools.py"><code>class FileParams(BaseModel):
-    model_config = ConfigDict(extra=&quot;forbid&quot;, strict=True)
-    file: Literal[
-        &quot;examples/01_simple_chat.py&quot;, &quot;examples/02_custom_tools.py&quot;
-    ] = Field(description=&quot;An explicitly allowlisted workshop Python file.&quot;)
-
-@define_tool(description=&quot;Inspect an allowlisted Python sample&#x27;s AST metadata&quot;)
-async def inspect_python_file(params: FileParams) -&gt; dict:
-    metadata = read_python_metadata(params)
-    INSPECTIONS.append(metadata)
-    encoded = json.dumps(metadata, sort_keys=True)
-    print(&quot;[host tool] inspect_python_file result=&quot; + encoded)
-    return metadata</code></pre></div></div><p class="intro-note">Run: python examples/02_custom_tools.py. The complete source contains the handler and its permission policy.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/02_custom_tools.py" target="_blank" rel="noopener">Source</a><span>10 / 18</span></div>
-</section>
-
-<section id="sample-03" class="slide intro-slide" aria-label="Select the reviewer and check the selected agent">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Select the reviewer and check the selected agent</h2><div class="intro-code"><ul class="content-list"><li>Researcher and reviewer are configurations in one session, not parallel agents.</li><li>Both are restricted to read tools for the same repository.</li><li>Conversation context remains available when selecting the reviewer.</li><li>Check agent.name before sending the next prompt. The selection RPC is experimental.</li></ul><div class="code-window"><div class="titlebar"><a href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/03_custom_agents.py">examples/03_custom_agents.py · selection and verification</a></div><pre data-source="examples/03_custom_agents.py"><code>await session.rpc.agent.select(AgentSelectRequest(name=&quot;reviewer&quot;))
-
-# Confirm the swap before we send anything else.
-current = await session.rpc.agent.get_current()
-if current.agent is None or current.agent.name != &quot;reviewer&quot;:
-    raise RuntimeError(&quot;The reviewer persona was not selected.&quot;)</code></pre></div></div><p class="intro-note">Run: python examples/03_custom_agents.py. The initial researcher selection is checked in the same way.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/03_custom_agents.py" target="_blank" rel="noopener">Source</a><span>11 / 18</span></div>
-</section>
-
-<section id="sample-04" class="slide intro-slide" aria-label="Observe repository reads with hooks">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Observe repository reads with hooks</h2><div class="intro-code"><ul class="content-list"><li>on_pre_tool_use runs before a tool call.</li><li>on_post_tool_use handles successful execution.</li><li>on_post_tool_use_failure handles failed execution.</li><li>These handlers log tool names. They do not enforce a policy or create a sandbox.</li></ul><div class="code-window"><div class="titlebar"><a href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/04_hooks.py">examples/04_hooks.py · pre-call and success hooks</a></div><pre data-source="examples/04_hooks.py"><code>async def on_pre_tool_use(input_data, invocation):
-    print(f&quot;[pre]  {input_data[&#x27;toolName&#x27;]}&quot;)
-    return None
-
-async def on_post_tool_use(input_data, invocation):
-    print(f&quot;[post] {input_data[&#x27;toolName&#x27;]} succeeded&quot;)
-    return None</code></pre></div></div><p class="intro-note">Run: python examples/04_hooks.py. Inspect the host trace alongside the repository answer.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/04_hooks.py" target="_blank" rel="noopener">Source</a><span>12 / 18</span></div>
-</section>
-
-<section id="sample-05" class="slide intro-slide" aria-label="Add current GitHub issues through MCP">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Add current GitHub issues through MCP</h2><div class="intro-code"><ul class="content-list"><li>The remote GitHub MCP connection uses its own bearer credential.</li><li>Resolve the token at runtime; never print it or place it in source.</li><li>Use the read-only server header and an issue-tool allowlist.</li><li>Correlate a matching MCP start and successful completion. Zero open issues is a valid result.</li></ul><div class="code-window"><div class="titlebar"><a href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/05_mcp_servers.py">examples/05_mcp_servers.py · remote server configuration</a></div><pre data-source="examples/05_mcp_servers.py"><code>def build_mcp_servers(token: str) -&gt; dict:
-    return {
-        &quot;github&quot;: {
-            &quot;type&quot;: &quot;http&quot;,
-            &quot;url&quot;: &quot;https://api.githubcopilot.com/mcp/&quot;,
-            &quot;headers&quot;: {
-                &quot;Authorization&quot;: &quot;Bearer &quot; + token,
-                &quot;X-MCP-Readonly&quot;: &quot;true&quot;,
-            },
-            &quot;tools&quot;: GITHUB_TOOLS,
-        },
-    }</code></pre></div></div><p class="intro-note">Run: python examples/05_mcp_servers.py. Copilot model login is not a replacement for MCP credentials.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/05_mcp_servers.py" target="_blank" rel="noopener">Source</a><span>13 / 18</span></div>
-</section>
-
-<section id="sample-06" class="slide intro-slide" aria-label="Resume the review in a second process">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Resume the review in a second process</h2><div class="intro-code"><ul class="content-list"><li>The first process stores the review file and focus in conversation context.</li><li>The second process uses the same session ID and runtime state storage.</li><li>The resume prompt must not repeat the facts being recalled.</li><li>Re-register host callbacks and tools. Session exit detaches; it does not delete saved state.</li></ul><div class="code-window"><div class="titlebar">Two separate Python processes</div><pre><code>SID=&quot;repository-review-$(date +%s)&quot;
-python examples/06_session_resume.py \
-  --session-id &quot;$SID&quot;
-
-python examples/06_session_resume.py \
-  --resume --session-id &quot;$SID&quot;</code></pre></div></div><p class="intro-note">A session ID identifies state; it is not authorization to access another user&#x27;s conversation.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/06_session_resume.py" target="_blank" rel="noopener">Source</a><span>14 / 18</span></div>
-</section>
-
-<section id="sample-07" class="slide intro-slide" aria-label="Human input and permission are different requests">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Human input and permission are different requests</h2><p class="intro-lead">Choose a review focus, then separately authorize the fixed test command. No freeform input is inserted into shell code.</p><div class="intro-traces"><div class="trace"><h3>Rejected command</h3><pre><code>focus: errors
-approve once? n
-COMMAND_DENIED id=&lt;id&gt;
-COMMAND_DENIAL_RECORDED id=&lt;id&gt;
-no execution claimed</code></pre></div><div class="trace"><h3>Approved command</h3><pre><code>focus: cleanup
-approve once? y
-COMMAND_APPROVE_ONCE id=&lt;id&gt;
-COMMAND_RESULT_VERIFIED id=&lt;id&gt;
-unittest reported OK</code></pre></div></div><p class="intro-note">Illustrative host-trace excerpts; IDs abbreviated. Command: python -m unittest discover -s examples/tests -v. Run twice with n and y. Structured input has a validated legacy fallback.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/07_human_in_the_loop.py" target="_blank" rel="noopener">Source</a><span>15 / 18</span></div>
-</section>
-
-<section id="sample-08" class="slide intro-slide" aria-label="A private review note requires a sandbox exception">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>A private review note requires a sandbox exception</h2><p class="intro-lead">The sample denies a disposable vault and network access. allow_bypass=True permits a request, not automatic approval.</p><div class="intro-traces"><div class="trace"><h3>Rejected bypass</h3><pre><code>grep: private review note
-approve once? n
-SANDBOX_BYPASS_DENIED id=&lt;id&gt;
-SANDBOX_DENIAL_RECORDED id=&lt;id&gt;
-no access claimed</code></pre></div><div class="trace"><h3>Approved bypass</h3><pre><code>grep: content output
-approve once? y
-SANDBOX_BYPASS_APPROVE_ONCE id=&lt;id&gt;
-SANDBOX_BYPASS_VERIFIED id=&lt;id&gt;
-result contains private note</code></pre></div></div><p class="intro-note">Illustrative host-trace excerpts; IDs abbreviated. Run twice with n and y. success=True or sandboxed=True alone is not read proof. Missing backend or note content fails explicitly. Experimental API.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk/blob/main/examples/08_sandbox.py" target="_blank" rel="noopener">Source</a><span>16 / 18</span></div>
-</section>
-
-<section id="exercise" class="slide intro-slide" aria-label="Exercise: inspect another allowed file">
-<div class="tab-strip"><span class="path">4. Samples</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Exercise: inspect another allowed file</h2><div class="intro-columns"><div><h3>Change one input</h3><ul class="content-list"><li>In sample 02, choose another file from the declared allowlist.</li><li>Check the handler&#x27;s AST metadata against that file.</li><li>Ask the reviewer in sample 03 about the same file.</li><li>Run sample 07 once with approval and once with rejection.</li></ul></div><div><h3>Completion criteria</h3><ul class="content-list"><li>A real tool result supports the repository answer.</li><li>A missing final message or failed required tool is reported.</li><li>Rejected operations are not reported as successful.</li><li>The sample does not modify repository source.</li></ul></div></div><p class="intro-note">This completes the introduction. The independent checkpoints show API behavior; they do not implement tenant isolation or a production approval service.</p>
-</div>
-<div class="slide-footer"><span class="crumb">4. Samples</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk" target="_blank" rel="noopener">Source</a><span>17 / 18</span></div>
-</section>
-
-<section id="references" class="slide intro-slide" aria-label="Code and versioned references">
-<div class="tab-strip"><span class="path">Discussion</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Code and versioned references</h2><div class="intro-columns"><ul class="content-list"><li>Workshop code: jeffrey-groneberg/ghcp_sdk</li><li>Stable baseline: SDK 1.0.13 and runtime 1.0.83.</li><li>Official Python samples: chat.py and manual_tool_resume.py.</li><li>Compare documented contracts with generated types and actual runtime results.</li></ul><ul class="content-list"><li><a href="https://github.com/jeffrey-groneberg/ghcp_sdk">Repository and walkthroughs</a></li><li><a href="https://github.com/github/copilot-sdk/tree/v1.0.13">SDK v1.0.13</a></li><li><a href="https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples">Official Python samples</a></li><li><a href="https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts">Sandbox E2E reference</a></li></ul></div><button class="btn ghost appendix-toggle" type="button" aria-expanded="false">Show optional appendix (4 slides)</button>
-</div>
-<div class="slide-footer"><span class="crumb">Discussion</span><a class="src" href="https://github.com/jeffrey-groneberg/ghcp_sdk" target="_blank" rel="noopener">Source</a><span>18 / 18</span></div>
-</section>
-
-<section id="appendix-runtime" class="slide intro-slide" aria-label="Managed child or existing runtime" data-optional="true" hidden>
-<div class="tab-strip"><span class="path">Appendix · Runtime deployment</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Managed child or existing runtime</h2><div class="intro-columns"><div><h3>SDK-owned process</h3><ul class="content-list"><li>Default: provision and start the release-matched runtime over stdio.</li><li>Use RuntimeConnection.for_stdio(path=...) for an explicit executable.</li><li>Client exit stops the child it owns.</li></ul></div><div><h3>Existing process</h3><ul class="content-list"><li>Use RuntimeConnection.for_uri(...) to connect to a running runtime.</li><li>The host protects the endpoint and owns process lifecycle.</li><li>State storage and request routing must survive reconnects.</li></ul></div></div><p class="intro-note">These are process-ownership choices. Neither choice provides application user authentication or tenant isolation.</p>
-</div>
-<div class="slide-footer"><span class="crumb">Appendix · Runtime deployment</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/backend-services.md" target="_blank" rel="noopener">Source</a><span>A1 / 4</span></div>
-</section>
-
-<section id="appendix-multi-user" class="slide intro-slide" aria-label="Application boundaries for multi-user hosting" data-optional="true" hidden>
-<div class="tab-strip"><span class="path">Appendix · Multi-user services</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Application boundaries for multi-user hosting</h2><table class="intro-table"><thead><tr><th scope="col">Responsibility</th><th scope="col">Host implementation</th></tr></thead><tbody><tr><td>Identity and ownership</td><td>Authenticate the principal; authorize session create, resume, steering, and deletion.</td></tr><tr><td>State and workspaces</td><td>Separate repositories, temporary files, runtime state, and host-tool processes.</td></tr><tr><td>Concurrency and cancellation</td><td>Route each session to its state; bound turns, queues, duration, and resource use.</td></tr><tr><td>Credentials and egress</td><td>Use scoped credentials; configure each MCP connection and network boundary.</td></tr><tr><td>Audit</td><td>Record decisions and tool outcomes without storing credentials or private payloads.</td></tr></tbody></table><p class="intro-note">Shared-service deployments should review mode=&quot;empty&quot; and explicit storage configuration rather than inheriting local workspace state.</p>
-</div>
-<div class="slide-footer"><span class="crumb">Appendix · Multi-user services</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/multi-tenancy.md" target="_blank" rel="noopener">Source</a><span>A2 / 4</span></div>
-</section>
-
-<section id="appendix-auth" class="slide intro-slide" aria-label="Credential source is not session authorization" data-optional="true" hidden>
-<div class="tab-strip"><span class="path">Appendix · Authentication</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Credential source is not session authorization</h2><table class="intro-table"><thead><tr><th scope="col">Credential path</th><th scope="col">Use and limitations</th></tr></thead><tbody><tr><td>Copilot CLI login</td><td>Local signed-in user&#x27;s eligible Copilot identity.</td></tr><tr><td>Explicit per-session token</td><td>The host supplies an eligible user&#x27;s or application&#x27;s credential.</td></tr><tr><td>Environment token</td><td>COPILOT_GITHUB_TOKEN, GH_TOKEN, or GITHUB_TOKEN; eligibility and policy still apply.</td></tr><tr><td>github_token_provider</td><td>Acquire and refresh short-lived Copilot credentials; do not combine with a static session token.</td></tr><tr><td>Generic MCP connection</td><td>Separate headers or an implemented OAuth callback; not inherited automatically from model login.</td></tr></tbody></table><p class="intro-note">A token&#x27;s presence does not prove Copilot entitlement. Credential ownership does not replace authorization for a particular saved session.</p>
-</div>
-<div class="slide-footer"><span class="crumb">Appendix · Authentication</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/authenticate.md" target="_blank" rel="noopener">Source</a><span>A3 / 4</span></div>
-</section>
-
-<section id="appendix-byok" class="slide intro-slide" aria-label="Configure inference with your own provider" data-optional="true" hidden>
-<div class="tab-strip"><span class="path">Appendix · BYOK</span><span class="meta">SDK 1.0.13 · runtime 1.0.83</span></div>
-<div class="slide-content">
-<h2>Configure inference with your own provider</h2><div class="intro-code"><ul class="content-list"><li>ProviderConfig supplies endpoint, wire protocol, and authentication.</li><li>The model is a create_session argument, not a ProviderConfig field.</li><li>api_key, bearer_token, or bearer_token_provider depend on provider support.</li><li>Provider billing does not determine MCP credentials, tool egress, or all runtime traffic.</li></ul><div class="code-window"><div class="titlebar">Configuration example · requires an eligible endpoint</div><pre><code>provider = ProviderConfig(
-    type=&quot;openai&quot;,
-    base_url=os.environ[&quot;MODEL_BASE_URL&quot;],
-    api_key=os.environ[&quot;MODEL_API_KEY&quot;],
-    wire_api=&quot;responses&quot;,
-)
-session = await client.create_session(
-    provider=provider,
-    model=os.environ[&quot;MODEL_ID&quot;],
+<section class="slide">
+    <span class="watermark reveal-scale">EVT</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / python / copilot / session.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">Events stream progress. Completion stays bounded.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p><code>session.send()</code> dispatches a turn and returns its
+          message ID. Typed events carry deltas, tool activity, errors, and
+          idle state.</p>
+          <p><code>send_and_wait</code> composes the common completion path:
+          events still reach listeners while timeout and session errors
+          propagate to the host.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill blue">streaming=True</span>
+            <span class="pill purple">match / case</span>
+            <span class="pill">bounded wait</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">event_model.py</span>
+          </div>
+<pre><code><span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
     available_tools=[],
-)</code></pre></div></div><p class="intro-note">This is optional configuration, not the default of the eight samples. Select a compatible API and tool-capable model for your endpoint.</p>
-</div>
-<div class="slide-footer"><span class="crumb">Appendix · BYOK</span><a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md" target="_blank" rel="noopener">Source</a><span>A4 / 4</span></div>
-</section>
-<!-- END GENERATED SLIDES -->
+    streaming=<span class="tk-de">True</span>,
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">def</span> <span class="tk-fn">on_event</span>(event):
+        <span class="tk-kw">match</span> event.data:
+            <span class="tk-kw">case</span> <span class="tk-cl">AssistantMessageDeltaData</span>(delta_content=d):
+                <span class="tk-fn">print</span>(d <span class="tk-kw">or</span> <span class="tk-st">""</span>, end=<span class="tk-st">""</span>, flush=<span class="tk-de">True</span>)
+    session.<span class="tk-fn">on</span>(on_event)
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"Explain the SDK in 3 sentences."</span>, timeout=60,
+    )
+    <span class="tk-fn">print</span>()<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">sdk event model &middot; dispatch / observe / await</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md" target="_blank" rel="noopener">docs/features/streaming-events.md</a>
+      <span>06 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / python / copilot / _mode.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">Tool and session surfaces share one runtime.</h2>
+      <p class="lede reveal">
+        The runtime merges first-party tools, host-defined Python tools, and
+        MCP tools. Exact availability depends on runtime, platform, account,
+        and session configuration.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">BUILTIN</span><h3>Runtime tools</h3>
+          <p>Examples include <code>view</code>, <code>glob</code>,
+          <code>grep</code>, <code>edit</code>, and platform shell tools.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">CUSTOM</span><h3>Your Python functions</h3>
+          <p>Register with <code>@define_tool</code>; handlers run in the host
+          Python process unless you isolate them separately.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">MCP</span><h3>External servers</h3>
+          <p>Local stdio or remote HTTP/SSE servers join the same catalogue
+          with independent configuration and authentication.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        <code>ask_user</code> is a built-in human-input tool.
+        <code>session_id</code> is persisted lifecycle state, not a tool or
+        authorization boundary.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">tool sources &middot; builtin / custom / mcp</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
+      <span>07 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / features / hooks.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">01</span> SDK in Detail</span>
+      <h2 class="reveal">Exposure is not approval. Approval is not containment.</h2>
+      <p class="lede reveal">
+        Security depends on layers. Each answers a different question; none
+        substitutes for the others.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">EXPOSE</span><h3>What can the model see?</h3>
+          <p><code>ToolSet</code>, <code>available_tools</code>, and
+          <code>excluded_tools</code> shape the catalogue.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">DECIDE</span><h3>May this call run?</h3>
+          <p>Permission callbacks approve or reject. Pre-tool hooks can also
+          ask, deny, allow, or modify arguments. Managed settings express
+          allow, ask, and deny policy.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">CONTAIN</span><h3>What can execution reach?</h3>
+          <p>Experimental <code>SandboxConfig</code> constrains runtime tools.
+          Your app still owns process, tenant, secret, and network isolation.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">boundaries &middot; exposure / decision / containment</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py" target="_blank" rel="noopener">permission + sandbox types</a>
+      <span>08 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / README.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">02</span> SDK vs. CLI</span>
+      <h2 class="reveal">CLI and SDK share an engine, not a user experience.</h2>
+      <p class="lede reveal">
+        Choose the CLI when a person works interactively in a terminal. Choose
+        the SDK when your application must own the surface and lifecycle.
+      </p>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">CLI</span><h3>Interactive product</h3>
+          <p>Built-in terminal UI, user-driven conversation, local defaults,
+          slash commands, and direct human supervision.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">SDK</span><h3>Application component</h3>
+          <p>Your UI, callbacks, sessions, credentials, runtime ownership,
+          observability, and integration into a larger product.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        The SDK does not replace the CLI runtime. It exposes that engine
+        programmatically through language-native APIs and JSON-RPC.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">cli vs sdk &middot; same engine / different owner</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/README.md" target="_blank" rel="noopener">official SDK overview</a>
+      <span>09 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / setup / backend-services.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">02</span> SDK vs. CLI</span>
+      <h2 class="reveal">Two ownership models. Deployment choices underneath.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">SDK-OWNED</span><h3>Managed child runtime</h3>
+          <p>Default stdio path. The SDK provisions, starts, and stops its
+          runtime. Pre-download or vendoring changes packaging, not ownership.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">HOST-OWNED</span><h3>Existing runtime service</h3>
+          <p>Connect with <code>RuntimeConnection.for_uri(...)</code>. The host
+          protects the endpoint, storage, process lifecycle, routing, and
+          multi-user boundaries.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Shared or multi-user hosts use <code>mode="empty"</code> with explicit
+        storage. TCP, containers, and horizontal scale are deployment variants.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">runtime &middot; managed child / bundle / uri / service</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/backend-services.md" target="_blank" rel="noopener">deployment guides</a>
+      <span>10 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <img class="octocat-accent" src="assets/octocats/mona-the-rivetertocat.png" alt="" aria-hidden="true">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / setup / multi-tenancy.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">02</span> SDK vs. CLI</span>
+      <h2 class="reveal">Application ownership has production consequences.</h2>
+      <p class="lede reveal">
+        Production services must add the boundaries that a local sample
+        deliberately omits.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">ID</span><h3>Identity</h3>
+          <p>Bind every client and session to an authenticated principal.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">OWN</span><h3>Session ownership</h3>
+          <p>Authorize create, resume, steering, and deletion for that principal.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">FS</span><h3>Workspace isolation</h3>
+          <p>Separate repositories, state directories, temp files, and custom tools.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">FLOW</span><h3>Routing and concurrency</h3>
+          <p>Serialize turns, route persisted sessions, and enforce resource limits.</p>
+        </div>
+        <div class="card b-yellow">
+          <span class="num">OBS</span><h3>Observability</h3>
+          <p>Trace requests and tool outcomes without logging secrets or private content.</p>
+        </div>
+        <div class="card b-pink">
+          <span class="num">NET</span><h3>Secrets and network</h3>
+          <p>Use least-privilege credentials, egress policy, and explicit MCP authentication.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">production &middot; responsibilities stay with the host</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/multi-tenancy.md" target="_blank" rel="noopener">multi-tenancy guide</a>
+      <span>11 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / python / copilot / session.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> Capabilities</span>
+      <h2 class="reveal">Compose capabilities without buying a framework.</h2>
+      <p class="lede reveal">
+        The SDK exposes independent building blocks. Use only the ones your
+        product can observe, authorize, and operate.
+      </p>
+      <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">EXTEND</span><h3>Tools, agents, MCP</h3>
+          <p>Add host functions, named personas, and external tool servers to
+          the runtime catalogue.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">OBSERVE</span><h3>Events, hooks, persistence</h3>
+          <p>Stream progress, wrap lifecycle events, and resume persisted
+          conversation context.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">CONTROL</span><h3>Identity, HITL, sandbox, BYOK</h3>
+          <p>Choose credentials and providers, ask humans, approve actions,
+          and constrain runtime-launched tools.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Capabilities remain modular. The host decides which combinations are
+        safe and supportable for its users.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">capability map &middot; extend / observe / control</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/README.md" target="_blank" rel="noopener">official feature overview</a>
+      <span>12 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 07_human_in_the_loop.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> Capabilities</span>
+      <h2 class="reveal">Where the SDK earns its place.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>Reach for the SDK when the agent must live inside another product
+          or automated workflow.</p>
+          <ol class="steps">
+            <li><strong>Developer tools</strong> &mdash; IDE, portal, dashboard, or internal CLI.</li>
+            <li><strong>Automation</strong> &mdash; review, triage, documentation, and CI analysis.</li>
+            <li><strong>Multi-user products</strong> &mdash; app-owned identity, UI, sessions, and policy.</li>
+            <li><strong>Provider-specific deployments</strong> &mdash; BYOK, regions, and private model catalogues.</li>
+          </ol>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill purple">embedded UX</span>
+            <span class="pill blue">automation</span>
+            <span class="pill green">multi-user</span>
+          </div>
+          <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+            Once the use case is chosen, choose its identity and provider
+            boundaries. The next two slides make those decisions explicit.
+          </p>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">decision.txt</span>
+          </div>
+<pre><code><span class="tk-kw">if</span> a person is using a terminal:
+    use Copilot CLI
+
+<span class="tk-kw">elif</span> your application owns the UI,
+     identity, callbacks, and lifecycle:
+    use Copilot SDK
+
+<span class="tk-kw">if</span> you need cross-provider orchestration:
+    compose the SDK with a framework<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">possibilities &middot; embedded products / automation / services</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/backend-services.md" target="_blank" rel="noopener">backend service guide</a>
+      <span>13 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / auth / authenticate.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> Capabilities</span>
+      <h2 class="reveal">Four identity boundaries. Pick one deliberately.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">USER</span><h3>Interactive user</h3>
+          <p>CLI login uses the signed-in identity's Copilot entitlement.
+          Best for local and desktop workflows.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">OAUTH</span><h3>Per-user application token</h3>
+          <p>OAuth App or GitHub App user tokens are passed explicitly.
+          Authorize session ownership before resume.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">ENV</span><h3>Environment-carried token</h3>
+          <p><code>COPILOT_GITHUB_TOKEN</code>, <code>GH_TOKEN</code>, then
+          <code>GITHUB_TOKEN</code> may carry a user or installation identity.
+          Apply the corresponding owner and organization policy.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">BYOK</span><h3>Provider identity</h3>
+          <p>Use provider API keys or bearer-token callbacks. Inference uses
+          that provider's billing and access boundary.</p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        <code>github_token_provider</code> rotates short-lived session
+        credentials. Generic MCP servers still own separate headers or OAuth.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">identity &middot; interactive / per-user / environment / byok</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/authenticate.md" target="_blank" rel="noopener">docs/auth/authenticate.md</a>
+      <span>14 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ copilot-sdk / docs / auth / byok.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">03</span> Capabilities</span>
+      <h2 class="reveal">Your provider. Your model. Your billing boundary.</h2>
+      <p class="lede reveal" style="max-width: 80ch;">
+        Choose an OpenAI-compatible or Anthropic endpoint with
+        <code>provider</code>. Inference is billed by that provider, not Copilot.
+        Tool traffic, telemetry and data residency need their own configuration.
+      </p>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <h3 style="margin:0; color: var(--gh-fg);">Supported providers</h3>
+          <ul class="checks">
+            <li><strong>Microsoft Foundry</strong> &mdash; <code>type: "openai"</code> for <code>/openai/v1/</code>; keys or Entra tokens</li>
+            <li><strong>Native Azure endpoint</strong> &mdash; <code>type: "azure"</code> with Azure-specific options</li>
+            <li><strong>OpenAI direct</strong> &mdash; <code>type: "openai"</code> + <code>api_key</code></li>
+            <li><strong>Anthropic</strong> &mdash; <code>type: "anthropic"</code> for Claude Sonnet/Opus</li>
+            <li><strong>Ollama / Foundry Local</strong> &mdash; local inference; this alone does not make the app offline</li>
+            <li><strong><code>bearer_token_provider</code></strong> &mdash; refresh Entra tokens via Azure Identity / managed identity</li>
+          </ul>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">azure_foundry_byok.py</span>
+          </div>
+<pre><code><span class="tk-kw">import</span> os
+<span class="tk-kw">from</span> copilot <span class="tk-kw">import</span> CopilotClient
+<span class="tk-kw">from</span> copilot.session <span class="tk-kw">import</span> ProviderConfig
+
+provider = <span class="tk-fn">ProviderConfig</span>(
+    type=<span class="tk-st">"openai"</span>,
+    base_url=<span class="tk-st">"https://my-foundry.openai.azure.com/openai/v1/"</span>,
+    api_key=os.environ[<span class="tk-st">"FOUNDRY_API_KEY"</span>],
+    wire_api=<span class="tk-st">"responses"</span>,           <span class="tk-cm"># GPT-5 family</span>
+)
+
+<span class="tk-kw">async with</span> <span class="tk-fn">CopilotClient</span>() <span class="tk-kw">as</span> client:
+    <span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+        provider=provider, available_tools=[],
+        model=os.environ[<span class="tk-st">"FOUNDRY_MODEL"</span>],
+    ) <span class="tk-kw">as</span> session:
+        <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Hi"</span>, timeout=120)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">byok &middot; azure foundry &middot; anthropic &middot; ollama &middot; vllm</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md" target="_blank" rel="noopener">docs/auth/byok.md</a>
+      <span>15 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / .devcontainer / devcontainer.json</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">04</span> Samples</span>
+      <h2 class="reveal">Install. Authenticate. Verify one response.</h2>
+      <div class="cta-card reveal" style="margin-top: var(--content-gap);">
+        <p style="color: var(--gh-fg);">
+          The Codespace is preconfigured with Python 3.12, the stable SDK, and
+          GitHub CLI. Authentication is still required. The SDK downloads its
+          matching runtime on first use; interactive <code>copilot login</code>
+          needs the separately installed Copilot CLI.
+        </p>
+        <ul class="steps reveal" style="margin: 1em 0;">
+          <li><code>pip install github-copilot-sdk==1.0.13</code> — ordinary stable install</li>
+          <li>Run <code>copilot login</code>, or securely provide an eligible token/BYOK configuration</li>
+          <li><code>python examples/01_simple_chat.py</code> — success means streamed text and exit code 0</li>
+        </ul>
+        <div class="button-row">
+          <a class="btn primary" href="https://codespaces.new/jeffrey-groneberg/ghcp_sdk?quickstart=1">
+            ▶  Open in GitHub Codespaces
+          </a>
+          <a class="btn ghost" href="https://github.com/jeffrey-groneberg/ghcp_sdk">
+            View repo
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">preconfigured environment &middot; authentication required</span>
+      <a class="src" href="https://docs.github.com/en/codespaces/overview" target="_blank" rel="noopener">docs.github.com/codespaces</a>
+      <span>16 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <img class="octocat-accent" src="assets/octocats/labtocat.png" alt="" aria-hidden="true">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / examples /</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">04</span> Samples</span>
+      <h2 class="reveal">Eight samples. Four learning steps.</h2>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">01–02</span><h3>Start and extend</h3>
+          <p>Stream one bounded response, then add a typed fictional-weather tool.</p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">03–04</span><h3>Specialize and observe</h3>
+          <p>Switch custom agents, then trace pre-call, success, and failure hooks.</p>
+        </div>
+        <div class="card b-green">
+          <span class="num">05–06</span><h3>Connect and persist</h3>
+          <p>Call remote GitHub MCP with separate auth, then detach and cold-resume context.</p>
+        </div>
+        <div class="card b-orange">
+          <span class="num">07–08</span><h3>Control execution</h3>
+          <p>Validate human input and approval, then enable sandboxing with one explicit bypass.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">sample map &middot; 8 runnable files / 4 learning steps</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples" target="_blank" rel="noopener">python/samples</a>
+      <span>17 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">01</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 01_simple_chat.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 01</span> Streaming chat</span>
+      <h2 class="reveal">Run it. Observe the events. Know the failure.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p><strong>Run:</strong> <code>python examples/01_simple_chat.py</code></p>
+          <p><strong>Observe:</strong> streamed delta chunks, then exit code 0.</p>
+          <p><strong>Failure criterion:</strong> timeout, session error, or
+          idle without a final message raises visibly.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill blue">streaming=True</span>
+            <span class="pill purple">match / case</span>
+            <span class="pill">bounded wait</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">01_simple_chat.py</span>
+          </div>
+<pre><code><span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    available_tools=[],
+    streaming=<span class="tk-de">True</span>,
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">def</span> <span class="tk-fn">on_event</span>(event):
+        <span class="tk-kw">match</span> event.data:
+            <span class="tk-kw">case</span> <span class="tk-cl">AssistantMessageDeltaData</span>(delta_content=d):
+                <span class="tk-fn">print</span>(d <span class="tk-kw">or</span> <span class="tk-st">""</span>, end=<span class="tk-st">""</span>, flush=<span class="tk-de">True</span>)
+    session.<span class="tk-fn">on</span>(on_event)
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"Explain the SDK in 3 sentences."</span>, timeout=60,
+    )
+    <span class="tk-fn">print</span>()<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 01 · streaming chat</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/streaming-events.md" target="_blank" rel="noopener">docs/features/streaming-events.md</a>
+      <span>18 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">02</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 02_custom_tools.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 02</span> Custom tools</span>
+      <h2 class="reveal">Hand the agent a Python function.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p><code>@define_tool</code> packages a sync or async function plus a
+          Pydantic schema into a tool the model can call.</p>
+          <p><code>Field(description=…)</code> explains each parameter.
+          In 1.0.13, cancelled requests cancel async tool tasks too:
+          clean up in <code>finally</code>, and let cancellation propagate.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill purple">@define_tool</span>
+            <span class="pill blue">pydantic</span>
+            <span class="pill">send_and_wait</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">02_custom_tools.py</span>
+          </div>
+<pre><code><span class="tk-kw">class</span> <span class="tk-cl">WeatherParams</span>(<span class="tk-cl">BaseModel</span>):
+    city: <span class="tk-cl">str</span> = <span class="tk-fn">Field</span>(description=<span class="tk-st">"City, e.g. 'Seattle'"</span>)
+
+<span class="tk-de">@define_tool</span>(description=<span class="tk-st">"Generate fictional demo weather"</span>)
+<span class="tk-kw">async def</span> <span class="tk-fn">get_weather</span>(params: <span class="tk-cl">WeatherParams</span>) -> <span class="tk-cl">dict</span>:
+    <span class="tk-kw">return</span> {<span class="tk-st">"city"</span>: params.city,
+            <span class="tk-st">"temperature_c"</span>: random.<span class="tk-fn">randint</span>(-5, 35),
+            <span class="tk-st">"condition"</span>: <span class="tk-st">"sunny"</span>,
+            <span class="tk-st">"source"</span>: <span class="tk-st">"fictional demo"</span>}
+
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    tools=[get_weather],
+    available_tools=ToolSet().<span class="tk-fn">add_custom</span>(<span class="tk-st">"get_weather"</span>),
+) <span class="tk-kw">as</span> session:
+    reply = <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"Fictional weather in Tokyo and Berlin."</span>, timeout=60)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 02 · custom tools</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#tools" target="_blank" rel="noopener">python/ — Tools</a>
+      <span>19 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">03</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 03_custom_agents.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 03</span> Custom agents</span>
+      <h2 class="reveal">Multiple personas. One session. Hot swap.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>A <strong>custom agent</strong> is a named prompt that can have
+          its own tool restrictions and MCP servers. Explicitly set
+          <code>tools</code> when scoping is required.</p>
+          <p>Switch mid-conversation with <code>session.rpc.agent.select(&hellip;)</code> &mdash; history is kept, persona is replaced. Verify with <code>rpc.agent.get_current()</code>.</p>
+          <p>The generated selection RPC is experimental; keep the handoff
+          explicit and verify the active agent instead of inferring from tone.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill green">custom_agents</span>
+            <span class="pill blue">rpc.agent.select</span>
+            <span class="pill purple">rpc.agent.get_current</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">03_custom_agents.py</span>
+          </div>
+<pre><code>AGENTS = [
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"researcher"</span>, <span class="tk-st">"display_name"</span>: <span class="tk-st">"Research Agent"</span>,
+     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+     <span class="tk-st">"prompt"</span>: <span class="tk-st">"Explore code. Never modify."</span>},
+    {<span class="tk-st">"name"</span>: <span class="tk-st">"reviewer"</span>, <span class="tk-st">"display_name"</span>: <span class="tk-st">"Review Agent"</span>,
+     <span class="tk-st">"tools"</span>: [<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>],
+     <span class="tk-st">"prompt"</span>: <span class="tk-st">"Review for bugs and clarity."</span>},
+]
+
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    custom_agents=AGENTS, agent=<span class="tk-st">"researcher"</span>,
+    available_tools=ToolSet().<span class="tk-fn">add_builtin</span>([<span class="tk-st">"grep"</span>, <span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>]),
+    on_permission_request=PermissionHandler.approve_all,
+) <span class="tk-kw">as</span> s:
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"What language is this?"</span>, timeout=120)
+    <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">select</span>(<span class="tk-fn">AgentSelectRequest</span>(name=<span class="tk-st">"reviewer"</span>))
+    cur = <span class="tk-kw">await</span> s.rpc.agent.<span class="tk-fn">get_current</span>()  <span class="tk-de"># proves swap</span>
+    <span class="tk-kw">await</span> s.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"Review 01_simple_chat.py"</span>, timeout=120)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 03 · custom agents</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md" target="_blank" rel="noopener">docs/features/custom-agents.md</a>
+      <span>20 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">04</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 04_hooks.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 04</span> Hooks</span>
+      <h2 class="reveal">Cross-cutting concerns, without polluting tools.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>The stable Python <code>SessionHooks</code> type exposes ten
+          callbacks. This sample focuses on pre-tool, success, and failure.</p>
+          <p><code>on_post_tool_use</code> handles success. Register
+          <code>on_post_tool_use_failure</code> separately for failures.
+          <code>None</code> keeps default behavior. Hooks support audit and
+          defense-in-depth; they are not an OS or tenant boundary.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill orange">on_pre_tool_use</span>
+            <span class="pill orange">on_post_tool_use</span>
+            <span class="pill">permissionDecision</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">04_hooks.py</span>
+          </div>
+<pre><code><span class="tk-kw">async def</span> <span class="tk-fn">on_pre_tool_use</span>(input_data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[pre]  {input_data['toolName']}"</span>)
+
+<span class="tk-kw">async def</span> <span class="tk-fn">on_post_tool_use</span>(input_data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[post] {input_data['toolName']} done"</span>)
+
+<span class="tk-kw">async def</span> <span class="tk-fn">on_post_tool_use_failure</span>(data, invocation):
+    <span class="tk-fn">print</span>(<span class="tk-st">f"[failed] {data['toolName']}"</span>)
+
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    on_permission_request=PermissionHandler.approve_all,
+    available_tools=ToolSet().<span class="tk-fn">add_builtin</span>([<span class="tk-st">"glob"</span>, <span class="tk-st">"view"</span>]),
+    hooks={
+        <span class="tk-st">"on_pre_tool_use"</span>: on_pre_tool_use,
+        <span class="tk-st">"on_post_tool_use"</span>: on_post_tool_use,
+        <span class="tk-st">"on_post_tool_use_failure"</span>: on_post_tool_use_failure,
+    },
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(<span class="tk-st">"List files."</span>, timeout=120)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 04 · hooks</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/hooks.md" target="_blank" rel="noopener">docs/features/hooks.md</a>
+      <span>21 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">05</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 05_mcp_servers.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 05</span> Remote GitHub MCP</span>
+      <h2 class="reveal">Separate connection. Separate authentication.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>A server configured through <code>mcp_servers</code> is an
+          independent HTTP connection. Copilot CLI sign-in authenticates the
+          model path, not arbitrary MCP headers.</p>
+          <p>This sample uses a bearer token header. The hosted server also
+          supports OAuth when the host implements <code>on_mcp_auth_request</code>.
+          A real MCP event is required before the turn counts as successful.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill yellow">mcp_servers</span>
+            <span class="pill blue">Bearer or OAuth</span>
+            <span class="pill">ToolSet allowlist</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">05_mcp_servers.py</span>
+          </div>
+<pre><code>mcp_servers = {
+    <span class="tk-st">"github"</span>: {
+        <span class="tk-st">"type"</span>: <span class="tk-st">"http"</span>,
+        <span class="tk-st">"url"</span>: <span class="tk-st">"https://api.githubcopilot.com/mcp/"</span>,
+        <span class="tk-st">"headers"</span>: {
+            <span class="tk-st">"Authorization"</span>: <span class="tk-st">f"Bearer {token}"</span>,
+            <span class="tk-st">"X-MCP-Readonly"</span>: <span class="tk-st">"true"</span>,
+        },
+        <span class="tk-st">"tools"</span>: GITHUB_TOOLS,
+    },
+}
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    mcp_servers=mcp_servers,
+    available_tools=available_tools,
+    on_permission_request=PermissionHandler.approve_all,
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"List 3 recent open issues on github/copilot-sdk."</span>, timeout=180,
+    )<span class="caret"></span></code></pre>
+
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 05 &middot; mcp servers</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md" target="_blank" rel="noopener">docs/features/mcp.md</a>
+      <span>22 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">06</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 06_session_resume.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 06</span> Session persistence</span>
+      <h2 class="reveal">New process. Same persisted conversation context.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>Keep <code>session.session_id</code>, or choose your own ID.
+          The CLI persists conversation state on disk; a new process
+          must use the same state storage.</p>
+          <p><code>resume_session</code> restores persisted context.
+          Re-register handlers/tools and re-supply BYOK credentials, MCP
+          authentication/configuration, and injected <code>managed_settings</code>.
+          Context exit detaches; <code>delete_session</code> removes state.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill blue">session_id</span>
+            <span class="pill">resume_session</span>
+            <span class="pill green">--resume</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">06_session_resume.py</span>
+          </div>
+<pre><code>SESSION_ID = <span class="tk-st">"demo-session-resume"</span>
+
+<span class="tk-cm"># Turn 1 — fresh process, store memory</span>
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">create_session</span>(
+    session_id=SESSION_ID, available_tools=[],
+    on_permission_request=PermissionHandler.approve_all,
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"My name is Jeffrey. Remember it."</span>, timeout=60)
+
+<span class="tk-cm"># Turn 2 — new process, recall memory</span>
+<span class="tk-kw">async with await</span> client.<span class="tk-fn">resume_session</span>(
+    SESSION_ID, available_tools=[],
+    on_permission_request=PermissionHandler.approve_all,
+) <span class="tk-kw">as</span> session:
+    <span class="tk-kw">await</span> session.<span class="tk-fn">send_and_wait</span>(
+        <span class="tk-st">"What is my name?"</span>, timeout=60)<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 06 &middot; session persistence</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py" target="_blank" rel="noopener">tagged Python client</a>
+      <span>23 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <span class="watermark reveal-scale">07</span>
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 07_human_in_the_loop.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 07</span> Human in the loop</span>
+      <h2 class="reveal">Match the action first. Ask the human second.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <p>The sample first requests structured elicitation, validates the
+          <code>name</code> schema, and falls back to a narrowly validated
+          legacy callback only when the runtime lacks that structured schema.</p>
+          <p>Permission requests are typed. On POSIX this sample accepts one
+          fixed <code>printf</code> argument vector; Windows uses one fixed
+          PowerShell command. It rejects sandbox bypass and surfaces
+          <code>managed_approval_required</code>.</p>
+          <p>Only after machine validation does the terminal ask the human.
+          Approval is <strong>once</strong>; timeout returns user-not-available.</p>
+          <div style="display:flex; gap:0.4em; flex-wrap:wrap;">
+            <span class="pill pink">on_permission_request</span>
+            <span class="pill pink">PermissionDecisionApproveOnce</span>
+          </div>
+        </div>
+        <div class="code-window">
+          <div class="titlebar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="name">07_human_in_the_loop.py</span>
+          </div>
+<pre><code><span class="tk-cm"># Stage 1: validate structured ask_user schema</span>
+<span class="tk-cm"># Fallback: one freeform name only</span>
+<span class="tk-kw">from</span> copilot.rpc <span class="tk-kw">import</span> PermissionDecisionApproveOnce, PermissionDecisionReject
+<span class="tk-kw">from</span> copilot.session_events <span class="tk-kw">import</span> PermissionRequestShell
+
+<span class="tk-kw">async def</span> <span class="tk-fn">on_permission_request</span>(request, invocation):
+    <span class="tk-kw">match</span> request:
+        <span class="tk-kw">case</span> <span class="tk-fn">PermissionRequestShell</span>(full_command_text=cmd):
+            <span class="tk-kw">if not</span> <span class="tk-fn">is_expected_command</span>(cmd):
+                <span class="tk-kw">return</span> PermissionDecisionReject()
+            answer = <span class="tk-kw">await</span> <span class="tk-fn">read_answer</span>(
+                <span class="tk-st">"Approve once? [y/N]: "</span>, timeout=120)
+            <span class="tk-kw">if</span> answer.lower() == <span class="tk-st">"y"</span>:
+                <span class="tk-kw">return</span> <span class="tk-fn">PermissionDecisionApproveOnce</span>()
+    <span class="tk-kw">return</span> PermissionDecisionReject()<span class="caret"></span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 07 &middot; human in the loop</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/tree/v1.0.13/python#permission-handling" target="_blank" rel="noopener">python/ — Permission Handling</a>
+      <span>24 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ examples / 08_sandbox.py</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EX 08</span> Sandbox</span>
+      <h2 class="reveal">Enable containment. Bypass only by exception.</h2>
+      <p class="lede reveal">
+        <code>SandboxConfig</code> constrains runtime-launched tools. The API
+        is experimental and backend/platform dependent.
+      </p>
+      <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+        <div class="card b-blue">
+          <span class="num">DEFAULT</span><h3>Constrain execution</h3>
+          <p>Grant the working directory, deny the demo vault, and disable
+          outbound plus loopback network access.</p>
+          <p style="margin-top:0.6em;"><span class="pill blue">enabled=True</span></p>
+        </div>
+        <div class="card b-purple">
+          <span class="num">BYPASS</span><h3>Ask separately</h3>
+          <p><code>allow_bypass=True</code> only permits a distinct permission
+          request. Approve one exact operation or keep it blocked.</p>
+          <p style="margin-top:0.6em;"><span class="pill purple">approve once</span></p>
+        </div>
+      </div>
+      <p class="reveal" style="margin-top: var(--content-gap); max-width: 78ch;">
+        Host-side Python tool handlers are not contained automatically.
+        Sandboxing is defense-in-depth, not a VM, container, authorization
+        system, or tenant boundary.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">example 08 &middot; constrained defaults / explicit bypass</span>
+      <a class="src" href="https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts" target="_blank" rel="noopener">official sandbox E2E</a>
+      <span>25 / 27</span>
+    </div>
+  </section>
+
+<section class="slide">
+    <div class="tab-strip reveal">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/ ghcp_sdk / README.md</span>
+      <span class="meta"><span class="branch">stable: v1.0.13</span></span>
+    </div>
+    <div class="slide-content">
+      <span class="eyebrow reveal"><span class="chip">EPILOGUE</span> Source of truth</span>
+      <h2 class="reveal">When documentation disagrees, use this order.</h2>
+      <div class="two-col reveal" style="margin-top: var(--content-gap);">
+        <div class="stack-tight">
+          <h3 style="margin:0; color: var(--gh-fg);">Authority order</h3>
+          <ol class="steps">
+            <li><strong>Published stable package and release tag</strong> &mdash; this deck uses <code>v1.0.13</code>, not unreleased <code>main</code>.</li>
+            <li><strong>Generated language types and tests</strong> &mdash; exact signatures beat stale prose.</li>
+            <li><strong>Official language samples</strong> &mdash; then verify the behavior against the bundled runtime.</li>
+            <li><strong>Live observation</strong> &mdash; require events/results, not a plausible model answer.</li>
+          </ol>
+        </div>
+        <div class="stack-tight">
+          <h3 style="margin:0; color: var(--gh-fg);">Primary references</h3>
+          <ul class="checks">
+            <li><strong>Official SDK</strong> &mdash; <code>github.com/github/copilot-sdk</code></li>
+            <li><strong>This workshop</strong> &mdash; <code>github.com/jeffrey-groneberg/ghcp_sdk</code></li>
+            <li><strong>Official Python samples</strong> &mdash; <code>python/samples/chat.py</code> and <code>manual_tool_resume.py</code></li>
+            <li><strong>Awesome Copilot</strong> &mdash; <code>github.com/github/awesome-copilot</code></li>
+            <li><strong>GitHub MCP server</strong> &mdash; <code>github.com/github/github-mcp-server</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span class="crumb">source priority &middot; stable baseline verified 14 sep 2026</span>
+      <a class="src" href="https://github.com/github/copilot-sdk" target="_blank" rel="noopener">github/copilot-sdk</a>
+      <span>26 / 27</span>
+    </div>
+  </section>
+
+<section class="slide title-slide">
+    <img class="octocat-accent oc-bottom-left" src="assets/octocats/yogitocat.png" alt="" aria-hidden="true">
+    <div class="slide-content">
+      <div class="closing-grid">
+        <div class="closing-text">
+          <span class="title-eyebrow reveal"><span class="mark"></span> end of deck — happy hacking</span>
+      <h1 class="title-h1 reveal">
+        Now go <span class="accent">build something</span>.
+      </h1>
+      <p class="title-sub reveal">
+        Start with one bounded session. Add only the capability you can
+        validate, observe, and contain. The eight runnable samples show that
+        progression; production controls remain your responsibility.
+      </p>
+      <div class="title-meta reveal">
+        <span class="pill blue">github / copilot-sdk</span>
+        <span class="pill purple">docs / features</span>
+        <span class="pill green">examples /</span>
+      </div>
+        </div>
+        <aside class="closing-qr title-qr reveal" aria-label="Scan to open repo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" aria-label="QR code: https://github.com/jeffrey-groneberg/ghcp_sdk"><rect width="41" height="41" fill="#ffffff"/><path d="M4 4h7v1h-7zM13 4h1v1h-1zM15 4h2v1h-2zM20 4h1v1h-1zM22 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h4v1h-4zM18 6h1v1h-1zM24 6h3v1h-3zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h2v1h-2zM19 7h1v1h-1zM22 7h1v1h-1zM25 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h5v1h-5zM24 8h2v1h-2zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM17 9h2v1h-2zM21 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h1v1h-1zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h5v1h-5zM20 12h2v1h-2zM23 12h1v1h-1zM30 12h5v1h-5zM6 13h4v1h-4zM11 13h2v1h-2zM14 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM7 14h4v1h-4zM13 14h1v1h-1zM16 14h6v1h-6zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM16 15h2v1h-2zM20 15h4v1h-4zM28 15h1v1h-1zM32 15h3v1h-3zM36 15h1v1h-1zM4 16h2v1h-2zM8 16h1v1h-1zM10 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM23 16h7v1h-7zM31 16h3v1h-3zM6 17h1v1h-1zM8 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM19 17h1v1h-1zM22 17h1v1h-1zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM5 18h1v1h-1zM7 18h1v1h-1zM9 18h4v1h-4zM15 18h1v1h-1zM18 18h4v1h-4zM24 18h1v1h-1zM26 18h1v1h-1zM29 18h2v1h-2zM32 18h4v1h-4zM7 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h4v1h-4zM33 19h2v1h-2zM4 20h1v1h-1zM7 20h5v1h-5zM15 20h3v1h-3zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h3v1h-3zM36 20h1v1h-1zM4 21h1v1h-1zM6 21h3v1h-3zM11 21h2v1h-2zM14 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h8v1h-8zM15 22h3v1h-3zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h2v1h-2zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM9 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h4v1h-4zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h3v1h-3zM18 24h1v1h-1zM22 24h2v1h-2zM25 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h3v1h-3zM11 25h1v1h-1zM14 25h7v1h-7zM24 25h4v1h-4zM29 25h2v1h-2zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM15 26h1v1h-1zM17 26h2v1h-2zM21 26h3v1h-3zM29 26h1v1h-1zM32 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM12 27h1v1h-1zM15 27h3v1h-3zM20 27h1v1h-1zM22 27h6v1h-6zM29 27h2v1h-2zM32 27h4v1h-4zM4 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h3v1h-3zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h7v1h-7zM35 28h2v1h-2zM12 29h1v1h-1zM16 29h2v1h-2zM21 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h4v1h-4zM24 30h1v1h-1zM26 30h3v1h-3zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h2v1h-2zM21 31h2v1h-2zM24 31h1v1h-1zM27 31h2v1h-2zM32 31h3v1h-3zM36 31h1v1h-1zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h3v1h-3zM20 32h1v1h-1zM23 32h4v1h-4zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM16 33h1v1h-1zM18 33h2v1h-2zM22 33h1v1h-1zM27 33h3v1h-3zM32 33h3v1h-3zM36 33h1v1h-1zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM16 34h5v1h-5zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM33 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM14 35h1v1h-1zM18 35h2v1h-2zM25 35h4v1h-4zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h6v1h-6zM19 36h3v1h-3zM26 36h3v1h-3zM31 36h1v1h-1zM35 36h1v1h-1z" fill="#0d1117"/></svg>
+          <span class="qr-caption">scan to revisit<br><strong>github.com/jeffrey-groneberg/ghcp_sdk</strong></span>
+        </aside>
+      </div>
+        </div>
+    <div class="slide-footer">
+      <span class="crumb">thanks · q &amp; a</span>
+      <a class="src" href="https://github.com/github/copilot-sdk" target="_blank" rel="noopener">github/copilot-sdk</a>
+      <span>27 / 27</span>
+    </div>
+  </section>
 
   <script>
     /* =================================================================
@@ -1168,37 +2014,25 @@ session = await client.create_session(
        ================================================================= */
     class SlidePresentation {
       constructor() {
-        this.allSlides = Array.from(document.querySelectorAll('.slide'));
-        const target = document.getElementById(location.hash.slice(1));
-        this.appendixVisible = new URLSearchParams(location.search).get('appendix') === '1' ||
-          target?.dataset.optional === 'true';
-        this.allSlides.forEach(slide => {
-          slide.hidden = slide.dataset.optional === 'true' && !this.appendixVisible;
-        });
-        this.slides = this.allSlides.filter(slide => !slide.hidden);
+        this.slides = Array.from(document.querySelectorAll('.slide'));
         this.currentSlide = 0;
         this.lastWheel = 0;
         this.touchStartY = null;
 
-        this.setupProgressBar();
-        this.setupNavDots();
         this.setupIntersectionObserver();
         this.setupKeyboardNav();
         this.setupTouchNav();
         this.setupWheelNav();
-        this.setupAppendix();
-        if (target && this.slides.includes(target)) {
-          target.scrollIntoView({ behavior: 'instant' });
-        }
+        this.setupProgressBar();
+        this.setupNavDots();
       }
 
       /* IntersectionObserver — add .visible class as slides enter,
          triggering the CSS opacity/translate reveal animations. */
       setupIntersectionObserver() {
-        this.observer?.disconnect();
-        this.observer = new IntersectionObserver(entries => {
+        const obs = new IntersectionObserver(entries => {
           entries.forEach(e => {
-            if (!e.target.hidden && e.isIntersecting && e.intersectionRatio > 0.5) {
+            if (e.isIntersecting && e.intersectionRatio > 0.5) {
               e.target.classList.add('visible');
               this.currentSlide = this.slides.indexOf(e.target);
               this.updateProgressBar();
@@ -1206,14 +2040,12 @@ session = await client.create_session(
             }
           });
         }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-        this.slides.forEach(s => this.observer.observe(s));
+        this.slides.forEach(s => obs.observe(s));
       }
 
       goTo(index) {
         index = Math.max(0, Math.min(this.slides.length - 1, index));
-        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 'instant' : 'smooth';
-        this.slides[index].scrollIntoView({ behavior, block: 'start' });
+        this.slides[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
       setupKeyboardNav() {
@@ -1279,8 +2111,7 @@ session = await client.create_session(
         this.navDotsContainer.innerHTML = '';
         this.slides.forEach((slide, i) => {
           const btn = document.createElement('button');
-          btn.setAttribute('aria-label', `Go to slide ${i + 1}: ${slide.getAttribute('aria-label') || ''}`);
-          if (slide.dataset.optional === 'true') btn.dataset.optional = 'true';
+          btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
           btn.addEventListener('click', () => {
             this.goTo(i);
             btn.blur();
@@ -1288,37 +2119,6 @@ session = await client.create_session(
           this.navDotsContainer.appendChild(btn);
         });
         this.updateNavDots();
-      }
-      setupAppendix() {
-        const toggle = document.querySelector('.appendix-toggle');
-        if (!toggle) return;
-        const updateLabel = () => {
-          toggle.setAttribute('aria-expanded', String(this.appendixVisible));
-          toggle.textContent = this.appendixVisible
-            ? 'Hide optional appendix'
-            : 'Show optional appendix (4 slides)';
-        };
-        updateLabel();
-        toggle.addEventListener('click', () => {
-          this.appendixVisible = !this.appendixVisible;
-          this.allSlides.forEach(slide => {
-            if (slide.dataset.optional === 'true') slide.hidden = !this.appendixVisible;
-          });
-          this.slides = this.allSlides.filter(slide => !slide.hidden);
-          this.currentSlide = this.slides.indexOf(document.getElementById('references'));
-          this.setupNavDots();
-          this.setupIntersectionObserver();
-          this.updateProgressBar();
-          updateLabel();
-          if (this.appendixVisible) {
-            this.goTo(this.slides.findIndex(slide => slide.dataset.optional === 'true'));
-          }
-        });
-        window.addEventListener('hashchange', () => {
-          const slide = document.getElementById(location.hash.slice(1));
-          if (slide?.dataset.optional === 'true' && !this.appendixVisible) toggle.click();
-          if (slide?.classList.contains('slide')) slide.scrollIntoView();
-        });
       }
       updateNavDots() {
         Array.from(this.navDotsContainer.children).forEach((btn, i) => {

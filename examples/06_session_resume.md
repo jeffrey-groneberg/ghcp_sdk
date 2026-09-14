@@ -1,50 +1,71 @@
-# 06 · Resume the saved review choices
+# 06 · Session persistence
 
-**GitHub Copilot SDK - an introduction**
+📖 **Sources (SDK v1.0.13):**
+[Python create/resume implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
+[session ID and detach](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
+[release lifecycle changes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
-[Runnable source](06_session_resume.py) · [Student guide](README.md)
+Open [the runnable source](06_session_resume.py). Run once to supply two
+facts, then resume in a new process without repeating those facts in the
+new prompt. Tools are disabled in both phases so the agent cannot read the
+answers from this source file.
 
-**Sources, SDK v1.0.13:** [create/resume implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
-[session lifecycle](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py).
-
-## Goal and boundary
-
-Persist two choices for this repository review:
-
-- selected file: **`examples/01_simple_chat.py`**;
-- review focus: **`error handling`**.
-
-Run a second Python process to recall them. This is a cold-resume
-checkpoint, not a dependency on the previous five examples. Both phases
-use `available_tools=[]`, so recall cannot read answers from the source.
+## The flow
 
 ```mermaid
 sequenceDiagram
     participant First as First process
     participant Runtime
-    participant Storage as CLI session storage
+    participant Disk as CLI session storage
     participant Second as New process
-    First->>Runtime: create_session(supplied session ID)
-    First->>Runtime: Remember file + focus
-    Runtime->>Storage: Persist conversation
-    Runtime-->>First: Final acknowledgement
-    First->>Runtime: Detach, then stop owned client
-    Second->>Runtime: resume_session(same ID, handlers, empty tool filter)
-    Runtime->>Storage: Load prior conversation
-    Second->>Runtime: Recall review choices, without supplying values
-    Runtime-->>Second: Final recall answer
+    First->>Runtime: create_session(session_id=demo-session-resume)
+    First->>Runtime: send_and_wait(remember two facts)
+    Runtime->>Disk: Persist conversation
+    Runtime-->>First: Acknowledgement
+    First->>Runtime: disconnect -> session.detach
+    Note over First,Second: First client exits; same account/storage retained
+    Second->>Runtime: resume_session(same ID, callbacks and tool scope)
+    Runtime->>Disk: Load persisted conversation
+    Second->>Runtime: send_and_wait(recall question)
+    Runtime-->>Second: Answer using previous context
 ```
 
-## Important code
+## Code walkthrough
+
+### 1. Choose or save an ID
 
 ```python
-SESSION_ID = "workshop-repository-review"
-REVIEW_FILE = "examples/01_simple_chat.py"
-REVIEW_FOCUS = "error handling"
+SESSION_ID = "demo-session-resume"
 ```
 
-The first prompt supplies the values and asks only for acknowledgement.
-The resume branch does **not** interpolate either value:
+The command-line `--session-id` option allows separate workshop conversations.
+A real application should use a unique conversation identifier and authorize
+which user may access it. An ID is not an authorization boundary.
+
+**Generated IDs are resumable too.** If `session_id` is omitted, save
+`session.session_id` (not `session.id`), or inspect
+`await client.list_sessions()` and each result's `session_id`. The tagged
+Python implementation takes precedence over old upstream prose claiming
+that generated IDs cannot be retrieved.
+
+### 2. Create, then detach
+
+```python
+session_ctx = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    session_id=session_id,
+    available_tools=[],
+)
+```
+
+The runtime selects its current default model, matching the official Python
+samples. The first prompt supplies the name and language. After a bounded turn,
+exiting `async with session_ctx` calls `disconnect()`. In **1.0.13** this
+uses `session.detach`, leaving persisted conversation/planning state intact.
+The owned client then shuts down. `client.delete_session(id)` is the
+explicit destructive operation; this demo never calls it.
+
+### 3. Cold resume with explicit runtime wiring
 
 ```python
 session_ctx = await client.resume_session(
@@ -52,52 +73,65 @@ session_ctx = await client.resume_session(
     on_permission_request=PermissionHandler.approve_all,
     available_tools=[],
 )
-prompt = (
-    "Using our earlier conversation, state the selected review "
-    "file and review focus, using the original values. If you "
-    "cannot recall them, say so. Do not read any files."
-)
 ```
 
-In 1.0.13, `disconnect()` detaches; it does not delete persisted history.
-The new process uses the same account and CLI state directory.
-`--session-id` selects an independent workshop conversation; an ID is not
-an authorization boundary. Create once, then resume; choose a fresh ID for
-a fresh exercise.
+The resume prompt asks what the user said earlier, without supplying the
+answers. The model reads prior conversation context; “without re-reading
+the earlier message” would be a misleading way to describe persistence.
 
-Generated IDs also work: save `session.session_id`, or discover stored
-sessions with `await client.list_sessions()`. This example never calls
-the destructive `client.delete_session(...)`.
+`model=` **is supported on resume** in 1.0.13. Omitting it retains the prior
+model; specifying it requests a change. Do not claim changing models is
+unsupported or silently ignored.
 
-Re-register callbacks and tool exposure on cold resume. Application memory,
-credentials, custom Python handlers and authorization are not persisted
-Python objects. Re-supply required MCP/agent/policy configuration rather
-than assuming every session option survives. In particular, injected
-`managed_settings` are startup-only and must be re-supplied if needed.
+### 4. Know what must be re-established
 
-Omitting `model=` retains the prior model on resume; setting it is supported
-when intentionally requesting a change. Each turn requires a final message
-within 60 seconds; the surrounding run has a 180-second deadline.
+| Category | Resume behavior / responsibility |
+|---|---|
+| Conversation history and persisted planning artifacts | Loaded from the same runtime session storage; not arbitrary host memory |
+| Model | Retained if omitted; `model=` can request an override |
+| Custom Python tools, permission/input handlers, hooks | Re-register implementations/callbacks in the new process |
+| MCP connections, custom agent configuration, tool scope | Re-supply the required configuration rather than assuming every startup option persists |
+| Application variables, credentials and authorization | Re-establish explicitly; session history is not a credential store |
+| Injected `managed_settings` (1.0.13) | Startup-only, not persisted; **re-supply on resume** or the injected layer is cleared |
 
-## Run and inspect
+Managed policy injection is permissions-only and requires CLI **1.0.79-5+**;
+this workshop's release-matched runtime is **1.0.83**. It composes
+restrictively with device/server policy rather than overriding it.
+
+## Run it
 
 ```bash
-python examples/06_session_resume.py --session-id workshop-review-1
-python examples/06_session_resume.py --resume --session-id workshop-review-1
+python examples/06_session_resume.py --session-id workshop-alice
+python examples/06_session_resume.py --resume --session-id workshop-alice
 ```
 
-**Illustrative resumed output, not an observed cold-resume run:**
+Illustrative second output:
 
 ```text
-Session ID: workshop-review-1
-The selected file is examples/01_simple_chat.py, and the focus is error handling.
+Session ID: workshop-alice
+Your name is Jeffrey, and your preferred programming language is Python.
 ```
 
-The model uses the earlier conversation; “recall without re-reading the
-earlier message” would misdescribe persistence. Offline tests ensure that
-the second prompt does not resupply either fact, but live recall remains
-to be checked in two processes. Long histories can be compacted; use
-application storage when exact facts must be retained reliably.
+This demonstrates a model recall task, not a cryptographic proof or a
+guarantee of verbatim history retention. Long conversations may be compacted;
+use explicit application storage for facts that must be recalled exactly.
 
-**Exercise:** resume an unknown ID. A visible failure is preferable to
-silently creating a new conversation and fabricating remembered choices.
+## Try this next
+
+1. Omit `session_id` in a copy of the example and persist the returned
+   `session.session_id`.
+2. Try `--resume` with an unknown ID and verify the failure is visible.
+3. Pass an available `model=` on resume and inspect the selected model.
+4. Re-register a custom tool on resume, keeping its source-qualified name
+   in the tool allowlist.
+
+## Common pitfalls
+
+- Use the same account and CLI state location. A new container without the
+  old persisted storage does not acquire history merely from the ID.
+- Run create once, then resume. Use a new ID for a fresh conversation rather
+  than depending on duplicate-create semantics.
+- A timeout raises `TimeoutError`, not `None`; this example fails visibly
+  on either timeout or an absent final message.
+- Do not claim that all system prompts, agents, credentials and session
+  options are automatically persisted.

@@ -1,111 +1,135 @@
-# 05 · Read repository issues through GitHub MCP
+# 05 · Remote GitHub MCP
 
-**GitHub Copilot SDK - an introduction**
+📖 **Sources:**
+[SDK v1.0.13 MCP configuration](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md),
+[SDK tool filters](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py),
+[GitHub MCP v1.12.1 issue tools](https://github.com/github/github-mcp-server/blob/v1.12.1/pkg/github/issues.go),
+[remote server](https://github.com/github/github-mcp-server/blob/v1.12.1/docs/remote-server.md).
 
-[Runnable source](05_mcp_servers.py) · [Student guide](README.md)
+Open [the runnable source](05_mcp_servers.py). It attaches GitHub's hosted MCP
+endpoint, limits exposure to three read-only issue tools, and verifies that the
+agent actually started an MCP call before accepting the turn as successful.
 
-**Sources:** [SDK v1.0.13 MCP configuration](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md),
-[SDK event types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
-[GitHub MCP issue tools, v1.12.1](https://github.com/github/github-mcp-server/blob/v1.12.1/pkg/github/issues.go).
-
-## Goal and boundary
-
-Fetch recent issues on **`jeffrey-groneberg/ghcp_sdk`** as context for reviewing
-the workshop's `examples/01_simple_chat.py`. An issue is context, not proof of
-a code defect. This independently runnable checkpoint exposes only the
-remote, read-only `list_issues` tool.
+## The flow
 
 ```mermaid
 sequenceDiagram
-    participant Host
-    participant Runtime
+    participant App
+    participant Runtime as Copilot runtime
     participant MCP as Remote GitHub MCP
-    Host->>Host: Resolve MCP token without logging it
-    Host->>Runtime: HTTP MCP config + list_issues-only filter
-    Runtime->>MCP: Connect using bearer header
-    Host->>Runtime: Query target repository issues
-    Runtime-->>Host: tool.execution_start + call ID + repository arguments
-    Runtime->>MCP: list_issues
-    MCP-->>Runtime: Issue list, including a valid empty list
-    Runtime-->>Host: Successful completion with same call ID
-    Runtime-->>Host: Final assistant message
-    Host->>Host: Require the correlated result before accepting the turn
+    participant GitHub
+    App->>App: Resolve MCP token at run time
+    App->>Runtime: create_session(mcp_servers, ToolSet)
+    Runtime->>MCP: Connect with bearer header + read-only mode
+    App->>Runtime: send_and_wait(recent issues, timeout=180)
+    Runtime-->>App: tool.execution_start
+    Runtime->>MCP: list_issues / search_issues
+    MCP->>GitHub: Query authorized repository data
+    GitHub-->>MCP: Current issue results
+    MCP-->>Runtime: Tool result
+    Runtime-->>App: Assistant answer, then idle
 ```
 
-## Important code
+## Code walkthrough
 
-Copilot/model authentication and MCP HTTP authentication are separate.
-`github_token()` resolves a token at run time in this order:
+### 1. Separate Copilot authentication from MCP authentication
 
-1. nonempty `GITHUB_TOKEN`;
-2. nonempty `GH_TOKEN`;
-3. `gh auth token --hostname github.com`, with a 10-second timeout.
+Signing in with `copilot login` authenticates the Copilot runtime/model path.
+A server supplied through `mcp_servers={...}` is a separate HTTP/stdio
+connection; the SDK does not copy the CLI's stored credential into arbitrary
+server headers.
 
-Failures raise without printing credential-bearing subprocess diagnostics.
-No credential lookup or client startup occurs during module import.
-Use least-privilege credentials authorized for the target repository.
+`github_mcp_tool_config` configures a built-in GitHub MCP server **if the
+runtime already provides one**. It does not instantiate the hosted server by
+itself. This self-contained sample therefore configures the remote endpoint
+explicitly.
 
-`build_mcp_servers(token)` constructs a real header from the supplied value:
+`github_token()` checks non-empty values in this order:
+
+1. `GITHUB_TOKEN`
+2. `GH_TOKEN`
+3. `gh auth token --hostname github.com`
+
+The lookup happens only inside `main()`. Missing `gh`, lookup failure, timeout,
+and empty output raise clear errors without printing credential-bearing
+diagnostics.
+
+### 2. Configure HTTP authentication and read-only behavior
 
 ```python
-"headers": {
-    "Authorization": "Bearer " + token,
-    "X-MCP-Readonly": "true",
-},
-"tools": ["list_issues"],
+mcp_servers = {
+    "github": {
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+            "Authorization": f"Bearer {token}",
+            "X-MCP-Readonly": "true",
+        },
+        "tools": GITHUB_TOOLS,
+    },
+}
 ```
 
-Do not replace the expression with a literal token or stars. Some viewers
-redact credential-shaped source strings, so displayed stars alone do not
-establish that the source contains a literal placeholder. The regression
-test checks two supplied token values and ensures neither is printed.
+The MCP server's `tools` list uses raw server tool names. The session-wide
+filter uses source/server-qualified names:
 
 ```python
-available_tools=ToolSet().add_mcp("github-list_issues")
+available_tools = ToolSet()
+for name in GITHUB_TOOLS:
+    available_tools.add_mcp(f"github-{name}")
 ```
 
-The MCP server list uses its raw tool name; the session filter uses the
-source-qualified `mcp:github-list_issues`. No shell, file, write-issue, or
-other MCP tool is exposed. The read-only header is an additional server
-control, not a replacement for least-privilege authorization.
+This hides unrelated built-in, custom, and MCP tools. The read-only header is
+an additional server-side control. Neither replaces least-privilege token
+permissions or an OS sandbox.
 
-## Require the result, not just an attempt
+### 3. Require evidence of a real call
 
-`is_issue_query` requires the correct server, tool, **owner and repo** on
-`ToolExecutionStartData`. `ToolTrace.successful_content(call_id)` requires a
-matching start, successful completion, no error, and a result object.
+The event listener records `ToolExecutionStartData` only when
+`mcp_server_name=="github"` and prints the selected tool:
 
-- `[]` is a valid successful “no issues” result.
-- A started call without completion is incomplete.
-- A failure, missing result, wrong repository, or mismatched ID is not success.
-- An assistant saying “I queried GitHub” is not evidence.
+```text
+[mcp] github/list_issues
+```
 
-The host never logs the token, HTTP headers, raw arguments, MCP result
-payload, or remote error text. Failure traces retain the tool name, call ID,
-and success flag; the raised error identifies the failed verification.
-Avoid printing full server configs while troubleshooting.
+After `send_and_wait`, the example raises if no matching event was observed.
+A model response such as “I will list the issues” is not treated as success.
+The prompt also requires failures to be reported instead of inventing data.
 
-The turn has a 180-second deadline, the whole run 300 seconds, and listener
-cleanup is in `finally`. A final assistant message remains mandatory.
+### 4. Keep secrets and failures visible in the right places
 
-## Run and inspect
+The example never prints the token, headers, or raw tool arguments.
+`send_and_wait(timeout=180)` propagates runtime/session errors; the entire
+operation has a 300-second deadline and listener cleanup lives in `finally`.
+The runtime-selected default model follows the official Python sample pattern.
+
+## Run it
 
 ```bash
 python examples/05_mcp_servers.py
 ```
 
-**Illustrative trace, not an observed MCP query:**
+Expected shape (live data and selected tools vary):
 
 ```text
-[mcp] github/list_issues started id=<id>
-[mcp] github/list_issues completed id=<id> success=True
-[host] MCP_ISSUES_VERIFIED repo=jeffrey-groneberg/ghcp_sdk
-<Current issue numbers, titles, authors and URLs — or an empty-list explanation.>
+[mcp] github/list_issues
+1. #<number> — <current title> — @<author> — https://github.com/...
+...
 ```
 
-The hosted MCP service evolves independently of the SDK. Offline tests
-verify configuration/correlation, not network availability, token access,
-or the factual content of live issues.
+## Try this next
 
-**Exercise:** emit a failure after a valid MCP start in a mock. The script
-must raise instead of treating the attempt as a completed query.
+1. Change both owner and repository to another repository your token can read.
+2. Ask for one issue's details through `issue_read`.
+3. Remove one tool from both `GITHUB_TOOLS` and the `ToolSet`.
+4. Replace the static header with an MCP OAuth flow and an
+   `on_mcp_auth_request` handler.
+
+## Common pitfalls
+
+- Assuming Copilot CLI sign-in is automatically forwarded to generic MCP
+  servers.
+- Configuring `github_mcp_tool_config` without an available built-in server.
+- Treating a plausible model answer as proof that a tool ran.
+- Enabling every MCP tool to work around one misspelled name.
+- Logging server config, headers, tokens, or untrusted issue bodies.

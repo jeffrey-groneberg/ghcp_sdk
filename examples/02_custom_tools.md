@@ -1,117 +1,128 @@
-# 02 · Inspect Python structure with a typed tool
+# 02 · Custom tools
 
-**GitHub Copilot SDK - an introduction**
+📖 **Sources (SDK v1.0.13):**
+[Python tools](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py),
+[session tool filters](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
+[1.0.13 release](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
 
-[Runnable source](02_custom_tools.py) · [Student guide](README.md)
+Open [the runnable source](02_custom_tools.py). A Pydantic schema describes
+one custom function that returns **fictional weather**, not a live forecast.
 
-**Sources, SDK v1.0.13:** [tool implementation](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py),
-[tool-filter tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
-
-## Goal and boundary
-
-Obtain real structural facts about `examples/01_simple_chat.py` before
-planning an error-handling and cleanup review. This checkpoint exposes **one
-useful custom tool**, not a general filesystem API. It is independent of 01.
+## The flow
 
 ```mermaid
 sequenceDiagram
-    participant Host
-    participant Runtime
-    participant Handler as inspect_python_file
-    Host->>Runtime: Register typed tool + custom-only allowlist
-    Runtime->>Host: ToolInvocation(file=examples/01_simple_chat.py)
-    Host->>Host: Pydantic validation
-    Host->>Handler: Valid FileParams
-    Handler->>Handler: Bound read; parse AST; record metadata
-    Handler-->>Runtime: Deterministic JSON metadata
-    Runtime-->>Host: Final assistant message
-    Host->>Host: Require actual handler result for selected file
+    participant App
+    participant Model
+    participant Tool as get_weather handler
+    App->>Model: prompt + registered tool schema
+    Model->>Tool: city=Tokyo
+    Tool-->>Model: random demo weather + explicit source label
+    Model->>Tool: city=Berlin
+    Tool-->>Model: random demo weather + explicit source label
+    Model-->>App: assistant message; then idle
 ```
 
-## Important code
+Tool choice and ordering are model decisions; the diagram illustrates a
+possible run, not a guaranteed call schedule.
 
-The **actual function annotation** produces the SDK's JSON Schema:
+## Code walkthrough
+
+### 1. Describe valid arguments
 
 ```python
-class FileParams(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
-    file: Literal[
-        "examples/01_simple_chat.py", "examples/02_custom_tools.py"
-    ] = Field(description="An explicitly allowlisted workshop Python file.")
-
-
-@define_tool(description="Inspect an allowlisted Python sample's AST metadata")
-async def inspect_python_file(params: FileParams) -> dict:
-    metadata = read_python_metadata(params)
-    INSPECTIONS.append(metadata)
-    encoded = json.dumps(metadata, sort_keys=True)
-    print("[host tool] inspect_python_file result=" + encoded)
-    return metadata
+class WeatherParams(BaseModel):
+    city: str = Field(min_length=1, description="City name, e.g. 'Seattle'")
 ```
 
-`@define_tool` replaces the function with a `Tool` carrying its schema and
-handler. It validates `ToolInvocation.arguments` with Pydantic before entering
-the function. There is no hand-written schema that merely *looks* typed.
+The schema includes field names, types, constraints and descriptions.
+Descriptions help the model; they are not its only information. Pydantic
+validates arguments before calling the decorated function.
 
-This complete schema-and-handler excerpt is 14 lines, including blank lines.
-The ordinary `read_python_metadata(params: FileParams)` helper below it
-contains the bounded file read and AST extraction. It is not another exposed
-tool; the wrapper still records and logs the real handler result.
-
-The host accepts exactly those two relative file names. Absolute paths,
-traversal, glob patterns, other samples, wrong types, and extra parameters
-fail validation. It rejects symlinked paths, reads at most
-`MAX_FILE_BYTES + 1` bytes (`MAX_FILE_BYTES = 64 * 1024`), and fails if the
-limit is exceeded, decoding fails, or Python syntax is invalid.
-
-The returned dictionary has exactly four keys:
-
-| Key | Deterministic value |
-|---|---|
-| `file` | The validated repository-relative path |
-| `imports` | Sorted unique imported module names, including relative prefixes |
-| `functions` | Sorted function names from the AST, including async/nested functions |
-| `line_count` | Number of source lines |
-
-The handler records each successful dictionary in `INSPECTIONS` and prints
-`[host tool] inspect_python_file result=...`. `main()` clears this process-local
-list before the run and rejects a final answer without a successful result
-for the requested file. Model prose cannot populate that list.
+### 2. Label the stub honestly
 
 ```python
-tools=[inspect_python_file],
-available_tools=ToolSet().add_custom("inspect_python_file"),
+@define_tool(description="Generate fictional demo weather for a city; NOT live weather")
+async def get_weather(params: WeatherParams) -> dict:
+    return {
+        "city": params.city,
+        "temperature_c": random.randint(-5, 35),
+        "condition": random.choice(["sunny", "cloudy", "rainy"]),
+        "source": "fictional demo data, not a live weather service",
+    }
 ```
 
-Registration and exposure are different: the session filter applies to the
-whole merged catalogue, not only built-ins. No shell or general `view` tool
-is available here.
+`@define_tool` produces a `Tool` with schema and handler; the decorated name
+is no longer a plain Python function. Both synchronous and asynchronous
+handlers are supported in 1.0.13. This example uses `async def` so a real
+async API could replace the stub without blocking the event loop.
 
-AST metadata does **not** contain function bodies. The prompt asks for
-structural facts and proposed checks, not claims of discovered logic bugs.
-This handler runs in host Python; a tool allowlist does not sandbox it.
-Use this bounded reader only in a trusted workshop checkout, not as a
-multi-user filesystem security boundary.
+Return values are serialized for the model. Pydantic models are supported
+directly (JSON-mode serialization was fixed in **1.0.9**); **1.0.13** also
+handles native values such as dates, enums, UUIDs and decimals. A plain dict
+keeps this workshop easy to read.
 
-## Run and inspect
+### 3. Register and scope the tool
+
+Registration and exposure are distinct:
+
+```python
+tools=[get_weather],
+available_tools=ToolSet().add_custom("get_weather"),
+```
+
+`available_tools` filters the **entire merged catalogue**, including custom
+tools. Omitting the custom name from a non-empty allowlist hides it. The
+`ToolSet` builder avoids hand-written source prefixes and follows the
+[tagged ToolSet tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
+
+`approve_all` is only for trusted demos. Actual business tools need
+authorization, validation, credential isolation and side-effect controls.
+An allowlist does not sandbox what your Python handler itself can do.
+
+### 4. Wait for a final answer
+
+The prompt explicitly asks for fictional weather and `send_and_wait` uses
+`timeout=60`. The runtime selects its current default model, matching the
+official Python samples. Timeout raises `TimeoutError`; `None` means idle
+without an assistant message, so the example raises instead of silently
+succeeding. The whole operation has a 180-second deadline.
+
+### 5. Respect cancellation
+
+In 1.0.13, runtime completion/session termination cancels in-flight
+**async external-tool tasks**. For a real HTTP/database tool, use async
+I/O, `async with` and `finally`. Do not swallow `asyncio.CancelledError`;
+cancellation does not undo a side effect already committed. Synchronous
+blocking work is not magically interruptible.
+
+## Run it
 
 ```bash
 python examples/02_custom_tools.py
 ```
 
-**Illustrative output shape, not an observed run; the line count follows the
-current file:**
+Illustrative output (random values and wording vary):
 
 ```text
-[host tool] inspect_python_file result={"file": "examples/01_simple_chat.py", "functions": ["main", "on_event"], "imports": [...], "line_count": <actual integer>}
-<Assistant summarizes the returned structure and suggests review checks.>
+Fictional demo weather, not a live forecast:
+- Tokyo: sunny, 22°C
+- Berlin: cloudy, 9°C
 ```
 
-The offline suite invokes the real decorated SDK handler, compares repeated
-results, checks the generated schema and validated helper delegation, and
-covers path/size/syntax failures. An AST-based check bounds the declaration
-excerpt to 14 lines and ensures this walkthrough quotes it exactly.
-The conversation still requires a final message and bounded cleanup.
+## Try this next
 
-**Exercise:** ask for `../README.md`. Inspect the validation failure; do not
-widen the tool into an unrestricted file reader to make the request work.
+1. Replace randomness with fixed fixtures for deterministic exercises.
+2. Add a temperature conversion tool and include its `custom:` name in the
+   session allowlist.
+3. Return a Pydantic response object and inspect its serialized tool result.
+4. In a mocked test, cancel a sleeping async handler and verify its `finally`
+   block runs.
+
+## Common pitfalls
+
+- A tool-call request in a prompt is not proof that the model called it.
+- Blocking I/O inside `async def` still blocks the event loop.
+- Concurrent handler calls must not corrupt shared mutable state.
+- Tool exceptions become failure results; do not replace failures with fake
+  successful business data. Test rejection/error paths as well as happy paths.
