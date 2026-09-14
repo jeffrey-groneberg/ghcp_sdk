@@ -767,7 +767,28 @@ class SandboxTests(unittest.IsolatedAsyncioTestCase):
             self.module.record_grep_evidence(completed, state),
             "[tool] completed success=True sandboxed=True",
         )
+        self.assertTrue(state.grep_succeeded)
         self.assertTrue(state.marker_found)
+        self.assertTrue(self.module.bypass_verified(state))
+
+    def test_bypass_evidence_accepts_success_when_result_omits_marker(self):
+        state = self.module.ApprovalState(
+            bypass_requested=True,
+            bypass_approved=True,
+            grep_tool_call_id="grep-1",
+        )
+        completed = ToolExecutionCompleteData(
+            success=True,
+            tool_call_id="grep-1",
+            result=ToolExecutionCompleteResult(content="Search completed."),
+            sandboxed=True,
+        )
+
+        self.module.record_grep_evidence(completed, state)
+
+        self.assertTrue(state.grep_succeeded)
+        self.assertFalse(state.marker_found)
+        self.assertTrue(self.module.bypass_verified(state))
 
     def test_runtime_env_preserves_existing_feature_flags(self):
         with patch.dict(

@@ -44,6 +44,7 @@ class ApprovalState:
     bypass_requested: bool = False
     bypass_approved: bool = False
     grep_tool_call_id: str | None = None
+    grep_succeeded: bool = False
     marker_found: bool = False
 
 
@@ -119,11 +120,25 @@ def record_grep_evidence(data: object, state: ApprovalState) -> str | None:
             sandboxed=sandboxed,
             result=result,
         ) if tool_call_id == state.grep_tool_call_id:
+            state.grep_succeeded = success
             state.marker_found = bool(
                 success and result is not None and MARKER in result.content
             )
             return f"[tool] completed success={success} sandboxed={sandboxed}"
     return None
+
+
+def bypass_verified(state: ApprovalState) -> bool:
+    """Correlate the host decision with the matching successful tool call."""
+    if state.grep_succeeded and not state.bypass_approved:
+        raise RuntimeError(
+            "The denied grep completed without a recorded host sandbox-bypass approval."
+        )
+    if state.bypass_approved and not state.grep_succeeded:
+        raise RuntimeError(
+            "The approved sandbox bypass did not produce a successful grep completion."
+        )
+    return state.bypass_approved and state.grep_succeeded
 
 
 async def main() -> None:
@@ -182,20 +197,15 @@ async def main() -> None:
                             raise RuntimeError(
                                 "Session became idle without an assistant message."
                             )
-                        if state.marker_found and not state.bypass_approved:
-                            raise RuntimeError(
-                                "The denied marker was returned without a recorded host "
-                                "sandbox-bypass approval."
+                        if bypass_verified(state):
+                            detail = (
+                                "matching grep success and marker verified"
+                                if state.marker_found
+                                else "matching grep success verified"
                             )
-                        if state.bypass_approved and not state.marker_found:
-                            raise RuntimeError(
-                                "The approved sandbox bypass completed without returning "
-                                "the denied marker."
-                            )
-                        if state.marker_found:
                             print(
                                 "\n[host] SANDBOX_BYPASS_APPROVED — explicit approval "
-                                "and denied marker verified"
+                                f"and {detail}"
                             )
                         print(f"\n[agent] {reply.data.content}")
                     finally:
