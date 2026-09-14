@@ -28,7 +28,6 @@ async def main() -> None:
             async with await client.create_session(
                 # Auto-approval is for trusted demos, not a security sandbox.
                 on_permission_request=PermissionHandler.approve_all,
-                model="gpt-5-mini",
                 available_tools=[],  # This text-only conversation needs no tools.
                 streaming=True,
             ) as session:

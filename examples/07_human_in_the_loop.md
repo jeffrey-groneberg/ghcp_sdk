@@ -1,14 +1,19 @@
 # 07 · Human in the loop
 
 📖 **Sources (SDK v1.0.13):**
-[Python permission/input handlers](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
-[generated request variants](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
-[decision objects](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
-[`ask_user` release notes](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
+[Python elicitation and permission types](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
+[generated permission variants](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/session_events.py),
+[official elicitation E2E](https://github.com/github/copilot-sdk/blob/v1.0.13/python/e2e/test_ui_elicitation_e2e.py).
 
-Open [the runnable source](07_human_in_the_loop.py). One callback supplies
-information, while the other decides whether a requested action may run.
-This is a bounded interactive teaching adapter, not a production approval UI.
+Open [the runnable source](07_human_in_the_loop.py). It demonstrates two
+separate human decisions:
+
+1. prefer a narrowly validated structured form, with an explicit legacy
+   fallback when the runtime does not expose the structured `ask_user` tool;
+2. approve or reject one exact harmless shell command.
+
+The terminal adapter is intentionally small. A production application should
+replace it with its own UI, identity, audit, and authorization layer.
 
 ## The flow
 
@@ -17,114 +22,117 @@ sequenceDiagram
     participant App
     participant Runtime
     participant Human
-    App->>Runtime: create_session(ask_user_variant=legacy, callbacks)
-    App->>Runtime: send_and_wait(ask name, print fixed greeting)
-    Runtime->>App: UserInputRequest
-    App->>Human: Ask name, 30-second deadline
+    App->>Runtime: create_session(ask_user_variant=elicitation)
+    App->>Runtime: Inspect current tool metadata
+    alt structured ask_user available
+        Runtime->>App: elicitation.requested + JSON Schema
+        App->>App: Validate exact expected schema
+    else structured tool unavailable
+        App->>Runtime: Detach; create legacy ask_user session
+        Runtime->>App: UserInputRequest
+        App->>App: Validate freeform-only name contract
+    end
+    App->>Human: Ask for name, 120-second deadline
     Human-->>App: Name
-    App-->>Runtime: answer + wasFreeform
+    App-->>Runtime: action=accept, content.name
     Runtime->>App: PermissionRequestShell
-    App->>Human: Show command; approve once? [y/N]
+    App->>App: Match exact allowlisted command
+    App->>Human: Approve once? [y/N]
     Human-->>App: y or denial
-    App-->>Runtime: ApproveOnce or Reject
-    Note over Runtime: Only execute if runtime policy permits
+    App-->>Runtime: ApproveOnce / Reject / UserNotAvailable
     Runtime-->>App: Final answer, then idle
 ```
 
 ## Code walkthrough
 
-### 1. Select the correct input contract
+### 1. Prefer structured elicitation when the UI can validate forms
 
 ```python
-ask_user_variant="legacy",
-on_user_input_request=on_user_input_request,
-on_permission_request=on_permission_request,
+ask_user_variant="elicitation",
+on_elicitation_request=on_elicitation_request,
 ```
 
-**New in 1.0.13**, `ask_user_variant` accepts `"legacy"` (the default) or
-`"elicitation"`. This demo makes the legacy question/answer shape explicit.
-The structured alternative needs **`on_elicitation_request`**, not the
-legacy callback copied unchanged. Re-supply callbacks on cold resume.
+The default `"legacy"` variant still uses `on_user_input_request` with
+`question`, `choices`, and `allowFreeform`. This sample first requests the
+newer structured shape because the host can validate the JSON Schema before
+collecting data.
 
-The session exposes only `builtin:ask_user` and the platform's shell tool
-(`builtin:bash` or Windows `builtin:powershell`). No file or MCP tools are
-needed. A permission callback runs when the runtime requests a decision;
-it is not a promise that every tool call produces a fresh prompt.
+The callback accepts only:
 
-### 2. Return typed permission decisions
+- form mode, never a URL redirect;
+- one object property named `name`;
+- a required, string-typed value;
+- a local length limit of 1–80 characters.
+
+Unexpected schemas return `{"action": "decline"}`. Timeout/EOF returns
+`{"action": "cancel"}`. A valid response uses:
 
 ```python
-match request:
-    case PermissionRequestShell(full_command_text=command):
-        print(f"\n[permission] proposed command:\n{command}")
-    case _:
-        return PermissionDecisionReject(
-            feedback="Only the reviewed greeting command is in scope."
-        )
+{"action": "accept", "content": {"name": "Ada"}}
 ```
 
-The SDK request is a discriminated union. Useful variants include
-`PermissionRequestShell`, `PermissionRequestRead`, `PermissionRequestWrite`
-and `PermissionRequestMcp`. In **1.0.13** their generated classes **do have
-a string `kind` ClassVar**. Do not use the old enum-style `request.kind.value`;
-pattern matching makes each variant's fields explicit.
+This is deliberately narrower than a generic form renderer. Human-in-the-loop
+does not mean accepting any data request the model invents.
 
-The callback awaits the human and returns:
+The SDK option alone is not proof that the bundled runtime exposed the tool.
+The sample calls `session.rpc.tools.initialize_and_validate()` and inspects
+`get_current_metadata()`. It requires an `ask_user` schema with both `message`
+and `requestedSchema`; an absent tool or legacy `question` schema triggers the
+fallback. The unused session is detached, then a legacy session accepts only
+one non-empty freeform name and no choices. Live validation with runtime
+1.0.83 exercised this fallback.
 
-- `PermissionDecisionApproveOnce()` only for an explicit `y`.
-- `PermissionDecisionReject(feedback=...)` for rejection, unknown variants
-  or unavailable/timed-out console input.
+### 2. Validate policy before asking the human
 
-These are objects from `copilot.rpc`, not old `{"kind": "approve-once"}`
-dictionaries. No reads are automatically trusted: reading local files can
-expose secrets. Managed runtime policies can still deny an approved action.
-
-### 3. Respect choices and freeform input
-
-`UserInputRequest` is a TypedDict with `question`, optional `choices` and
-`allowFreeform` (default `True`). The handler displays choices and applies:
-
-| Input | Returned response |
-|---|---|
-| Valid numbered choice, e.g. `2` | Selected **choice text**, `wasFreeform=False` |
-| Exact choice text | That text, `wasFreeform=False` |
-| Other non-empty text, if freeform is permitted | Entered text, `wasFreeform=True` |
-| Blank or invalid answer when freeform is forbidden | Prompt again, at most three attempts |
-| No choices and freeform forbidden | Visible validation error |
-
-The return shape is always:
+The permission callback pattern-matches `PermissionRequestShell`, rejects
+every other permission kind, rejects sandbox-bypass requests, and validates
+`full_command_text` against one platform-specific policy:
 
 ```python
-{"answer": "selected or entered text", "wasFreeform": False}  # or True
+EXPECTED_COMMAND = "printf '%s\\n' 'Hello from the Copilot SDK.'"
 ```
 
-Do not return `"2"` when the protocol expects the actual selected label.
-Do not silently accept arbitrary text when `allowFreeform=False`.
+On POSIX, `shlex.split` must produce exactly `printf`, the fixed format string,
+and the fixed literal; alternate quoting is allowed but extra operators or
+arguments are not. Only after that machine check does it ask the human.
+An explicit `y` returns `PermissionDecisionApproveOnce()`. Every other answer
+returns `PermissionDecisionReject(...)`.
 
-### 4. Keep human waits bounded and cancellable
+This ordering matters: a human dialog is not a replacement for application
+policy. Keep the decision scope as small as possible and prefer approve-once
+over session-wide or permanent grants.
 
-`read_answer` serializes console prompts with an async lock. A daemon
-thread performs blocking `input`, while the event loop polls a thread-safe
-queue and enforces a **30-second timeout**. This avoids blocking SDK events.
+### 3. Treat managed approval as a real human gate
 
-Why not simply `await asyncio.to_thread(input, ...)`? Cancelling that await
-does not cancel the thread's stdin read, and `asyncio.run` may then wait for
-its default executor at shutdown. A daemon reader does not hold process
-exit open. After EOF, timeout or cancellation the adapter disables further
-reads, rather than creating competing stdin readers. Restart the script to
-recover console input.
+Permission variants can set `managed_approval_required=True`. The sample
+surfaces that fact and still requires the explicit terminal answer; it never
+auto-approves a managed request. If input is unavailable, it returns
+`PermissionDecisionUserNotAvailable()` rather than pretending the action was
+rejected by a present user.
 
-The helper re-raises `asyncio.CancelledError`. Permission timeouts deny;
-input-request failures are reported visibly and propagated. The final model
-wait is bounded to 180 seconds and the whole operation to 240 seconds.
-The three-attempt validation limit prevents an endless invalid-answer loop.
+Longer-lived approval variants exist, but this sample intentionally does not
+offer them.
 
-### 5. Keep shell code separate from the user's answer
+### 4. Keep terminal waits serialized, bounded, and cancellable
 
-The prompt requests a **fixed literal greeting** in the shell. The user's
-name belongs in the final assistant response, not interpolated shell code.
-Review the proposed command before approving; a natural-language request is
-not enforcement. Deny anything unexpected, and never enter credentials.
+Both interactive examples use `_console_input.read_answer`. A daemon thread
+performs blocking `input()`, while the event loop polls a thread-safe queue
+under an async lock. Every prompt has a 120-second workshop deadline.
+
+After EOF, timeout, or cancellation, the helper refuses to start another stdin
+reader in the same process. This avoids overlapping readers and avoids
+`asyncio.run()` waiting forever for a cancelled `to_thread(input, ...)`.
+`asyncio.CancelledError` is re-raised.
+
+### 5. Scope the tool catalogue
+
+```python
+available_tools=ToolSet().add_builtin(["ask_user", SHELL_TOOL])
+```
+
+No file, MCP, web, or unrelated shell-adjacent tools are exposed. Tool
+allowlists, permission callbacks, and prompts are separate controls; none is
+an OS sandbox. Example 08 adds the runtime sandbox layer.
 
 ## Run it
 
@@ -135,32 +143,37 @@ python examples/07_human_in_the_loop.py
 Illustrative session:
 
 ```text
+[hitl] Structured ask_user is unavailable in this runtime; falling back to the legacy question contract.
+[tool] ask_user started
 [agent asks] What is your name?
-Your answer (choice number or text): Ada
+Your name: Ada
+
+[tool] bash started
 [permission] proposed command:
 printf '%s\n' 'Hello from the Copilot SDK.'
-Approve this one command? [y/N]: y
+Approve this one exact command? [y/N]: y
+
 [agent] Hello, Ada! The command printed: Hello from the Copilot SDK.
 ```
 
-The exact command varies by model/platform. A denial may lead to a refusal
-or another proposed approach; the model's subsequent behavior is not
-guaranteed. This example continues to deny unexpected permission variants.
+The runtime may use the structured path instead. In both paths, the model must
+request the expected name contract and allowed command. A variation is denied
+rather than silently widened.
 
 ## Try this next
 
-1. Ask for a greeting language with choices and `allowFreeform=False`.
-2. In tests, exercise a numeric choice, exact choice, invalid input,
-   freeform input, EOF and timeout.
-3. Replace the terminal adapter with a UI-backed awaitable that can
-   genuinely cancel or expire pending questions.
-4. Record decision type and correlation IDs without storing secrets.
+1. Add a second allowlisted form with an enum and validate the selected value.
+2. Replace terminal input with a UI-backed future that can genuinely expire.
+3. Record decision type and correlation IDs without storing submitted content.
+4. Test with a runtime that exposes structured `ask_user`, then verify both
+   branches return the same application-level result.
 
 ## Common pitfalls
 
-- Human input and permission approval are separate contracts.
-- `approve_all` from the earlier trusted demos is not a secure default.
-- Blocking `input()` directly inside a callback prevents async deadlines
-  and event delivery from progressing.
-- A timeout does not inherently abort remote agent work; long-lived
-  clients must design explicit cancellation.
+- Information requests and action permissions are different contracts.
+- Do not assume an accepted SDK option means the runtime exposed that tool;
+  inspect capabilities or metadata and design an explicit fallback.
+- Do not render arbitrary URL elicitation without a trusted navigation policy.
+- Do not ask the human until the application has validated the request.
+- Do not convert timeout, cancellation, or missing input into approval.
+- Approval does not imply sandbox bypass; bypass is a separate decision.

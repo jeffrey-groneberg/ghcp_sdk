@@ -32,12 +32,14 @@ sequenceDiagram
 
 ### 1. Declare personas
 
-Each entry in `AGENTS` is a dictionary with `name`, `description`, `prompt`
-and `tools`. Both agents use `["grep", "glob", "view"]`; their instructions
-differ. The session also applies:
+Each entry in `AGENTS` is a dictionary with `name`, `display_name`,
+`description`, `prompt` and `tools`. `display_name` follows the current
+official sample and provides a UI label without changing the selection key.
+Both agents use `["grep", "glob", "view"]`; their instructions differ. The
+session also applies:
 
 ```python
-available_tools=["builtin:grep", "builtin:glob", "builtin:view"],
+available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
 custom_agents=AGENTS,
 agent="researcher",
 ```
@@ -112,7 +114,7 @@ prose above, demonstrate a successful switch.
 2. Give the reviewer only `["view"]` and compare its tool choices.
 3. Select an invalid name in a mocked test and verify that no second prompt
    is sent after selection fails.
-4. Inspect `await client.list_models()` before trying another account-enabled model.
+4. Inspect `await client.list_models()` before pinning another account-enabled model.
 
 ## Common pitfalls
 

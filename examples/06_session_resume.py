@@ -40,7 +40,6 @@ async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
                 # discover it later through await client.list_sessions().
                 session_ctx = await client.create_session(
                     on_permission_request=PermissionHandler.approve_all,
-                    model="gpt-5-mini",
                     session_id=session_id,
                     available_tools=[],  # Recall must not read this source file.
                 )

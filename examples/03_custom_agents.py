@@ -24,7 +24,7 @@ Run:
 
 import asyncio
 
-from copilot import CopilotClient
+from copilot import CopilotClient, ToolSet
 from copilot.rpc import AgentSelectRequest
 from copilot.session import PermissionHandler
 
@@ -38,12 +38,14 @@ from copilot.session import PermissionHandler
 AGENTS = [
     {
         "name": "researcher",
+        "display_name": "Research Agent",
         "description": "Read-only code researcher.",
         "tools": ["grep", "glob", "view"],
         "prompt": "You explore code and answer questions. Never modify files.",
     },
     {
         "name": "reviewer",
+        "display_name": "Review Agent",
         "description": "Code reviewer focused on bugs and security.",
         "tools": ["grep", "glob", "view"],
         "prompt": "You review code for bugs, security issues, and clarity.",
@@ -63,12 +65,11 @@ async def run_conversation() -> None:
         # turn — without this kwarg the default agent would be used.
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-5-mini",
             custom_agents=AGENTS,
             agent="researcher",
             # Apply the read-tool scope session-wide as well as per persona.
             # approve_all is acceptable only in a trusted, non-sensitive checkout.
-            available_tools=["builtin:grep", "builtin:glob", "builtin:view"],
+            available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
         ) as session:
 
             # `session.rpc` is the SDK's window onto the JSON-RPC server.

@@ -56,10 +56,12 @@ default attribution.
 
 ### 2. Create a text-only session
 
-`create_session` takes `model="gpt-5-mini"`, `streaming=True`,
-`available_tools=[]`, and the required permission handler. The empty
-allowlist removes tools from this conversation. `approve_all` is only a
-trusted-demo convenience, not an authorization system or OS sandbox.
+`create_session` takes `streaming=True`, `available_tools=[]`, and the
+permission handler used by the official Python sample. The empty allowlist
+removes tools from this conversation. The runtime selects its current default
+model; call `await client.list_models()` before deliberately pinning one.
+`approve_all` is only a trusted-demo convenience, not an authorization system
+or OS sandbox.
 
 The client manages a runtime subprocess over stdio by default. The published
 SDK downloads/caches its matching runtime as needed; it does not install the
@@ -121,7 +123,9 @@ not produce an apparent successful empty response.
 2. Add a second `send_and_wait` inside the session to reuse conversation
    context. Normal usage/quota accounting still applies.
 3. Set `streaming=False` and print `reply.data.content` instead.
-4. Use a mock to emit `session.error` or withhold idle; verify cleanup.
+4. Inspect `await client.list_models()`, then pin an account-enabled model only
+   when reproducibility matters more than following the runtime default.
+5. Use a mock to emit `session.error` or withhold idle; verify cleanup.
 
 ## Common pitfalls
 

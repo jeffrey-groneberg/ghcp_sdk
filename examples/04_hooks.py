@@ -20,7 +20,7 @@ Run:
 
 import asyncio
 
-from copilot import CopilotClient
+from copilot import CopilotClient, ToolSet
 from copilot.session import PermissionHandler
 
 
@@ -69,9 +69,8 @@ async def run_conversation() -> None:
         # `on_session_start`, `on_session_end`, `on_agent_stop`, ... .
         async with await client.create_session(
             on_permission_request=PermissionHandler.approve_all,
-            model="gpt-5-mini",
             # Only read/list tools in this trusted demonstration; no shell.
-            available_tools=["builtin:glob", "builtin:view"],
+            available_tools=ToolSet().add_builtin(["glob", "view"]),
             hooks={
                 "on_pre_tool_use": on_pre_tool_use,
                 "on_post_tool_use": on_post_tool_use,

@@ -53,13 +53,13 @@ that generated IDs cannot be retrieved.
 ```python
 session_ctx = await client.create_session(
     on_permission_request=PermissionHandler.approve_all,
-    model="gpt-5-mini",
     session_id=session_id,
     available_tools=[],
 )
 ```
 
-The first prompt supplies the name and language. After a bounded turn,
+The runtime selects its current default model, matching the official Python
+samples. The first prompt supplies the name and language. After a bounded turn,
 exiting `async with session_ctx` calls `disconnect()`. In **1.0.13** this
 uses `session.detach`, leaving persisted conversation/planning state intact.
 The owned client then shuts down. `client.delete_session(id)` is the

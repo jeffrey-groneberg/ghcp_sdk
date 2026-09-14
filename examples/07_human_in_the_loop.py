@@ -1,139 +1,224 @@
 """
-Example 07 — Human approval and legacy ask_user with SDK 1.0.13.
+Example 07 — Structured human input and explicit permission approval.
 
 Run: python examples/07_human_in_the_loop.py
 Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py
 
 Interactive teaching adapter, not a production approval UI or sandbox.
-Only approve a harmless command after reviewing it; never enter credentials.
+It accepts one expected name form and one exact harmless shell command.
 """
 
 import asyncio
-import queue
+import shlex
 import sys
-import threading
 
-from copilot import CopilotClient, PermissionRequestResult
-from copilot.rpc import PermissionDecisionApproveOnce, PermissionDecisionReject
-from copilot.session import UserInputRequest, UserInputResponse
-from copilot.session_events import PermissionRequestShell
+from copilot import CopilotClient, PermissionRequestResult, ToolSet
+from copilot.rpc import (
+    PermissionDecisionApproveOnce,
+    PermissionDecisionReject,
+    PermissionDecisionUserNotAvailable,
+)
+from copilot.session import (
+    ElicitationContext,
+    ElicitationResult,
+    UserInputRequest,
+    UserInputResponse,
+)
+from copilot.session_events import (
+    PermissionRequestShell,
+    ToolExecutionCompleteData,
+    ToolExecutionStartData,
+)
+
+from _console_input import read_answer
 
 
-INPUT_TIMEOUT = 30
-INPUT_LOCK = asyncio.Lock()
-INPUT_CLOSED = False
+INPUT_TIMEOUT = 120
+MAX_NAME_LENGTH = 80
+SHELL_TOOL = "powershell" if sys.platform == "win32" else "bash"
+EXPECTED_COMMAND = (
+    "Write-Output 'Hello from the Copilot SDK.'"
+    if sys.platform == "win32"
+    else "printf '%s\\n' 'Hello from the Copilot SDK.'"
+)
 
 
-async def read_answer(prompt: str) -> str:
-    """Keep the event loop responsive, even when the console has no input."""
-    global INPUT_CLOSED
-    async with INPUT_LOCK:
-        if INPUT_CLOSED:
-            raise EOFError("Console input is unavailable; restart the example.")
-        answers = queue.Queue()
-
-        def read() -> None:
-            try:
-                answers.put(input(prompt))
-            except (EOFError, OSError) as exc:
-                answers.put(exc)
-
-        # A cancelled to_thread(input, ...) can hold asyncio.run() open while
-        # its executor waits for stdin. A daemon cannot block process shutdown.
-        threading.Thread(target=read, daemon=True).start()
-        try:
-            async with asyncio.timeout(INPUT_TIMEOUT):
-                while answers.empty():
-                    await asyncio.sleep(0.05)
-            answer = answers.get_nowait()
-            if isinstance(answer, Exception):
-                raise answer
-            return answer.strip()
-        except (TimeoutError, EOFError, OSError, asyncio.CancelledError):
-            # A timed-out stdin read cannot be killed. Do not start another
-            # competing reader; fail closed until the user restarts the script.
-            INPUT_CLOSED = True
-            raise
+def is_expected_command(command: str) -> bool:
+    if sys.platform == "win32":
+        return command.strip() == EXPECTED_COMMAND
+    try:
+        return shlex.split(command) == [
+            "printf",
+            "%s\\n",
+            "Hello from the Copilot SDK.",
+        ]
+    except ValueError:
+        return False
 
 
 async def on_permission_request(request, invocation) -> PermissionRequestResult:
-    # Requests are typed variants. In 1.0.13 they also have a string ClassVar
-    # `kind`; pattern matching avoids older enum/.value assumptions.
     match request:
         case PermissionRequestShell(full_command_text=command):
             print(f"\n[permission] proposed command:\n{command}")
+            if request.request_sandbox_bypass is True:
+                return PermissionDecisionReject(
+                    feedback="Sandbox bypass is outside this example's scope."
+                )
+            if not is_expected_command(command):
+                print("[permission] denied: command is outside the allowlist.")
+                return PermissionDecisionReject(
+                    feedback="Only the exact fixed greeting command is allowed."
+                )
         case _:
-            # File reads can expose secrets too; don't auto-approve them.
-            print(f"\n[permission] denied unexpected {type(request).__name__}")
-            return PermissionDecisionReject(feedback="Only the reviewed greeting command is in scope.")
+            return PermissionDecisionReject(
+                feedback="Only the reviewed greeting command is in scope."
+            )
 
+    if request.warning:
+        print(f"[permission warning] {request.warning}")
+    if request.managed_approval_required is True:
+        print("[permission] managed policy requires an explicit human decision.")
     try:
-        answer = await read_answer("Approve this one command? [y/N]: ")
+        answer = await read_answer(
+            "Approve this one exact command? [y/N]: ",
+            timeout=INPUT_TIMEOUT,
+        )
     except (EOFError, OSError, TimeoutError):
         print("[permission] input unavailable or timed out; denied.", file=sys.stderr)
-        return PermissionDecisionReject(feedback="Human approval was unavailable.")
+        return PermissionDecisionUserNotAvailable()
     if answer.lower() == "y":
         return PermissionDecisionApproveOnce()
     return PermissionDecisionReject(feedback="User rejected the request.")
 
 
-async def on_user_input_request(
-    request: UserInputRequest, invocation,
-) -> UserInputResponse:
-    choices = request.get("choices") or []
-    allow_freeform = request.get("allowFreeform", True)
-    print(f"\n[agent asks] {request.get('question', '')}")
-    for index, choice in enumerate(choices, 1):
-        print(f"  {index}. {choice}")
-    if not choices and not allow_freeform:
-        raise ValueError("ask_user supplied neither choices nor freeform input.")
+async def on_elicitation_request(context: ElicitationContext) -> ElicitationResult:
+    if context.get("mode", "form") != "form":
+        return {"action": "decline"}
 
-    # Bound validation retries as well as each console read.
+    schema = context.get("requestedSchema")
+    properties = schema.get("properties") if isinstance(schema, dict) else None
+    required = schema.get("required") if isinstance(schema, dict) else None
+    name_schema = properties.get("name") if isinstance(properties, dict) else None
+    expected_schema = (
+        schema.get("type") == "object"
+        and set(properties) == {"name"}
+        and isinstance(required, list)
+        and set(required) == {"name"}
+        and isinstance(name_schema, dict)
+        and name_schema.get("type") == "string"
+    ) if isinstance(schema, dict) and isinstance(properties, dict) else False
+    if not expected_schema:
+        print("[elicitation] declined an unexpected form schema.", file=sys.stderr)
+        return {"action": "decline"}
+
+    print(f"\n[agent asks] {context.get('message', 'What is your name?')}")
     for _ in range(3):
         try:
-            answer = await read_answer("Your answer (choice number or text): ")
+            answer = await read_answer("Your name: ", timeout=INPUT_TIMEOUT)
         except (EOFError, OSError, TimeoutError):
-            print("[ask_user] input unavailable or timed out.", file=sys.stderr)
-            raise
-        if choices and answer.isdecimal():
-            index = int(answer) - 1
-            if 0 <= index < len(choices):
-                return {"answer": choices[index], "wasFreeform": False}
-        if answer in choices:
-            return {"answer": answer, "wasFreeform": False}
-        if answer and allow_freeform:
+            print("[elicitation] input unavailable or timed out.", file=sys.stderr)
+            return {"action": "cancel"}
+        if 1 <= len(answer) <= MAX_NAME_LENGTH:
+            return {"action": "accept", "content": {"name": answer}}
+        print(f"Enter between 1 and {MAX_NAME_LENGTH} characters.")
+    return {"action": "cancel"}
+
+
+async def on_user_input_request(
+    request: UserInputRequest,
+    invocation,
+) -> UserInputResponse:
+    choices = request.get("choices") or []
+    if choices or request.get("allowFreeform", True) is not True:
+        raise ValueError("This fallback accepts one freeform name and no choices.")
+
+    print(f"\n[agent asks] {request.get('question', 'What is your name?')}")
+    for _ in range(3):
+        answer = await read_answer("Your name: ", timeout=INPUT_TIMEOUT)
+        if 1 <= len(answer) <= MAX_NAME_LENGTH:
             return {"answer": answer, "wasFreeform": True}
-        print("Choose a listed number/text" + (" or enter non-empty text." if allow_freeform else "."))
-    raise ValueError("No valid answer after three attempts.")
+        print(f"Enter between 1 and {MAX_NAME_LENGTH} characters.")
+    raise ValueError("No valid name after three attempts.")
+
+
+async def has_structured_ask_user(session) -> bool:
+    """Check the runtime catalogue rather than trusting the SDK option alone."""
+    await session.rpc.tools.initialize_and_validate()
+    metadata = await session.rpc.tools.get_current_metadata()
+    for tool in metadata.tools or []:
+        if tool.name != "ask_user":
+            continue
+        schema = tool.input_schema if isinstance(tool.input_schema, dict) else {}
+        properties = schema.get("properties") or {}
+        return "message" in properties and "requestedSchema" in properties
+    return False
+
+
+async def run_conversation(session, prompt: str) -> None:
+    def on_event(event) -> None:
+        match event.data:
+            case ToolExecutionStartData(tool_name=name):
+                print(f"[tool] {name} started")
+            case ToolExecutionCompleteData(success=False, error=error):
+                message = getattr(error, "message", None) or str(error)
+                print(f"[tool] failed: {message}", file=sys.stderr)
+
+    unsubscribe = session.on(on_event)
+    try:
+        reply = await session.send_and_wait(prompt, timeout=180)
+        if reply is None:
+            raise RuntimeError("Session became idle without an assistant message.")
+        print(f"\n[agent] {reply.data.content}")
+    finally:
+        unsubscribe()
 
 
 async def main() -> None:
     async with asyncio.timeout(240):
         async with CopilotClient() as client:
+            tools = ToolSet().add_builtin(["ask_user", SHELL_TOOL])
             async with await client.create_session(
-                model="gpt-5-mini",
-                available_tools=[
-                    "builtin:ask_user",
-                    "builtin:powershell" if sys.platform == "win32" else "builtin:bash",
-                ],
+                available_tools=tools,
                 on_permission_request=on_permission_request,
-                # New in 1.0.13: pin the question/answer contract explicitly.
-                # "elicitation" instead requires on_elicitation_request.
+                ask_user_variant="elicitation",
+                on_elicitation_request=on_elicitation_request,
+            ) as session:
+                if await has_structured_ask_user(session):
+                    await run_conversation(
+                        session,
+                        "Use ask_user exactly once with message 'What is your name?' "
+                        "and a requestedSchema object containing one required string "
+                        f"property named 'name'. After the answer, call the {SHELL_TOOL} "
+                        "tool with exactly the following command and no other command:\n"
+                        f"{EXPECTED_COMMAND}\nDo not use ask_user for command approval; "
+                        "the runtime permission callback handles that separately. Do "
+                        "not interpolate the name into shell code. In your final answer, "
+                        "greet the person by name and report the actual command result, "
+                        "or say it was denied.",
+                    )
+                    return
+
+            print(
+                "[hitl] Structured ask_user is unavailable in this runtime; "
+                "falling back to the legacy question contract."
+            )
+            async with await client.create_session(
+                available_tools=tools,
+                on_permission_request=on_permission_request,
                 ask_user_variant="legacy",
                 on_user_input_request=on_user_input_request,
             ) as session:
-                reply = await session.send_and_wait(
-                    "Use ask_user to ask for my name, allowing freeform input. "
-                    "Then request approval for one shell command that prints "
-                    "the fixed literal 'Hello from the Copilot SDK.' "
-                    "Do not interpolate my name into shell code. "
-                    "In your final answer, greet me by name and report the "
-                    "actual command result, or say it was denied.",
-                    timeout=180,
+                await run_conversation(
+                    session,
+                    "Use ask_user exactly once to ask 'What is your name?', with "
+                    f"freeform input enabled and no choices. After the answer, call the "
+                    f"{SHELL_TOOL} tool with exactly the following command and no other "
+                    f"command:\n{EXPECTED_COMMAND}\nDo not use ask_user for command "
+                    "approval; the runtime permission callback handles that separately. "
+                    "Do not interpolate the name into shell code. In your final answer, "
+                    "greet the person by name and report the actual command result, or "
+                    "say it was denied.",
                 )
-                if reply is None:
-                    raise RuntimeError("Session became idle without an assistant message.")
-                print(f"\n[agent] {reply.data.content}")
 
 
 if __name__ == "__main__":

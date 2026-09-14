@@ -64,15 +64,17 @@ keeps this workshop easy to read.
 
 ### 3. Register and scope the tool
 
+Registration and exposure are distinct:
+
 ```python
 tools=[get_weather],
-available_tools=["custom:get_weather"],
+available_tools=ToolSet().add_custom("get_weather"),
 ```
 
-Registration and exposure are distinct. `available_tools` filters the
-**entire merged catalogue**, including custom tools. Omitting the custom
-name from a non-empty allowlist hides it. These source-qualified names are
-documented by the [tagged ToolSet tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
+`available_tools` filters the **entire merged catalogue**, including custom
+tools. Omitting the custom name from a non-empty allowlist hides it. The
+`ToolSet` builder avoids hand-written source prefixes and follows the
+[tagged ToolSet tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
 
 `approve_all` is only for trusted demos. Actual business tools need
 authorization, validation, credential isolation and side-effect controls.
@@ -81,9 +83,10 @@ An allowlist does not sandbox what your Python handler itself can do.
 ### 4. Wait for a final answer
 
 The prompt explicitly asks for fictional weather and `send_and_wait` uses
-`timeout=60`. Timeout raises `TimeoutError`; `None` means idle without an
-assistant message, so the example raises instead of silently succeeding.
-The whole operation has a 180-second deadline.
+`timeout=60`. The runtime selects its current default model, matching the
+official Python samples. Timeout raises `TimeoutError`; `None` means idle
+without an assistant message, so the example raises instead of silently
+succeeding. The whole operation has a 180-second deadline.
 
 ### 5. Respect cancellation
 

@@ -69,7 +69,7 @@ Older walkthrough spellings `toolInput` / `cwd` are not these Python types.
 ### 2. Register callbacks
 
 ```python
-available_tools=["builtin:glob", "builtin:view"],
+available_tools=ToolSet().add_builtin(["glob", "view"]),
 hooks={
     "on_pre_tool_use": on_pre_tool_use,
     "on_post_tool_use": on_post_tool_use,

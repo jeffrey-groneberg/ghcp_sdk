@@ -10,7 +10,7 @@ import random
 
 from pydantic import BaseModel, Field
 
-from copilot import CopilotClient, define_tool
+from copilot import CopilotClient, ToolSet, define_tool
 from copilot.session import PermissionHandler
 
 
@@ -37,10 +37,9 @@ async def main() -> None:
             async with await client.create_session(
                 # Only use auto-approval with trusted demo tools.
                 on_permission_request=PermissionHandler.approve_all,
-                model="gpt-5-mini",
                 tools=[get_weather],
                 # This filters the FULL catalogue, not just built-in tools.
-                available_tools=["custom:get_weather"],
+                available_tools=ToolSet().add_custom("get_weather"),
             ) as session:
                 reply = await session.send_and_wait(
                     "Use get_weather for fictional weather in Tokyo and Berlin. "

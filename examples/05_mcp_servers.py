@@ -3,17 +3,17 @@ Example 05 — Remote GitHub MCP with GitHub Copilot SDK 1.0.13.
 
 Run: python examples/05_mcp_servers.py
 SDK: https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/mcp.md
-Tools: https://github.com/github/github-mcp-server/blob/v1.12.0/pkg/github/issues.go
+Tools: https://github.com/github/github-mcp-server/blob/v1.12.1/pkg/github/issues.go
 
-The official HTTPS endpoint needs no Node, npx, Docker or local MCP server.
-Model authentication and this MCP server's bearer credential are separate.
+Copilot model authentication and remote MCP authentication are separate.
+The token is resolved at run time and never printed.
 """
 
 import asyncio
 import os
 import subprocess
 
-from copilot import CopilotClient
+from copilot import CopilotClient, ToolSet
 from copilot.session import PermissionHandler
 from copilot.session_events import ToolExecutionStartData
 
@@ -24,7 +24,7 @@ GITHUB_TOOLS = ["list_issues", "issue_read", "search_issues"]
 
 
 def github_token() -> str:
-    """Resolve credentials only at run time; never print the value."""
+    """Resolve a GitHub token for the remote MCP server without logging it."""
     for var in ("GITHUB_TOKEN", "GH_TOKEN"):
         token = os.environ.get(var, "").strip()
         if token:
@@ -47,8 +47,10 @@ def github_token() -> str:
 
 
 async def main() -> None:
-    # No credential lookup or subprocess runs when this module is imported.
     token = github_token()
+    available_tools = ToolSet()
+    for name in GITHUB_TOOLS:
+        available_tools.add_mcp(f"github-{name}")
     mcp_servers = {
         "github": {
             "type": "http",
@@ -57,39 +59,44 @@ async def main() -> None:
                 "Authorization": f"Bearer {token}",
                 "X-MCP-Readonly": "true",
             },
-            # Raw server tool names here; get_issue is now issue_read.
             "tools": GITHUB_TOOLS,
         },
     }
+
     async with asyncio.timeout(300):
         async with CopilotClient() as client:
             async with await client.create_session(
-                # Trusted demo only. Token permissions/server policy still matter.
                 on_permission_request=PermissionHandler.approve_all,
-                model="gpt-5-mini",
                 mcp_servers=mcp_servers,
-                # Full-catalog filters use source + server-qualified names.
-                available_tools=[f"mcp:github-{name}" for name in GITHUB_TOOLS],
+                available_tools=available_tools,
             ) as session:
+                saw_mcp_call = False
+
                 def on_event(event) -> None:
+                    nonlocal saw_mcp_call
                     match event.data:
                         case ToolExecutionStartData(
                             mcp_server_name="github", mcp_tool_name=name,
                         ):
-                            # Show tool evidence, not arguments, headers or tokens.
+                            saw_mcp_call = True
                             print(f"[mcp] github/{name}")
 
                 unsubscribe = session.on(on_event)
                 try:
                     reply = await session.send_and_wait(
-                        "Use the GitHub MCP server to list the 3 most recently "
-                        f"opened issues on {TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. "
-                        "For each issue, give its number, title, author and URL. "
-                        "If the server fails, report the failure; do not invent data.",
+                        "You must use the GitHub MCP server before answering. "
+                        "List the 3 most recently opened issues on "
+                        f"{TARGET_REPO_OWNER}/{TARGET_REPO_NAME}. For each issue, "
+                        "give its number, title, author and URL. If the tool fails, "
+                        "report that failure; do not answer from memory or invent data.",
                         timeout=180,
                     )
                     if reply is None:
                         raise RuntimeError("Session became idle without an assistant message.")
+                    if not saw_mcp_call:
+                        raise RuntimeError(
+                            "The assistant answered without invoking the GitHub MCP server."
+                        )
                     print(reply.data.content)
                 finally:
                     unsubscribe()
