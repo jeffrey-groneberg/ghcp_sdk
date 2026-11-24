@@ -1,13 +1,13 @@
 [project]
 name = "ghcp-sdk-examples"
 version = "0.1.0"
-description = "Example scripts demonstrating the GitHub Copilot SDK for Python"
+description = "Runnable Python examples for the Microsoft Copilot SDK (formerly GitHub Copilot SDK)"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
-    "github-copilot-sdk==1.0.13",
-    "pydantic>=2.0",
+    "microsoft-copilot-sdk==2.0.1",
+    "pydantic>=2.11",
 ]
 
 [build-system]

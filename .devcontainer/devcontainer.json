@@ -1,17 +1,14 @@
 {
-  "name": "GitHub Copilot SDK Examples",
+  "name": "Microsoft Copilot SDK examples",
 
-  // Dedicated Python dev container on Debian bookworm. Python 3.12 satisfies
-  // the SDK's >=3.11 floor. Node.js LTS + the GitHub CLI are added as features.
+  // Python 3.12 on Debian bookworm (the SDK needs Python 3.11+), plus the
+  // GitHub CLI. Packages come from the public registries (pypi.org).
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
   },
 
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    },
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/sshd:1": {
       "version": "latest"
@@ -19,11 +16,6 @@
   },
 
   "postCreateCommand": "bash .devcontainer/post-create.sh",
-
-  "containerEnv": {
-    "NPM_CONFIG_REGISTRY": "https://packagefeedproxy.microsoft.io/npm/",
-    "PIP_INDEX_URL": "https://packagefeedproxy.microsoft.io/pypi/simple"
-  },
 
   "remoteEnv": {
     "PYTHONIOENCODING": "utf-8",

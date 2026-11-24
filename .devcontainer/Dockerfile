@@ -1,7 +1,8 @@
 FROM mcr.microsoft.com/devcontainers/python:1-3.12-bookworm
 
-# Node.js comes from the Dev Container feature; this stale source otherwise
-# breaks Codespaces prebuilds when its external signing key is unavailable.
+# The base image's stale Yarn apt source breaks Codespaces prebuilds when its
+# signing key is unavailable, so drop it. Bubblewrap is the Linux backend of the
+# runtime sandbox used by examples 08 and 13.
 RUN rm -f /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
