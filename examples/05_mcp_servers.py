@@ -5,11 +5,12 @@ GitHub's remote MCP server, read-only, with exactly two tools. MCP tools are
 named <server>-<tool>: github-list_issues and github-issue_read. The MCP server
 needs its own GitHub token; this reads the GitHub CLI's and never prints it.
 
-Run: python examples/05_mcp_servers.py
+Run: python examples/05_mcp_servers.py [owner/repo]   (default: microsoft/copilot-sdk)
 """
 
 import asyncio
 import subprocess
+import sys
 
 from copilot import CopilotClient, ToolSet
 from copilot.session import PermissionHandler
@@ -22,7 +23,7 @@ def on_event(event):
             print(f"[mcp] github/{name}")
 
 
-async def main() -> None:
+async def main(repo: str = "microsoft/copilot-sdk") -> None:
     token = subprocess.check_output(["gh", "auth", "token"], text=True).strip()
     github = {"type": "http", "url": "https://api.githubcopilot.com/mcp/",
               "headers": {"Authorization": f"Bearer {token}",
@@ -36,10 +37,10 @@ async def main() -> None:
                                                .add_mcp("github-issue_read")},
             events={"on_event": on_event})
         reply = await session.send_and_wait(
-            'List the 3 newest open issues labeled "enhancement" in microsoft/copilot-sdk: '
+            f'List the 3 newest open issues labeled "enhancement" in {repo}: '
             "number and title only.", timeout=180)
         print(reply.data.content if reply else "no answer")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(*sys.argv[1:2]))

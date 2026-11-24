@@ -15,6 +15,10 @@
     }
   },
 
+  // Bubblewrap, the Linux backend of the runtime sandbox (example 13), creates
+  // user namespaces, which Docker's default seccomp and AppArmor profiles block.
+  "securityOpt": ["seccomp=unconfined", "apparmor=unconfined"],
+
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   "remoteEnv": {
