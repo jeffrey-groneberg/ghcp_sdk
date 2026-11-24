@@ -11,8 +11,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
-from typing import get_args, get_type_hints, is_typeddict
+from types import SimpleNamespace, UnionType
+from typing import Union, get_args, get_origin, get_type_hints, is_typeddict
 from unittest.mock import AsyncMock, patch
 
 import copilot
@@ -31,7 +31,7 @@ RUNS = [
     ("azure_foundry_byok",),
 ]
 
-# The SDK's own signatures are the reference for every option an example passes.
+# The SDK's own signatures and option types are the reference for every option.
 SCHEMAS = {
     "client": get_type_hints(copilot.CopilotClient.__init__),
     "create": get_type_hints(copilot.CreateSessionOptions),
@@ -46,15 +46,31 @@ def load(name: str):
     return module
 
 
+def unknown_keys(value, hint, path: str) -> list[str]:
+    """Keys in value, at any depth, that the SDK's type hint doesn't define."""
+    options = get_args(hint) if get_origin(hint) in (Union, UnionType) else (hint,)
+    typed = [t for t in options if is_typeddict(t)]
+    if typed and isinstance(value, dict):
+        fields = {}
+        for t in typed:
+            fields.update(get_type_hints(t))
+        return [problem for key, item in value.items()
+                for problem in ([path + key] if key not in fields
+                                else unknown_keys(item, fields[key], f"{path}{key}."))]
+    for option in options:
+        origin, args = get_origin(option), get_args(option)
+        if origin is list and isinstance(value, list):
+            return [p for item in value for p in unknown_keys(item, args[0], path)]
+        if origin is dict and isinstance(value, dict):
+            return [p for item in value.values() for p in unknown_keys(item, args[1], path)]
+    return []
+
+
 def unknown_options(kind: str, options: dict) -> list[str]:
     hints = SCHEMAS[kind]
-    unknown = [name for name in options if name not in hints]
-    for name, value in options.items():
-        groups = [t for t in get_args(hints.get(name)) if is_typeddict(t)]
-        if groups and isinstance(value, dict):
-            allowed = set().union(*(g.__required_keys__ | g.__optional_keys__ for g in groups))
-            unknown += [f"{name}.{key}" for key in value if key not in allowed]
-    return unknown
+    return [problem for name, value in options.items()
+            for problem in ([name] if name not in hints
+                            else unknown_keys(value, hints[name], f"{name}."))]
 
 
 class FakeSession:
