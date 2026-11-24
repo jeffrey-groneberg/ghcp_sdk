@@ -3,9 +3,10 @@ Example 14: the session journal in your own storage, resumed by ID.
 
 With session_fs, the runtime reads and writes a session's journal and state
 files through your provider instead of its own disk. This provider keeps each
-file as a row in a SQLite database you own; object storage or tenant-scoped
-paths work the same way. Run it twice: the second process resumes the session
-from the database alone. Empty mode accepts session_fs as its storage.
+session in its own folder under STORE; swap its pathlib calls for your blob
+storage or database client to keep journals there. Run it twice: the second
+process resumes the session from your store alone. Empty mode accepts
+session_fs as its storage.
 
 Run:
     python examples/14_session_fs.py create
@@ -14,8 +15,8 @@ Run:
 
 import asyncio
 import datetime as dt
-import errno
-import sqlite3
+import os
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -23,7 +24,7 @@ from pathlib import Path
 from copilot import CopilotClient, SessionFsFileInfo, SessionFsProvider
 from copilot.rpc import SessionFSReaddirWithTypesEntry, SessionFSReaddirWithTypesEntryType
 
-DB = Path(tempfile.gettempdir()) / "copilot-session-store.sqlite"
+STORE = Path(tempfile.gettempdir()) / "copilot-session-store"  # your storage
 SESSION_ID = "team-assistant-journal-01"
 PROMPTS = {
     "create": "Remember this code word: AMBER-4711. Reply with OK only.",
@@ -31,106 +32,91 @@ PROMPTS = {
 }
 
 
-class SqliteFs(SessionFsProvider):
-    """One session's files as rows: (session, path, content); content NULL is a folder."""
+class FolderFs(SessionFsProvider):
+    """Maps the runtime's paths for one session into STORE/<session id>."""
 
     def __init__(self, session_id: str):
-        self.sid, self.db = session_id, sqlite3.connect(DB)
-        self.db.execute("CREATE TABLE IF NOT EXISTS files"
-                        " (session TEXT, path TEXT, content TEXT, PRIMARY KEY (session, path))")
+        self.root = (STORE / session_id).resolve()
 
-    def _rows(self) -> dict[str, str | None]:
-        rows = self.db.execute("SELECT path, content FROM files WHERE session = ?", (self.sid,))
-        return {"/": None} | dict(rows.fetchall())
-
-    def _put(self, path: str, content: str | None) -> None:
-        parents = ["/".join(path.split("/")[:i]) for i in range(2, path.count("/") + 1)]
-        with self.db:
-            self.db.executemany("INSERT OR IGNORE INTO files VALUES (?, ?, NULL)",
-                                [(self.sid, p) for p in parents])
-            self.db.execute("INSERT OR REPLACE INTO files VALUES (?, ?, ?)",
-                            (self.sid, path, content))
-
-    def _children(self, path: str) -> dict[str, bool]:  # name -> is folder
-        prefix, rows = path.rstrip("/") + "/", self._rows()
-        if path not in rows:
-            raise FileNotFoundError(errno.ENOENT, "no such folder", path)
-        names = {p[len(prefix):].split("/")[0] for p in rows if p.startswith(prefix) and p != "/"}
-        return {n: rows.get(prefix + n, None) is None for n in sorted(names)}
+    def _path(self, path: str) -> Path:
+        full = (self.root / path.lstrip("/")).resolve()
+        if not full.is_relative_to(self.root):
+            raise PermissionError(f"outside the session's folder: {path}")
+        return full
 
     async def read_file(self, path):
-        content = self._rows().get(path)
-        if content is None:
-            raise FileNotFoundError(errno.ENOENT, "no such file", path)
-        return content
+        return self._path(path).read_text(encoding="utf-8")
 
     async def write_file(self, path, content, mode=None):
-        self._put(path, content)
+        target = self._path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
 
     async def append_file(self, path, content, mode=None):
-        self._put(path, (self._rows().get(path) or "") + content)
+        target = self._path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("a", encoding="utf-8") as file:
+            file.write(content)
 
     async def exists(self, path):
-        return path in self._rows()
+        return self._path(path).exists()
 
     async def stat(self, path):
-        rows, now = self._rows(), dt.datetime.now(dt.UTC)
-        if path not in rows:
-            raise FileNotFoundError(errno.ENOENT, "no such file", path)
-        content = rows[path]
-        return SessionFsFileInfo(is_file=content is not None, is_directory=content is None,
-                                 size=len(content or ""), mtime=now, birthtime=now)
+        target = self._path(path)
+        info = target.stat()
+        mtime = dt.datetime.fromtimestamp(info.st_mtime, tz=dt.UTC)
+        return SessionFsFileInfo(is_file=target.is_file(), is_directory=target.is_dir(),
+                                 size=info.st_size, mtime=mtime, birthtime=mtime)
 
     async def mkdir(self, path, recursive, mode=None):
-        if path not in self._rows():
-            self._put(path, None)
+        self._path(path).mkdir(parents=recursive, exist_ok=recursive)
 
     async def readdir(self, path):
-        return list(self._children(path))
+        return sorted(entry.name for entry in self._path(path).iterdir())
 
     async def readdir_with_types(self, path):
         kind = SessionFSReaddirWithTypesEntryType
-        return [SessionFSReaddirWithTypesEntry(name=n, type=kind.DIRECTORY if folder else kind.FILE)
-                for n, folder in self._children(path).items()]
+        return [SessionFSReaddirWithTypesEntry(
+                    name=entry.name, type=kind.DIRECTORY if entry.is_dir() else kind.FILE)
+                for entry in sorted(self._path(path).iterdir())]
 
     async def rm(self, path, recursive, force):
-        if path not in self._rows() and not force:
-            raise FileNotFoundError(errno.ENOENT, "no such file", path)
-        with self.db:
-            self.db.execute("DELETE FROM files WHERE session = ? AND (path = ? OR path LIKE ?)",
-                            (self.sid, path, path.rstrip("/") + "/%"))
+        target = self._path(path)
+        if target.is_dir():
+            shutil.rmtree(target) if recursive else target.rmdir()
+        elif target.exists() or not force:
+            target.unlink()
 
     async def rename(self, src, dest):
-        with self.db:
-            self.db.execute("DELETE FROM files WHERE session = ? AND path = ?", (self.sid, dest))
-            self.db.execute("UPDATE files SET path = ? || substr(path, ?) WHERE session = ?"
-                            " AND (path = ? OR path LIKE ?)",
-                            (dest, len(src) + 1, self.sid, src, src.rstrip("/") + "/%"))
+        target = self._path(dest)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        self._path(src).replace(target)
 
 
 async def main(step: str) -> None:
-    if step == "create":  # start from an empty journal
-        with SqliteFs(SESSION_ID).db as db:
-            db.execute("DELETE FROM files WHERE session = ?", (SESSION_ID,))
+    if step == "create":  # start from an empty store
+        shutil.rmtree(STORE / SESSION_ID, ignore_errors=True)
     async with CopilotClient(
         mode="empty",
         session_fs={"initial_working_directory": "/workspace",
                     "session_state_path": "/session-state", "conventions": "posix"},
     ) as client:
-        options = {"state": {"create_session_fs_provider": lambda s: SqliteFs(s.session_id)},
+        options = {"state": {"create_session_fs_provider": lambda s: FolderFs(s.session_id)},
                    "tools": {"available_tools": []}}
         if step == "create":
             session = await client.create_session(session_id=SESSION_ID, **options)
         else:
             session = await client.resume_session(SESSION_ID, **options)
-        # Detach before the client stops: the final journal writes still go through SqliteFs.
+        # Detach before the client stops: the final journal writes still go through FolderFs.
         async with session:
             reply = await session.send_and_wait(PROMPTS[step], timeout=60)
             print(f"{step} {SESSION_ID}: {reply.data.content if reply else 'no answer'}")
-    print(f"journal rows in {DB}:")
-    for path, content in sorted(SqliteFs(SESSION_ID)._rows().items()):
-        if content is not None:
-            print(f"  {path} ({len(content)} characters)")
+    for file in sorted((STORE / SESSION_ID).rglob("*")):
+        if file.is_file():
+            print(f"  {file.relative_to(STORE)} ({file.stat().st_size} bytes)")
+    runtime_home = Path(os.environ.get("COPILOT_HOME", "~/.copilot")).expanduser()
+    print("in the runtime's own session-state:",
+          (runtime_home / "session-state" / SESSION_ID).exists())
 
 
 if __name__ == "__main__":
