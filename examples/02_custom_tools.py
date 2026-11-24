@@ -1,55 +1,37 @@
 """
-Example 02 — A custom tool with GitHub Copilot SDK 1.0.13.
+Example 02: hand the agent a Python function (deck slide 19).
+
+A typed custom tool runs in your process. Its Pydantic model and description
+become the schema the model sees. The data is fictional.
 
 Run: python examples/02_custom_tools.py
-Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py
 """
 
 import asyncio
-import random
 
 from pydantic import BaseModel, Field
 
 from copilot import CopilotClient, ToolSet, define_tool
-from copilot.session import PermissionHandler
 
 
-# Parameter names, types, descriptions and constraints form the model's schema.
-class WeatherParams(BaseModel):
-    city: str = Field(min_length=1, description="City, e.g. 'Seattle'")
+class BuildParams(BaseModel):
+    build_id: int = Field(description="CI build number")
 
 
-# This is deliberately a stub: label BOTH its description and output as fake.
-# @define_tool replaces the function with a Tool carrying schema + handler.
-@define_tool(description="Generate fictional demo weather")
-async def get_weather(params: WeatherParams) -> dict:
-    return {
-        "city": params.city,
-        "temperature_c": random.randint(-5, 35),
-        "condition": "sunny",
-        "source": "fictional demo",
-    }
+@define_tool(description="Failed tests of CI build", skip_permission=True)  # read-only
+async def get_failed_tests(params: BuildParams) -> dict:
+    return {"build": params.build_id, "failed": ["test_login"],  # fictional demo data
+            "error": "TimeoutError: auth service timed out after 30 s"}
 
 
 async def main() -> None:
-    async with asyncio.timeout(180):
-        async with CopilotClient() as client:
-            async with await client.create_session(
-                # Only use auto-approval with trusted demo tools.
-                on_permission_request=PermissionHandler.approve_all,
-                tools=[get_weather],
-                # This filters the FULL catalogue, not just built-in tools.
-                available_tools=ToolSet().add_custom("get_weather"),
-            ) as session:
-                reply = await session.send_and_wait(
-                    "Fictional weather in Tokyo and Berlin.",
-                    timeout=60,
-                )
-                # None means idle without a message. Timeout raises TimeoutError;
-                # session errors also propagate instead of pretending to succeed.
-                if reply is None:
-                    raise RuntimeError("Session became idle without an assistant message.")
-                print(reply.data.content)
+    async with CopilotClient(mode="coding-agent") as client:
+        session = await client.create_session(tools={
+            "definitions": [get_failed_tests],  # registers the handler
+            "available_tools": ToolSet().add_custom("get_failed_tests")})
+        reply = await session.send_and_wait(
+            "Why did build 4711 fail? Answer in two sentences.", timeout=120)
+        print(reply.data.content if reply else "no answer")
 
 
 if __name__ == "__main__":

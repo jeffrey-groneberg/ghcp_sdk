@@ -1,58 +1,40 @@
 """
-Slide 15 — The Microsoft Foundry BYOK example, with configurable credentials.
+Bring your own model: a Microsoft Foundry deployment instead of Copilot models.
 
-Run: python examples/azure_foundry_byok.py
-Required: FOUNDRY_MODEL_URL, FOUNDRY_API_KEY, FOUNDRY_MODEL.
-Source: https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md
+SDK 2.0 registers named provider connections under inference.providers;
+github.capi.enabled=False keeps the session to your own models. Your provider
+bills these calls, not GitHub Copilot. The key is never printed.
+
+Set FOUNDRY_MODEL_URL (https://<resource>.openai.azure.com/openai/v1/),
+FOUNDRY_API_KEY and FOUNDRY_MODEL (your deployment name), then
+run: python examples/azure_foundry_byok.py
 """
 
 import asyncio
 import os
-from urllib.parse import urlsplit
+import sys
 
 from copilot import CopilotClient
-from copilot.session import ProviderConfig
 
-
-def load_configuration() -> tuple[ProviderConfig, str]:
-    names = ("FOUNDRY_MODEL_URL", "FOUNDRY_API_KEY", "FOUNDRY_MODEL")
-    values = {name: os.environ.get(name, "").strip() for name in names}
-    missing = [name for name in names if not values[name]]
-    if missing:
-        raise ValueError("Set the required BYOK environment variables: " + ", ".join(missing))
-    url = values["FOUNDRY_MODEL_URL"]
-    endpoint = urlsplit(url)
-    if (
-        endpoint.scheme != "https" or not endpoint.hostname
-        or endpoint.username is not None or endpoint.password is not None
-        or endpoint.query or endpoint.fragment
-        or not endpoint.path.rstrip("/").endswith("/openai/v1")
-    ):
-        raise ValueError(
-            "FOUNDRY_MODEL_URL must be an HTTPS Foundry endpoint ending in "
-            "/openai/v1/, without credentials, query parameters, or fragments."
-        )
-    provider = ProviderConfig(
-        type="openai",
-        base_url=url.rstrip("/") + "/",
-        api_key=values["FOUNDRY_API_KEY"],
-        wire_api="responses",
-    )
-    return provider, values["FOUNDRY_MODEL"]
+NAMES = ("FOUNDRY_MODEL_URL", "FOUNDRY_API_KEY", "FOUNDRY_MODEL")
 
 
 async def main() -> None:
-    provider, model = load_configuration()
-    async with asyncio.timeout(180):
-        async with CopilotClient() as client:
-            async with await client.create_session(
-                provider=provider, available_tools=[], model=model,
-            ) as session:
-                reply = await session.send_and_wait("Hi", timeout=120)
-                if reply is None:
-                    raise RuntimeError("Session became idle without an assistant message.")
-                print(reply.data.content)
+    url, key, model = (os.environ[name] for name in NAMES)
+    async with CopilotClient(mode="coding-agent") as client:
+        session = await client.create_session(
+            model=model,
+            github={"capi": {"enabled": False}},  # only your provider's models
+            inference={"default_provider": "foundry",
+                       "providers": [{"name": "foundry", "type": "openai", "base_url": url,
+                                      "api_key": key, "wire_api": "responses"}]},
+            tools={"available_tools": []})
+        reply = await session.send_and_wait("Hi", timeout=120)
+        print(reply.data.content if reply else "no answer")
 
 
 if __name__ == "__main__":
+    missing = [name for name in NAMES if not os.environ.get(name)]
+    if missing:
+        sys.exit("Set " + ", ".join(missing))
     asyncio.run(main())

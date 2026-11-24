@@ -1,65 +1,39 @@
 """
-Example 06 — Resume a persisted conversation with SDK 1.0.13.
+Example 06: sessions outlive the process that started them (deck slide 25).
 
-Run from the same machine/account and CLI state directory:
-    python examples/06_session_resume.py
-    python examples/06_session_resume.py --resume
+Run it twice, as two processes. The first run creates a session with an ID you
+choose and asks it to remember a code word. The second run resumes the same ID
+in a new process and asks for the word again.
 
-Source: https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py
+Run:
+    python examples/06_session_resume.py create team-assistant-01
+    python examples/06_session_resume.py resume team-assistant-01
 """
 
-import argparse
 import asyncio
+import sys
 
 from copilot import CopilotClient
-from copilot.session import PermissionHandler
+
+PROMPTS = {
+    "create": "Remember this code word: AMBER-4711. Reply with OK only.",
+    "resume": "What was the code word I gave you earlier? Reply with the word only.",
+}
 
 
-# Use a unique ID for each real conversation. This default is a workshop aid,
-# not an authorization boundary or a multi-user session naming strategy.
-SESSION_ID = "demo-session-resume"
-
-
-async def main(resume: bool = False, session_id: str = SESSION_ID) -> None:
-    async with asyncio.timeout(180):
-        async with CopilotClient() as client:
-            if resume:
-                # Re-register callbacks and the tool policy on cold resume.
-                # model= is supported, but omitting it keeps the existing model.
-                session_ctx = await client.resume_session(
-                    session_id,
-                    on_permission_request=PermissionHandler.approve_all,
-                    available_tools=[],
-                )
-                prompt = "What is my name?"
-            else:
-                # Omitting session_id also works: save session.session_id, or
-                # discover it later through await client.list_sessions().
-                session_ctx = await client.create_session(
-                    on_permission_request=PermissionHandler.approve_all,
-                    session_id=session_id,
-                    available_tools=[],  # Recall must not read this source file.
-                )
-                prompt = "My name is Jeffrey. Remember it."
-
-            async with session_ctx as session:
-                print(f"Session ID: {session.session_id}")
-                reply = await session.send_and_wait(prompt, timeout=60)
-                if reply is None:
-                    raise RuntimeError("Session became idle without an assistant message.")
-                print(reply.data.content)
-
-            # disconnect() detaches; it does not delete persisted conversation.
-            if not resume:
-                print(
-                    f"\nDetached from {session_id!r}; persisted state is retained. "
-                    "Run again with --resume and the same --session-id."
-                )
+async def main(step: str, session_id: str) -> None:
+    async with CopilotClient(mode="coding-agent") as client:  # a new process
+        if step == "create":
+            session = await client.create_session(
+                session_id=session_id, tools={"available_tools": []})
+        else:                                     # same ID, after a restart
+            session = await client.resume_session(
+                session_id, tools={"available_tools": []})
+        reply = await session.send_and_wait(PROMPTS[step], timeout=60)
+        print(f"{step} {session_id}: {reply.data.content if reply else 'no answer'}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--session-id", default=SESSION_ID)
-    args = parser.parse_args()
-    asyncio.run(main(args.resume, args.session_id))
+    if len(sys.argv) < 2 or sys.argv[1] not in PROMPTS:
+        sys.exit("usage: python examples/06_session_resume.py create|resume [session-id]")
+    asyncio.run(main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "team-assistant-01"))

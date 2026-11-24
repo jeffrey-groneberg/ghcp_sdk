@@ -1,123 +1,42 @@
 """
-Example 03 — Custom agents
+Example 03: custom agents give each role its own tools (deck slide 21).
 
-A *custom agent* is a named persona you bundle with the session: a system
-prompt, tool scope, and a description. This uses stable SDK 1.0.13.
-Tool filters narrow exposure; they are not an operating-system sandbox.
+A reviewer (read-only tools) finds the bug in a disposable demo repository,
+then a fixer (view and edit) fixes it in the same session. The agent switch,
+session.rpc.agent.select with AgentSelectRequest, is experimental in SDK 2.0.1.
 
-This demo defines two agents in the same session and switches between
-them mid-conversation:
-
-    researcher  → answers questions about the codebase, never edits
-    reviewer    → critiques a file for bugs / clarity
-
-Concepts covered:
-  * Declaring multiple agents via `custom_agents=[...]`
-  * Picking the initial agent with `agent="..."`
-  * Listing registered personas with `session.rpc.agent.list()`
-  * Inspecting the active persona with `session.rpc.agent.get_current()`
-  * Switching agents at runtime with `session.rpc.agent.select(...)`
-
-Run:
-    python examples/03_custom_agents.py
+Run: python examples/03_custom_agents.py
 """
 
 import asyncio
-from pathlib import Path
+import subprocess
 
-from copilot import CopilotClient, ToolSet
+from copilot import CopilotClient
 from copilot.rpc import AgentSelectRequest
 from copilot.session import PermissionHandler
 
+from _demo_repo import make_demo_repo
 
-# Each agent is a plain dict. The most important keys are:
-#   name        → identifier you use to select the agent later
-#   prompt      → the system prompt that shapes its behaviour
-#   tools       → built-in tool names this agent is *allowed* to use
-#                 (`grep`, `glob`, `view`, `bash`, `edit`, ...)
-#   description → shown to the model when listing available agents
-AGENTS = [
-    {
-        "name": "researcher",
-        "display_name": "Research Agent",
-        "description": "Read-only code researcher.",
-        "tools": ["grep", "glob", "view"],
-        "prompt": "Explore code. Never modify.",
-    },
-    {
-        "name": "reviewer",
-        "display_name": "Review Agent",
-        "description": "Code reviewer focused on bugs and security.",
-        "tools": ["grep", "glob", "view"],
-        "prompt": "Review for bugs and clarity.",
-    },
-]
+reviewer = {"name": "reviewer", "description": "Finds bugs, never edits",
+            "prompt": "Review only.", "tools": ["view", "grep", "glob"]}
+fixer = {"name": "fixer", "description": "Fixes one bug, minimal edit",
+         "prompt": "Make the smallest fix.", "tools": ["view", "edit"]}
 
 
 async def main() -> None:
-    async with asyncio.timeout(360):
-        await run_conversation()
-
-
-async def run_conversation() -> None:
-    async with CopilotClient() as client:
-        # `custom_agents=AGENTS` registers our personas with the session.
-        # `agent="researcher"` makes that one the active agent for the first
-        # turn — without this kwarg the default agent would be used.
-        async with await client.create_session(
-            on_permission_request=PermissionHandler.approve_all,
-            working_directory=str(Path(__file__).resolve().parent),
-            custom_agents=AGENTS,
-            agent="researcher",
-            # Apply the read-tool scope session-wide as well as per persona.
-            # approve_all is acceptable only in a trusted, non-sensitive checkout.
-            available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
-        ) as session:
-
-            # `session.rpc` is the SDK's window onto the JSON-RPC server.
-            # `agent.list()` returns every persona registered with the session
-            # so we can confirm both AGENTS were accepted.
-            listing = await session.rpc.agent.list()
-            print("Registered agents:",
-                  ", ".join(a.name for a in listing.agents))
-
-            # `agent.get_current()` tells us which persona is active. This is
-            # the cheap, definitive way to verify the swap actually happened
-            # (responses alone are circumstantial evidence).
-            current = await session.rpc.agent.get_current()
-            if current.agent is None or current.agent.name != "researcher":
-                raise RuntimeError("The researcher persona was not selected.")
-            print(f"Active persona: {current.agent.name}\n")
-
-            # First turn handled by the researcher. Note the longer timeout —
-            # this agent has to do a few grep + view tool calls before it can
-            # answer, so 60s (the default) is sometimes too short.
-            reply = await session.send_and_wait(
-                "What language is this?",
-                timeout=120,
-            )
-            if reply is None:
-                raise RuntimeError("Researcher became idle without an assistant message.")
-            print("Researcher:", reply.data.content, "\n")
-
-            # Mid-conversation agent switch. Calling `.agent.select(...)`
-            # swaps the active persona; the next prompt will be answered by
-            # the reviewer, but the conversation history is preserved.
-            await session.rpc.agent.select(AgentSelectRequest(name="reviewer"))
-
-            # Confirm the swap before we send anything else.
-            current = await session.rpc.agent.get_current()
-            if current.agent is None or current.agent.name != "reviewer":
-                raise RuntimeError("The reviewer persona was not selected.")
-            print(f"--- swapped --- Active persona: {current.agent.name}\n")
-
-            reply = await session.send_and_wait(
-                "Review 01_simple_chat.py",
-                timeout=120,
-            )
-            if reply is None:
-                raise RuntimeError("Reviewer became idle without an assistant message.")
-            print("Reviewer:", reply.data.content)
+    repo = make_demo_repo()  # calc.py: add(a, b) returns a - b
+    async with CopilotClient(mode="coding-agent") as client:
+        session = await client.create_session(
+            working_directory=str(repo),
+            permissions={"on_request": PermissionHandler.approve_all},  # demo repo
+            agents={"definitions": [reviewer, fixer], "selected": "reviewer"})
+        bug = await session.send_and_wait("Find the bug in calc.py.", timeout=180)
+        print("reviewer:", bug.data.content if bug else "no answer")
+        await session.rpc.agent.select(AgentSelectRequest(name="fixer"))
+        fix = await session.send_and_wait("Fix that bug.", timeout=180)
+        print("fixer:", fix.data.content if fix else "no answer")
+    diff = subprocess.run(["git", "diff", "--unified=0"], cwd=repo, capture_output=True, text=True)
+    print(diff.stdout)
 
 
 if __name__ == "__main__":
