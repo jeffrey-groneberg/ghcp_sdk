@@ -123,8 +123,10 @@ async def main(step: str) -> None:
             session = await client.create_session(session_id=SESSION_ID, **options)
         else:
             session = await client.resume_session(SESSION_ID, **options)
-        reply = await session.send_and_wait(PROMPTS[step], timeout=60)
-        print(f"{step} {SESSION_ID}: {reply.data.content if reply else 'no answer'}")
+        # Detach before the client stops: the final journal writes still go through SqliteFs.
+        async with session:
+            reply = await session.send_and_wait(PROMPTS[step], timeout=60)
+            print(f"{step} {SESSION_ID}: {reply.data.content if reply else 'no answer'}")
     print(f"journal rows in {DB}:")
     for path, content in sorted(SqliteFs(SESSION_ID)._rows().items()):
         if content is not None:

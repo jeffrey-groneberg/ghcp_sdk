@@ -29,7 +29,7 @@ async def main() -> None:
     async with CopilotClient(mode="coding-agent") as client:
         session = await client.create_session(
             tools={"available_tools": []},
-            execution={"limits": {"max_ai_credits": 5}},  # soft cap for this session
+            execution={"limits": {"max_ai_credits": 30}},  # soft cap; the runtime's minimum is 30
             events={"on_event": on_event})
         reply = await session.send_and_wait(
             "In one sentence: why cap an agent's spending?", timeout=60)
