@@ -1,100 +1,10 @@
 # 03 · Custom agents
 
-📖 **Sources (SDK v1.0.13):**
-[custom agents](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/custom-agents.md),
-[typed RPC](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/generated/rpc.py),
-[Python client](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py).
+Deck slide 21 · [Source](03_custom_agents.py) · [Custom agents](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/docs/features/custom-agents.md)
 
-Open [the runnable source](03_custom_agents.py). Two named personas share
-one conversation: a researcher answers a repository question, then a
-reviewer examines example 01. The app verifies the active agent through RPC.
-
-The prompts match slide 20: `"What language is this?"`, followed by
-`"Review 01_simple_chat.py"`. The runtime's working directory is explicitly
-`examples/`, so the slide's short file name resolves when you launch the
-script from the repository root.
-
-## The flow
-
-```mermaid
-sequenceDiagram
-    participant App
-    participant Session
-    App->>Session: create_session(custom_agents=AGENTS, agent=researcher)
-    App->>Session: rpc.agent.list()
-    App->>Session: rpc.agent.get_current()
-    Session-->>App: researcher
-    App->>Session: send_and_wait(repository question, timeout=120)
-    Session-->>App: researcher answer
-    App->>Session: rpc.agent.select(AgentSelectRequest(name=reviewer))
-    App->>Session: rpc.agent.get_current()
-    Session-->>App: reviewer
-    App->>Session: send_and_wait(review prompt, timeout=120)
-    Session-->>App: reviewer answer, same conversation
-```
-
-## Code walkthrough
-
-### 1. Declare personas
-
-Each entry in `AGENTS` is a dictionary with `name`, `display_name`,
-`description`, `prompt` and `tools`. `display_name` follows the current
-official sample and provides a UI label without changing the selection key.
-Both agents use `["grep", "glob", "view"]`; their instructions differ. The
-researcher prompt is `"Explore code. Never modify."`; the reviewer prompt is
-`"Review for bugs and clarity."`, as on the slide. The
-session also applies:
-
-```python
-available_tools=ToolSet().add_builtin(["grep", "glob", "view"]),
-custom_agents=AGENTS,
-agent="researcher",
-```
-
-Session filters apply globally; per-agent scopes operate within that
-catalogue. Registering custom agents does not automatically select one:
-`agent="researcher"` makes the initial choice explicit.
-
-These are tool-exposure controls, **not an OS sandbox**. Read tools can
-expose sensitive files; use a trusted, non-sensitive checkout when granting
-`approve_all`. Instructions such as “Never modify files” are not security
-boundaries by themselves. Do not assume every MCP tool bypasses agent scope.
-
-### 2. Verify the initial state
-
-```python
-listing = await session.rpc.agent.list()
-current = await session.rpc.agent.get_current()
-if current.agent is None or current.agent.name != "researcher":
-    raise RuntimeError("The researcher persona was not selected.")
-```
-
-The selected agent can be absent, so check before dereferencing `.name`.
-The list can also contain runtime-provided agents; the example does not
-assume it contains exactly two entries.
-
-### 3. Ask, then switch
-
-After the researcher's bounded turn completes:
-
-```python
-await session.rpc.agent.select(AgentSelectRequest(name="reviewer"))
-current = await session.rpc.agent.get_current()
-if current.agent is None or current.agent.name != "reviewer":
-    raise RuntimeError("The reviewer persona was not selected.")
-```
-
-The typed `AgentSelectRequest` comes from `copilot.rpc`. Selection changes
-the active persona without starting a new session. Existing conversation
-context remains subject to the runtime's normal context/compaction behavior.
-Verify via RPC rather than judging a persona solely from its writing style.
-
-### 4. Handle failure and cleanup
-
-Each `send_and_wait` uses 120 seconds; the outer `asyncio.timeout(360)`
-bounds setup, RPC inspection and both turns together. Missing messages,
-selection mismatches, session errors and timeouts fail visibly. Session
-exit detaches; client exit stops the owned runtime.
+One session, two roles: a reviewer that only reads and a fixer that may edit.
+They work on a disposable demo repository whose `calc.py` has a planted bug:
+`add(a, b)` returns `a - b`.
 
 ## Run it
 
@@ -102,31 +12,40 @@ exit detaches; client exit stops the owned runtime.
 python examples/03_custom_agents.py
 ```
 
-Illustrative output:
+## How it works
 
-```text
-Registered agents: researcher, reviewer, ...
-Active persona: researcher
-Researcher: The runnable prototypes use Python ...
---- swapped --- Active persona: reviewer
-Reviewer: The first example bounds completion and unregisters its listener ...
+```python
+reviewer = {"name": "reviewer", "description": "Finds bugs, never edits",
+            "prompt": "Review only.", "tools": ["view", "grep", "glob"]}
+fixer = {"name": "fixer", "description": "Fixes one bug, minimal edit",
+         "prompt": "Make the smallest fix.", "tools": ["view", "edit"]}
+session = await client.create_session(
+    working_directory=str(repo),
+    permissions={"on_request": PermissionHandler.approve_all},  # demo repo
+    agents={"definitions": [reviewer, fixer], "selected": "reviewer"})
+...
+await session.rpc.agent.select(AgentSelectRequest(name="fixer"))
 ```
 
-Exact wording/tool calls vary. The `Active persona` checks, not the example
-prose above, demonstrate a successful switch.
+- Each agent is a dictionary with a name, a description, a prompt and its own
+  tools. `agents.selected` picks the first one.
+- `session.rpc.agent.select` switches the agent mid-conversation, and the
+  history stays. The `AgentApi` group (`session.rpc.agent`) and
+  `AgentSelectRequest` are experimental in SDK 2.0.1.
+- `_demo_repo.py` creates the repository in a temporary folder, so
+  `approve_all` can't touch your files. The example prints `git diff` at the end.
+
+## Output from a live run
+
+```text
+reviewer: **Bug:** In `calc.py`, `add(a, b)` returns `a - b` instead of `a + b`. ...
+fixer: I fixed `add` in `calc.py` so it now returns `a + b`, and I removed the old bug comment. ...
+@@ -2 +2 @@ def add(a, b):
+-    return a - b   # bug: should be a + b
++    return a + b
+```
 
 ## Try this next
 
-1. Add a third read-only persona that explains code to a beginner.
-2. Give the reviewer only `["view"]` and compare its tool choices.
-3. Select an invalid name in a mocked test and verify that no second prompt
-   is sent after selection fails.
-4. Inspect `await client.list_models()` before pinning another account-enabled model.
-
-## Common pitfalls
-
-- A persona is not a separate client or separate conversation.
-- A per-agent allowlist cannot restore tools removed session-wide.
-- `current.agent` need not always be populated.
-- Avoid assuming a style change proves the typed selection RPC succeeded.
-- Keep shell/write tools out of this read-only exercise.
+- Ask the reviewer to fix the bug. It has no edit tool, so it can only
+  describe the fix.

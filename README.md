@@ -1,257 +1,157 @@
-# GitHub Copilot SDK — Python workshop
+# Microsoft Copilot SDK: Python examples
 
-Eight small, self-contained, commented prototypes and walkthroughs for
-**`github-copilot-sdk==1.0.13`**, the latest stable PyPI release verified on
-**2026-09-14**. Both dependency manifests pin this SDK version.
-
-The runnable files follow the restored HTML slide demos. The introductory
-text-only snippet and optional Foundry BYOK snippet also have executable files;
-see the [slide-to-example map](examples/README.md#run-the-examples-shown-in-the-slides).
-
-**Baseline:** Python **3.11+** (3.12 recommended), Pydantic **2+**, and the
-SDK release's Copilot CLI/runtime **1.0.83**. Like the official Python samples,
-these examples use the runtime-selected default model; availability and billing
-depend on your account, organization and plan.
-
-Sources: [PyPI 1.0.13](https://pypi.org/project/github-copilot-sdk/1.0.13/),
-[release v1.0.13 — September 4, 2026](https://github.com/github/copilot-sdk/releases/tag/v1.0.13),
-[tagged runtime pin](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/package.json).
-Walkthrough links target **v1.0.13**, not unreleased `main`. Where upstream
-prose is stale, the tagged Python implementation is the authority.
-The implementation style is cross-checked against the official
-[`python/samples`](https://github.com/github/copilot-sdk/tree/v1.0.13/python/samples)
-and current Context7 documentation.
-
-## What's new since the original 1.0.0 workshop?
-
-| Stable addition | What it means here |
-|---|---|
-| [1.0.13: client identity](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/features/client-info.md) | Example 01 sends `client_info` with application/integration names and versions on `server.connect`. This changes telemetry attribution, not authentication or what telemetry is collected. |
-| [1.0.13: selectable `ask_user`](https://github.com/github/copilot-sdk/releases/tag/v1.0.13) | Example 07 prefers `ask_user_variant="elicitation"`, verifies that `ask_user` actually appears in runtime tool metadata, and falls back to a narrowly validated legacy callback when the bundled runtime does not expose the structured tool. |
-| [1.0.13: rotating session credentials](https://github.com/github/copilot-sdk/releases/tag/v1.0.13) | `github_token_provider` handles initial acquisition and refresh; mutually exclusive with a static per-session `github_token`. A `kind="token"` result requires positive `expiresIn` **seconds remaining**; `kind="cancelled"` is the cancellation alternative. Initial errors/cancellation reject create/resume, not fall back to ambient auth. Generic MCP connections still own their separate authentication flow. |
-| [1.0.13: external tool cancellation](https://github.com/github/copilot-sdk/releases/tag/v1.0.13) | Python async tool handler tasks are cancelled when their runtime request completes or their session terminates. Let `asyncio.CancelledError` propagate; clean up resources with `finally` / context managers. |
-| [1.0.13: detach cleanup](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py) | Session exit calls `disconnect()` → `session.detach`, preserving persisted state and other owners. Use `client.delete_session(id)` only for explicit deletion. |
-| [Runtime connection configuration](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py) | Use `connection=RuntimeConnection.for_stdio(path=...)` for an explicit executable or `RuntimeConnection.for_uri(...)` for an existing server. Legacy `cli_path` / `cli_url` client keywords are not accepted by the pinned Python API. |
-| [1.0.13: managed policy and Auto tiers](https://github.com/github/copilot-sdk/releases/tag/v1.0.13) | `managed_settings` injects permissions only, requires CLI **1.0.79-5+**, composes restrictively, and must be re-supplied on resume. `set_auto_tier("efficiency")` stages an Auto preference, committed on the next successful `auto` turn; these examples follow the runtime default model. |
-| [1.0.13: sandbox bypass](https://github.com/github/copilot-sdk/blob/v1.0.13/nodejs/test/e2e/sandbox_bypass.e2e.test.ts) | Example 08 ports the official E2E pattern to Python: enable `SandboxConfig`, deny a disposable path, and require a fresh human decision before one tool call may run outside the sandbox. The API is experimental. |
-| [1.0.9](https://github.com/github/copilot-sdk/releases/tag/v1.0.9) / [1.0.11](https://github.com/github/copilot-sdk/releases/tag/v1.0.11) | Earlier stable fixes include JSON-mode Pydantic tool results, source-qualified tool filtering documentation, `on_agent_stop`, clearer permission types, `Tool.is_terminal`, and history clear/rewind APIs. No experimental factory features are needed by these demos. |
-
-## Open in Codespaces
+Sixteen runnable Python examples for the **Microsoft Copilot SDK 2.0.1**
+(formerly GitHub Copilot SDK), including the code on every code slide of the
+talk. Each one ran live on November 24, 2026, on macOS and in GitHub Codespaces.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jeffrey-groneberg/ghcp_sdk?quickstart=1)
 
-The devcontainer provides Python 3.12 and GitHub CLI and installs the pinned
-Python dependencies. The SDK downloads its matching runtime on first use;
-it does **not** install the interactive `copilot` command on your PATH.
-Follow the authentication setup below, then run:
+## Start in a Codespace
+
+Open the badge above. The Codespace installs `microsoft-copilot-sdk==2.0.1`
+with its runtime and signs you in with the Codespace's own GitHub token, so you
+can start right away in its terminal:
 
 ```bash
 python examples/01_simple_chat.py
 ```
 
-## Local setup and authentication
+You need a GitHub account with Copilot access. Which models you get, and who
+pays, follow your Copilot plan and your organization's policies.
 
-The eight supplied scripts use GitHub-hosted Copilot models. They need:
+## Or run it locally
 
-- **Python 3.11+** and network access for GitHub/PyPI/runtime downloads.
-- A GitHub account with **Copilot access**, an eligible model and sufficient
-  quota. Organization policy can restrict SDK/CLI or model access.
-- For interactive sign-in, separately
-  [install the Copilot CLI](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli)
-  and run `copilot login`; alternatively provision `COPILOT_GITHUB_TOKEN`
-  securely through your environment. Never paste tokens into source or logs.
-- Example 05 separately needs a GitHub token accepted by the remote GitHub MCP
-  server. It resolves `GITHUB_TOKEN`, `GH_TOKEN`, then `gh auth token` at run
-  time and never logs the value. Copilot CLI sign-in authenticates the model
-  runtime but is not automatically copied into a generic MCP connection.
-  **No Node.js, `npx`, Docker, or local MCP server is required.**
+You need Python 3.11 or later. You don't need GitHub Copilot CLI or Node.js.
 
 ```bash
 git clone https://github.com/jeffrey-groneberg/ghcp_sdk.git
 cd ghcp_sdk
-python3.12 -m venv .venv
-source .venv/bin/activate             # macOS / Linux
-# .venv\Scripts\Activate.ps1          # Windows PowerShell
-python -m pip install \
-  --index-url https://packagefeedproxy.microsoft.io/pypi/simple \
-  -r requirements.txt
-python -c "import importlib.metadata as m; print(m.version('github-copilot-sdk'))"
-# Optional: pre-download the release-matched runtime before the workshop.
-python -m copilot download-runtime
-```
-
-Use another installed Python **3.11+** interpreter if `python3.12` is absent.
-The normal SDK path provisions runtime **1.0.83** automatically. An explicit
-`RuntimeConnection.for_stdio(path=...)` or `COPILOT_CLI_PATH` overrides that
-selection; keep overrides version-compatible rather than silently using an
-old CLI. See [tagged runtime setup](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/_cli_download.py).
-
-**Package feeds:** Python installation uses
-`https://packagefeedproxy.microsoft.io/pypi/simple`; the devcontainer exports
-the same URL as `PIP_INDEX_URL`. Optional npm tooling continues to use
-`https://packagefeedproxy.microsoft.io/npm/`. None of the eight Python
-examples requires npm.
-
-**Windows:** set `$env:PYTHONIOENCODING = "utf-8"` in PowerShell before running.
-Examples 07 and 08 require an interactive terminal; human prompts expire after
-120 seconds.
-
-### Optional BYOK authentication
-
-The API-key example shown on **slide 15** is runnable as
-[`examples/azure_foundry_byok.py`](examples/azure_foundry_byok.py).
-Set `FOUNDRY_MODEL_URL`, `FOUNDRY_API_KEY`, and `FOUNDRY_MODEL` for your own
-resource; the endpoint on the slide is illustrative. See
-[the configuration commands](examples/README.md#foundry-configuration-for-slide-15).
-
-The pinned SDK also supports provider `api_key`, `bearer_token`, and
-**`bearer_token_provider`** authentication. The callback can acquire fresh
-Microsoft Entra tokens on demand, including managed identity for supported
-**Microsoft Foundry** endpoints. This is separate from the session's
-GitHub credential callback and from authentication for generic MCP servers.
-
-Follow the tagged [BYOK guide](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md)
-and [Azure managed identity guide](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/setup/azure-managed-identity.md)
-for provider configuration, Azure permissions and optional Azure Identity
-dependencies; those dependencies are not required by these eight examples.
-BYOK is **not** an automatic air-gap or “no GitHub traffic” guarantee:
-review runtime provisioning, authentication, telemetry and other enabled
-services for your deployment. Prefer these dedicated guides and tagged
-Python types over stale upstream “key-only” summaries.
-
-## Examples
-
-Read each walkthrough, then run its `.py` file **from the repository root**.
-Choose a different available model via `await client.list_models()` rather
-than assuming that a newly announced model is available to your account.
-
-For the minimal, non-streaming example on **slide 5**, run
-`python examples/text_only_chat.py`. Examples 01–08 below are the corresponding
-main sample slides; the [mapping](examples/README.md#run-the-examples-shown-in-the-slides)
-lists their slide numbers.
-
-| # | Walkthrough | Python | Capability |
-|---|---|---|---|
-| 1 | [Streaming chat](examples/01_simple_chat.md) | [Source](examples/01_simple_chat.py) | Client identity, streaming events, bounded waiting and lifecycle |
-| 2 | [Custom tools](examples/02_custom_tools.md) | [Source](examples/02_custom_tools.py) | `@define_tool`, Pydantic schema, explicitly fictional weather |
-| 3 | [Custom agents](examples/03_custom_agents.md) | [Source](examples/03_custom_agents.py) | Researcher → reviewer, typed RPC selection and verification |
-| 4 | [Hooks](examples/04_hooks.md) | [Source](examples/04_hooks.py) | Pre-tool, successful-result and failed-result callbacks without logging sensitive arguments |
-| 5 | [Remote GitHub MCP](examples/05_mcp_servers.md) | [Source](examples/05_mcp_servers.py) | Separate MCP authentication, HTTP configuration and read-only issue tools |
-| 6 | [Session persistence](examples/06_session_resume.md) | [Source](examples/06_session_resume.py) | Create, detach, resume and stable/discoverable session IDs |
-| 7 | [Human in the loop](examples/07_human_in_the_loop.md) | [Source](examples/07_human_in_the_loop.py) | Capability-checked elicitation with legacy fallback, exact-command approval and managed approval awareness |
-| 8 | [Sandbox bypass](examples/08_sandbox.md) | [Source](examples/08_sandbox.py) | Experimental filesystem/network sandbox with one human-approved bypass |
-
-### What Example 08 is testing
-
-The sandbox example is not trying to prove that an AI can read a file. It is
-testing whether a runtime-launched tool can be **contained, blocked, escalated,
-approved once, and independently verified**.
-
-The script creates a temporary workspace containing a nested `vault` with a
-disposable marker. It then:
-
-1. exposes only the built-in `grep` tool;
-2. keeps the workspace available while explicitly denying the nested vault;
-3. denies outbound and local network access;
-4. allows the runtime to request a sandbox bypass, but does not grant one
-   automatically;
-5. asks `grep` to search the denied vault.
-
-The first access attempt is therefore expected to hit the sandbox policy. The
-runtime sends the host a `PermissionRequestRead` with
-`request_sandbox_bypass=True`. The host displays the exact path and asks the
-human for a fresh decision. Only `y` returns `ApproveOnce`, allowing that one
-tool call to run outside the sandbox. A rejection, timeout, EOF, unexpected
-permission type, out-of-scope path, or second bypass request fails closed.
-
-The final verdict comes from the application, not from the model. The host
-correlates its recorded approval with the successful completion of the same
-`grep` tool-call ID. Some backends include the marker in the result payload;
-the stable Linux runtime can omit it. Likewise, the completion event may still
-say `sandboxed=True` because the session is sandbox-enabled. Neither the
-assistant's wording nor that telemetry flag alone proves a bypass.
-
-This separation matters because each control answers a different security
-question:
-
-| Control | Question it answers |
-|---|---|
-| `ToolSet().add_builtin("grep")` | Which capability can the agent attempt to use? |
-| Permission callback | Does the application authorize this exact request? |
-| `SandboxConfig` | What can the runtime process reach even after a tool is authorized? |
-| Human-approved bypass | May this one blocked operation cross the containment boundary? |
-| Correlated tool events | Did the approved operation actually complete? |
-
-This is defense in depth against prompt injection, incorrect model decisions,
-and overly broad tool arguments. A tool allowlist is not a sandbox, and a
-sandbox is not application authorization.
-
-The API remains experimental in SDK 1.0.13. The Linux Codespace uses
-Bubblewrap; other platforms can use different backends or provide none.
-Runtime sandboxing also does not automatically contain Python custom-tool
-handlers running in the host process. Production multi-user systems still need
-isolated workspaces, per-user credentials and authorization, process or
-container boundaries, audit logs, and a deliberately designed approval UI.
-See the [complete sandbox walkthrough](examples/08_sandbox.md) for the event
-flow, code, limitations, and expected output.
-
-```bash
+python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+gh auth login                                        # or set COPILOT_GITHUB_TOKEN
 python examples/01_simple_chat.py
-python examples/02_custom_tools.py
-python examples/03_custom_agents.py
-python examples/04_hooks.py
-python examples/05_mcp_servers.py
-python examples/06_session_resume.py
-python examples/06_session_resume.py --resume
-python examples/07_human_in_the_loop.py
-python examples/08_sandbox.py
 ```
 
-**Safety and failures:** `approve_all` is only for trusted demonstrations.
-Read tools can expose sensitive files; prompts and tool filters are not an
-OS sandbox or a complete authorization system. Example 07 validates an exact
-command before asking the user. Example 08 uses the runtime's experimental OS
-sandbox, but an approved bypass intentionally executes one call outside it.
-Runtime/transport errors remain visible. `send_and_wait`
-raises `TimeoutError` (default 60 seconds); `None` means idle without a final
-assistant message, not timeout. A wait timeout does **not** itself abort
-in-flight work; these scripts exit their owned client, while long-lived apps
-should implement cancellation/`session.abort()` deliberately.
+The SDK downloads its matching runtime (1.0.114) on first use, or up front with
+`python -m copilot download-runtime --in-process`. An existing `copilot login`
+also works for sign-in.
 
-### Offline validation (no model calls)
+## The examples
+
+Run them from the repository root. [examples/README.md](examples/README.md)
+has every command and the output to expect, and each example has a short
+walkthrough next to it.
+
+| # | Example | What it shows | Deck slide |
+|---|---|---|---|
+| 01 | [First app](examples/01_simple_chat.md) | One question, one answer, no tools | 17 |
+| 02 | [Custom tool](examples/02_custom_tools.md) | A typed Python function as a tool | 19 |
+| 03 | [Custom agents](examples/03_custom_agents.md) | A reviewer and a fixer, each with its own tools, in one session | 21 |
+| 04 | [Hooks](examples/04_hooks.md) | Your code before and after every tool call | |
+| 05 | [MCP servers](examples/05_mcp_servers.md) | GitHub's remote MCP server with an exact tool allow-list | 20 |
+| 06 | [Durable sessions](examples/06_session_resume.md) | A new process resumes a session by its ID | 25 |
+| 07 | [Human in the loop](examples/07_human_in_the_loop.md) | The agent asks you a question; you approve one exact command | |
+| 08 | [Sandbox bypass](examples/08_sandbox.md) | A sandbox with one human-approved exception | |
+| 09 | [Events](examples/09_events.md) | Every step of the loop as an event | 18 |
+| 10 | [Identity](examples/10_identity.md) | Empty mode: each session runs as its user, with only your tools | 24 |
+| 11 | [Connections](examples/11_connections.md) | In your process, as a child process, or a shared runtime server | 29 |
+| 12 | [Approval in code](examples/12_approval.md) | A hook block list, then exact-match approval | 32 |
+| 13 | [Containment](examples/13_containment.md) | Every request approved, and the sandbox still blocks | 33 |
+| 14 | [Your storage](examples/14_session_fs.md) | The session journal in your own storage, resumed by ID | 25 |
+| 15 | [Cost](examples/15_cost.md) | An AI-credit cap, per-call usage and session totals | 30 |
+| 16 | [Skills](examples/16_skills.md) | A `SKILL.md` the agent loads when it needs it | |
+
+[azure_foundry_byok.py](examples/azure_foundry_byok.py) uses your own Microsoft
+Foundry model instead of Copilot's models; it needs your endpoint, key and
+deployment name.
+
+## What changed from SDK 1.0.13
+
+Code written for 1.x stops before its first model call on 2.0, because the
+client needs an explicit mode. The full list is in the
+[v2 breaking changes](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/docs/v2-breaking-changes.md).
+
+| | 1.0.13 | 2.0.1 |
+|---|---|---|
+| Package | `github-copilot-sdk` (deprecated) | `microsoft-copilot-sdk`; `import copilot` is unchanged |
+| Client | `CopilotClient()` | `CopilotClient(mode="coding-agent")` for one user, `mode="empty"` for many |
+| Session options | Flat: `available_tools=`, `on_permission_request=`, `streaming=` | Grouped: `tools={"available_tools": ...}`, `permissions={"on_request": ...}`, `events={"streaming": ...}`; the old names raise `TypeError` |
+| Runtime | A child process by default; `connection=` | In your process by default; `runtime=` with `for_spawned_stdio()`, `for_spawned_tcp()` or `for_tcp(host, port)` |
+| Your own models | `provider=ProviderConfig(...)` | `inference={"providers": [...]}` |
+
+## Experimental APIs in these examples
+
+The SDK 2.0.1 source marks these as experimental, so they may change or be
+removed in a later release:
+
+- **Types** ("Experimental: this type is part of an experimental API and may
+  change or be removed."): `SandboxConfig`, `SandboxConfigUserPolicy`,
+  `SandboxConfigUserPolicyFilesystem` and `SandboxConfigUserPolicyNetwork`
+  (08, 13); `PermissionDecisionApproveOnce` and `PermissionDecisionReject`
+  (07, 08, 12); `AgentSelectRequest` (03); `SessionAuthStatus` (10);
+  `SessionFSReaddirWithTypesEntry` (14).
+- **API groups** ("Experimental: this API group is experimental and may change
+  or be removed."): `AgentApi` (`session.rpc.agent`, 03), `GitHubAuthApi`
+  (`session.rpc.git_hub_auth`, 10) and `UsageApi` (`session.rpc.usage`, 15).
+- **Session limits**: `SessionLimitsConfig` ("Experimental limits for the
+  session's current accounting window"), that is `execution.limits.max_ai_credits` (15).
+
+## Keep it safe
+
+- `PermissionHandler.approve_all` approves every request. The examples use it
+  only with read-only tools, in disposable demo folders, or, in example 13, to
+  show that the sandbox still holds.
+- By default the runtime runs in your process. That isn't a sandbox and gives
+  no crash isolation.
+- Exposure, approval and containment are separate layers. A tool allow-list
+  doesn't approve calls, and an approved call can still reach too far; examples
+  10, 12 and 13 show one layer each.
+- The sandbox runs shell commands; built-in file tools are policy-checked. It
+  doesn't cover remote MCP servers, your own tool handlers or the in-process
+  runtime itself.
+
+## Notes for Codespaces
+
+- **Sign-in** uses the Codespace's `GITHUB_TOKEN`, which the terminal has. In
+  `gh codespace ssh`, start a login shell (`bash -l`) to get it.
+- **Sandbox**: the dev container turns off Docker's default seccomp and
+  AppArmor profiles and its masked `/proc` paths (`securityOpt` in
+  [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json)), so
+  Bubblewrap, the sandbox's Linux backend, can create its namespaces. Without
+  that, every sandboxed command fails with a `bwrap:` error. The container gets
+  no extra capabilities.
+- **SAML single sign-on**: if your account belongs to an organization that
+  enforces SAML SSO, such as microsoft, the Codespace's token isn't authorized
+  for it, and example 05 can't read `microsoft/copilot-sdk`. Run
+  `gh issue list -R microsoft/copilot-sdk` and open the authorization link it
+  prints, or pass another repository:
+  `python examples/05_mcp_servers.py github/github-mcp-server`.
+
+## Offline tests
 
 ```bash
 python -m unittest discover -s examples/tests -v
 ```
 
-Focused stdlib tests exercise all eight samples, callbacks, tool schema/results, lifecycle,
-error/timeout handling, agent selection, token lookup and both resume paths
-using mocks. They do not prove live model, MCP or authentication behavior.
+They need no sign-in, runtime or model. They run every example against a fake
+client and check each option against the SDK 2.0.1 signatures, and they test
+the approval logic of examples 07, 08 and 12 and the session store of 14.
 
-## Slides
+## The October 2026 deck (archived)
 
-- [`docs/index.html`](docs/index.html): custom **scroll-snap HTML** workshop
-  deck (not reveal.js). Open in a browser or serve the `docs/` folder.
-- [`GitHub-Copilot-SDK.pptx`](GitHub-Copilot-SDK.pptx): the matching PowerPoint deck.
-
-Both use the same 27-slide, four-chapter curriculum and stable SDK/runtime baseline.
-
-```bash
-python -m http.server -d docs 8000
-# http://localhost:8000
-```
+[docs/index.html](docs/index.html), published at
+<https://jeffrey-groneberg.github.io/ghcp_sdk/>, and `GitHub-Copilot-SDK.pptx`
+are the October 2026 deck for GitHub Copilot SDK 1.0.13. They're kept as they
+were; their code doesn't run on SDK 2.0.
 
 ## References
 
-- [Python README at v1.0.13](https://github.com/github/copilot-sdk/blob/v1.0.13/python/README.md)
-- [Tagged Python client](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
-  [session](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/session.py),
-  [tools](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py)
-- [Authentication](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/authenticate.md)
-  and [BYOK](https://github.com/github/copilot-sdk/blob/v1.0.13/docs/auth/byok.md)
-- [GitHub MCP server v1.12.1](https://github.com/github/github-mcp-server/tree/v1.12.1)
-  and [MCP specification](https://modelcontextprotocol.io/)
-- [All SDK releases](https://github.com/github/copilot-sdk/releases)
+- [v2 breaking changes](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/docs/v2-breaking-changes.md)
+  and the [Python README](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/python/README.md), tag v2.0.1
+- [Getting started](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/docs/getting-started.md)
+  and [multi-tenancy](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/docs/setup/multi-tenancy.md)
+- [microsoft-copilot-sdk 2.0.1 on PyPI](https://pypi.org/project/microsoft-copilot-sdk/2.0.1/)
+  and [all releases](https://github.com/microsoft/copilot-sdk/releases)
 
 ## License
 

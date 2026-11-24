@@ -1,104 +1,9 @@
-# 02 · Custom tools
+# 02 · Custom tool
 
-📖 **Sources (SDK v1.0.13):**
-[Python tools](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/tools.py),
-[session tool filters](https://github.com/github/copilot-sdk/blob/v1.0.13/python/copilot/client.py),
-[1.0.13 release](https://github.com/github/copilot-sdk/releases/tag/v1.0.13).
+Deck slide 19 · [Source](02_custom_tools.py) · [Tools in the Python README](https://github.com/microsoft/copilot-sdk/blob/v2.0.1/python/README.md#tools)
 
-Open [the runnable source](02_custom_tools.py). A Pydantic schema describes
-one custom function that returns **fictional weather**, not a live forecast.
-
-## The flow
-
-```mermaid
-sequenceDiagram
-    participant App
-    participant Model
-    participant Tool as get_weather handler
-    App->>Model: prompt + registered tool schema
-    Model->>Tool: city=Tokyo
-    Tool-->>Model: random demo weather + explicit source label
-    Model->>Tool: city=Berlin
-    Tool-->>Model: random demo weather + explicit source label
-    Model-->>App: assistant message; then idle
-```
-
-Tool choice and ordering are model decisions; the diagram illustrates a
-possible run, not a guaranteed call schedule.
-
-## Code walkthrough
-
-### 1. Describe valid arguments
-
-```python
-class WeatherParams(BaseModel):
-    city: str = Field(min_length=1, description="City, e.g. 'Seattle'")
-```
-
-The schema includes field names, types, constraints and descriptions.
-Descriptions help the model; they are not its only information. Pydantic
-validates arguments before calling the decorated function.
-
-### 2. Label the stub honestly
-
-```python
-@define_tool(description="Generate fictional demo weather")
-async def get_weather(params: WeatherParams) -> dict:
-    return {
-        "city": params.city,
-        "temperature_c": random.randint(-5, 35),
-        "condition": "sunny",
-        "source": "fictional demo",
-    }
-```
-
-`@define_tool` produces a `Tool` with schema and handler; the decorated name
-is no longer a plain Python function. Both synchronous and asynchronous
-handlers are supported in 1.0.13. This example uses `async def` so a real
-async API could replace the stub without blocking the event loop.
-
-Return values are serialized for the model. Pydantic models are supported
-directly (JSON-mode serialization was fixed in **1.0.9**); **1.0.13** also
-handles native values such as dates, enums, UUIDs and decimals. A plain dict
-keeps this workshop easy to read.
-
-As on slide 19, the temperature is random but the condition is always
-`"sunny"`. Both the description and result identify the output as fictional.
-
-### 3. Register and scope the tool
-
-Registration and exposure are distinct:
-
-```python
-tools=[get_weather],
-available_tools=ToolSet().add_custom("get_weather"),
-```
-
-`available_tools` filters the **entire merged catalogue**, including custom
-tools. Omitting the custom name from a non-empty allowlist hides it. The
-`ToolSet` builder avoids hand-written source prefixes and follows the
-[tagged ToolSet tests](https://github.com/github/copilot-sdk/blob/v1.0.13/python/test_tool_set.py).
-
-`approve_all` is only for trusted demos. Actual business tools need
-authorization, validation, credential isolation and side-effect controls.
-An allowlist does not sandbox what your Python handler itself can do.
-
-### 4. Wait for a final answer
-
-The prompt is `"Fictional weather in Tokyo and Berlin."`, matching slide 19,
-and `send_and_wait` uses
-`timeout=60`. The runtime selects its current default model, matching the
-official Python samples. Timeout raises `TimeoutError`; `None` means idle
-without an assistant message, so the example raises instead of silently
-succeeding. The whole operation has a 180-second deadline.
-
-### 5. Respect cancellation
-
-In 1.0.13, runtime completion/session termination cancels in-flight
-**async external-tool tasks**. For a real HTTP/database tool, use async
-I/O, `async with` and `finally`. Do not swallow `asyncio.CancelledError`;
-cancellation does not undo a side effect already committed. Synchronous
-blocking work is not magically interruptible.
+A custom tool is a typed Python function that runs in your process. This one
+returns fictional CI results.
 
 ## Run it
 
@@ -106,27 +11,33 @@ blocking work is not magically interruptible.
 python examples/02_custom_tools.py
 ```
 
-Illustrative output (random values and wording vary):
+## How it works
+
+```python
+@define_tool(description="Failed tests of CI build", skip_permission=True)  # read-only
+async def get_failed_tests(params: BuildParams) -> dict:
+    ...
+session = await client.create_session(tools={
+    "definitions": [get_failed_tests],  # registers the handler
+    "available_tools": ToolSet().add_custom("get_failed_tests")})
+```
+
+- The Pydantic model `BuildParams` and the description become the schema the
+  model sees. The SDK validates the model's arguments before it calls your
+  function.
+- `skip_permission=True` runs the tool without a permission request. Use it
+  only for tools that just read.
+- `tools.definitions` registers the handler, and `tools.available_tools`
+  exposes exactly this tool. The allow-list filters the whole catalog:
+  built-in (`builtin:`), MCP (`mcp:`) and your own (`custom:`) tools.
+
+## Output from a live run
 
 ```text
-Fictional demo weather, not a live forecast:
-- Tokyo: sunny, 22°C
-- Berlin: sunny, 9°C
+Build 4711 failed because `test_login` was the only failing test. It hit a `TimeoutError` when the auth service didn't respond within 30 seconds. ...
 ```
 
 ## Try this next
 
-1. Replace randomness with fixed fixtures for deterministic exercises.
-2. Add a temperature conversion tool and include its `custom:` name in the
-   session allowlist.
-3. Return a Pydantic response object and inspect its serialized tool result.
-4. In a mocked test, cancel a sleeping async handler and verify its `finally`
-   block runs.
-
-## Common pitfalls
-
-- A tool-call request in a prompt is not proof that the model called it.
-- Blocking I/O inside `async def` still blocks the event loop.
-- Concurrent handler calls must not corrupt shared mutable state.
-- Tool exceptions become failure results; do not replace failures with fake
-  successful business data. Test rejection/error paths as well as happy paths.
+- Ask about build 4712. The tool returns the same fictional data, and the
+  model trusts it: the model chooses the tool, and your code supplies the facts.
