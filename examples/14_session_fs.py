@@ -6,7 +6,8 @@ files through your provider instead of its own disk. This provider keeps each
 session in its own folder under STORE; swap its pathlib calls for your blob
 storage or database client to keep journals there. Run it twice: the second
 process resumes the session from your store alone. Empty mode accepts
-session_fs as its storage.
+session_fs as its storage. SessionFSReaddirWithTypesEntry is experimental in
+SDK 2.0.1.
 
 Run:
     python examples/14_session_fs.py create

@@ -4,9 +4,9 @@ Example 15: cap and watch cost.
 execution.limits.max_ai_credits sets a soft AI-credit cap for the session
 (checked after each model call). Every model call emits an assistant.usage
 event, and session.rpc.usage.get_metrics() returns the session's totals.
-max_ai_credits, the usage event's cost field and the UsageApi group
-(session.rpc.usage) are experimental in SDK 2.0.1. The SDK docs convert nano
-AI units to AI credits by dividing by 1e9; GitHub billing is authoritative.
+max_ai_credits (SessionLimitsConfig) and the UsageApi group (session.rpc.usage)
+are experimental in SDK 2.0.1. The SDK docs convert nano AI units to AI credits
+by dividing by 1e9; GitHub's billing is authoritative.
 
 Run: python examples/15_cost.py
 """
