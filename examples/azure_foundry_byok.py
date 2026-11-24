@@ -3,7 +3,8 @@ Bring your own model: a Microsoft Foundry deployment instead of Copilot models.
 
 SDK 2.0 registers named provider connections under inference.providers;
 github.capi.enabled=False keeps the session to your own models. Your provider
-bills these calls, not GitHub Copilot. The key is never printed.
+bills these calls, not GitHub Copilot. The key is never printed. Multi-provider
+BYOK configuration (NamedProviderConfig) is experimental in SDK 2.0.1.
 
 Set FOUNDRY_MODEL_URL (https://<resource>.openai.azure.com/openai/v1/),
 FOUNDRY_API_KEY and FOUNDRY_MODEL (your deployment name), then

@@ -40,7 +40,8 @@ also works for sign-in.
 
 Run them from the repository root. [examples/README.md](examples/README.md)
 has every command and the output to expect, and each example has a short
-walkthrough next to it.
+walkthrough next to it. Examples 12 and 13 use the `bash` tool, so they need
+macOS or Linux; a Codespace works.
 
 | # | Example | What it shows | Deck slide |
 |---|---|---|---|
@@ -89,12 +90,16 @@ removed in a later release:
   `SandboxConfigUserPolicyFilesystem` and `SandboxConfigUserPolicyNetwork`
   (08, 13); `PermissionDecisionApproveOnce` and `PermissionDecisionReject`
   (07, 08, 12); `AgentSelectRequest` (03); `SessionAuthStatus` (10);
-  `SessionFSReaddirWithTypesEntry` (14).
+  `SessionFSReaddirWithTypesEntry` and `SessionFSReaddirWithTypesEntryType`, an
+  alias of `DebugCollectLogsEntryKind` (14).
 - **API groups** ("Experimental: this API group is experimental and may change
   or be removed."): `AgentApi` (`session.rpc.agent`, 03), `GitHubAuthApi`
   (`session.rpc.git_hub_auth`, 10) and `UsageApi` (`session.rpc.usage`, 15).
 - **Session limits**: `SessionLimitsConfig` ("Experimental limits for the
   session's current accounting window"), that is `execution.limits.max_ai_credits` (15).
+- **Your own models**: `NamedProviderConfig` ("Multi-provider BYOK configuration
+  is experimental and may change or be removed in future SDK or CLI
+  releases."), that is `inference.providers` (`azure_foundry_byok.py`).
 
 ## Keep it safe
 
@@ -106,9 +111,12 @@ removed in a later release:
 - Exposure, approval and containment are separate layers. A tool allow-list
   doesn't approve calls, and an approved call can still reach too far; examples
   10, 12 and 13 show one layer each.
-- The sandbox runs shell commands; built-in file tools are policy-checked. It
-  doesn't cover remote MCP servers, your own tool handlers or the in-process
-  runtime itself.
+- The sandbox runs shell commands and, by default, the local MCP and language
+  servers a session launches; built-in file tools are checked against its
+  policy, best effort. Remote MCP servers are never sandboxed, because they run
+  elsewhere, but by default the session's traffic to them stays under the
+  sandbox's network policy. Your own tool handlers and the in-process runtime
+  are outside it.
 
 ## Notes for Codespaces
 
@@ -134,8 +142,9 @@ python -m unittest discover -s examples/tests -v
 ```
 
 They need no sign-in, runtime or model. They run every example against a fake
-client and check each option against the SDK 2.0.1 signatures, and they test
-the approval logic of examples 07, 08 and 12 and the session store of 14.
+client and check every option, at every level, against the SDK 2.0.1
+signatures and option types, and they test the approval logic of examples 07,
+08 and 12 and the session store of 14.
 
 ## The October 2026 deck (archived)
 

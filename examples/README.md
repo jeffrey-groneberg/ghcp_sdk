@@ -60,11 +60,13 @@ examples and listens only on 127.0.0.1; to serve other hosts, see
 - **Mode**: `coding-agent` gives one user CLI-like tools; `empty` (examples 10
   and 14) turns off the host's tools and files for multi-user services, and
   each session names the tools it may use.
-- **Tools**: every session sets `tools.available_tools`; `[]` means none.
+- **Tools**: every session except example 03's sets `tools.available_tools`;
+  `[]` means none. Example 03 gives each custom agent its own tool list instead.
 - **Approval**: without `permissions.on_request`, a permission request stays
   pending, so those examples use only tools that need no approval.
-  `PermissionHandler.approve_all` approves everything; it's used only where
-  that's safe.
+  `PermissionHandler.approve_all` approves everything, so the examples use it
+  only with read-only tools, a disposable demo repository, or, in example 13,
+  to show the sandbox.
 - **Cleanup**: leaving `async with CopilotClient(...)` stops the client and
   detaches its sessions. Their journals stay, which is why example 06 can
   resume. Example 14 detaches its session first, because the journal writes

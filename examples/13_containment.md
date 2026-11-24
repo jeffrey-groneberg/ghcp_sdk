@@ -12,6 +12,9 @@ python examples/13_containment.py
 python examples/13_containment.py --no-sandbox    # the control run
 ```
 
+The example uses the `bash` tool, so it needs macOS or Linux; a Codespace
+works.
+
 ## How it works
 
 ```python
@@ -39,9 +42,12 @@ session = await client.create_session(
 
 ## What the sandbox covers
 
-Shell commands run inside it, and built-in file tools are checked against the
-policy (best effort). Remote MCP servers, your own tool handlers and the
-in-process runtime itself are outside it.
+Shell commands run inside it, and by default so do the local MCP and language
+servers the session launches. Built-in file tools are checked against the
+policy, best effort. Remote MCP servers are never sandboxed, because they run
+elsewhere, but by default the session's traffic to them stays under the
+sandbox's network policy (`sandbox_mcp_servers` defaults to true). Your own
+tool handlers and the in-process runtime itself are outside the sandbox.
 
 ## Output from a live run
 

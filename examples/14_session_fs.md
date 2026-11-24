@@ -37,7 +37,8 @@ async with CopilotClient(
   because the last journal writes still go through your provider.
 - Shell tools don't run through `session_fs`. Keep tenants in separate
   namespaces, and reconnect a resumed session to its own.
-- `SessionFSReaddirWithTypesEntry` is experimental in SDK 2.0.1.
+- `SessionFSReaddirWithTypesEntry` and `SessionFSReaddirWithTypesEntryType`
+  (an alias of `DebugCollectLogsEntryKind`) are experimental in SDK 2.0.1.
 
 ## Output from a live run
 

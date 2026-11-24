@@ -32,8 +32,10 @@ await session.rpc.agent.select(AgentSelectRequest(name="fixer"))
 - `session.rpc.agent.select` switches the agent mid-conversation, and the
   history stays. The `AgentApi` group (`session.rpc.agent`) and
   `AgentSelectRequest` are experimental in SDK 2.0.1.
-- `_demo_repo.py` creates the repository in a temporary folder, so
-  `approve_all` can't touch your files. The example prints `git diff` at the end.
+- `_demo_repo.py` creates the repository in a temporary folder, so the fixer
+  edits a disposable copy. `approve_all` approves every request, including edits
+  outside that folder, so keep it to demos. The example prints `git diff` at
+  the end.
 
 ## Output from a live run
 

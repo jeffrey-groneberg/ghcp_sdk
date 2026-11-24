@@ -11,6 +11,9 @@ function that accepts only one exact command.
 python examples/12_approval.py
 ```
 
+The example uses the `bash` tool, so it needs macOS or Linux; a Codespace
+works.
+
 ## How it works
 
 The code from the slide, which the example extends with prints:

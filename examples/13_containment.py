@@ -5,7 +5,8 @@ The permission handler approves every request, so only the sandbox can stop a
 command. The policy denies a disposable vault folder and all network access,
 with no bypass. Add --no-sandbox for the control run, which reads the vault and
 reaches the network. The host, not the model, reports whether the secret reached
-the agent. SandboxConfig and its policy types are experimental in SDK 2.0.1.
+the agent. It uses the bash tool, so it needs macOS or Linux. SandboxConfig and
+its policy types are experimental in SDK 2.0.1.
 
 Run:
     python examples/13_containment.py

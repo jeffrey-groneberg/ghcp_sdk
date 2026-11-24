@@ -4,8 +4,9 @@ Example 12: approval in code, only the exact match is approved (deck slide 32).
 A pre-tool hook sees every tool call first and denies anything on a block list.
 Then on_permission approves one exact command and rejects everything else. Run
 1 shows the hook stopping rm -rf. Run 2 asks for rm -r -f, which the block list
-misses, and the exact match still rejects it. PermissionDecisionApproveOnce and
-PermissionDecisionReject are experimental in SDK 2.0.1.
+misses, and the exact match still rejects it. It uses the bash tool, so it needs
+macOS or Linux. PermissionDecisionApproveOnce and PermissionDecisionReject are
+experimental in SDK 2.0.1.
 
 Run: python examples/12_approval.py
 """
